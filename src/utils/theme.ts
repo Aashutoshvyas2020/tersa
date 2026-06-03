@@ -108,6 +108,113 @@ export const THEME_SETTINGS = ['auto', ...THEME_NAMES] as const
  */
 export type ThemeSetting = (typeof THEME_SETTINGS)[number]
 
+type ThemeFlavor = 'light' | 'dark' | 'ansi'
+
+function applyCaveTheme(theme: Theme, flavor: ThemeFlavor): Theme {
+  if (flavor === 'ansi') {
+    return {
+      ...theme,
+      autoAccept: 'ansi:yellow',
+      bashBorder: 'ansi:yellowBright',
+      claude: 'ansi:yellow',
+      claudeShimmer: 'ansi:whiteBright',
+      claudeBlue_FOR_SYSTEM_SPINNER: 'ansi:yellow',
+      claudeBlueShimmer_FOR_SYSTEM_SPINNER: 'ansi:white',
+      permission: 'ansi:yellow',
+      permissionShimmer: 'ansi:white',
+      planMode: 'ansi:blackBright',
+      ide: 'ansi:yellow',
+      promptBorder: 'ansi:blackBright',
+      promptBorderShimmer: 'ansi:white',
+      text: 'ansi:white',
+      inverseText: 'ansi:black',
+      inactive: 'ansi:blackBright',
+      inactiveShimmer: 'ansi:white',
+      subtle: 'ansi:blackBright',
+      suggestion: 'ansi:yellow',
+      remember: 'ansi:yellowBright',
+      background: 'ansi:black',
+      success: 'ansi:green',
+      error: 'ansi:red',
+      warning: 'ansi:yellow',
+      merged: 'ansi:yellowBright',
+      warningShimmer: 'ansi:whiteBright',
+      diffAdded: 'ansi:green',
+      diffRemoved: 'ansi:red',
+      diffAddedDimmed: 'ansi:green',
+      diffRemovedDimmed: 'ansi:red',
+      diffAddedWord: 'ansi:greenBright',
+      diffRemovedWord: 'ansi:redBright',
+      professionalBlue: 'ansi:yellow',
+      clawd_body: 'ansi:yellow',
+      clawd_background: 'ansi:black',
+      userMessageBackground: 'ansi:blackBright',
+      userMessageBackgroundHover: 'ansi:white',
+      messageActionsBackground: 'ansi:black',
+      selectionBg: 'ansi:yellow',
+      bashMessageBackgroundColor: 'ansi:blackBright',
+      memoryBackgroundColor: 'ansi:black',
+      rate_limit_fill: 'ansi:yellowBright',
+      rate_limit_empty: 'ansi:blackBright',
+      fastMode: 'ansi:yellowBright',
+      fastModeShimmer: 'ansi:whiteBright',
+      briefLabelYou: 'ansi:white',
+      briefLabelClaude: 'ansi:yellow',
+    }
+  }
+
+  const dark = flavor === 'dark'
+  return {
+    ...theme,
+    autoAccept: dark ? 'rgb(82,192,245)' : 'rgb(43,124,214)',
+    bashBorder: dark ? 'rgb(72,162,230)' : 'rgb(37,103,189)',
+    claude: dark ? 'rgb(92,205,255)' : 'rgb(35,140,224)',
+    claudeShimmer: dark ? 'rgb(144,225,255)' : 'rgb(76,176,240)',
+    claudeBlue_FOR_SYSTEM_SPINNER: dark ? 'rgb(92,205,255)' : 'rgb(35,140,224)',
+    claudeBlueShimmer_FOR_SYSTEM_SPINNER: dark ? 'rgb(144,225,255)' : 'rgb(76,176,240)',
+    permission: dark ? 'rgb(96,154,224)' : 'rgb(63,115,184)',
+    permissionShimmer: dark ? 'rgb(138,190,245)' : 'rgb(101,151,214)',
+    planMode: dark ? 'rgb(89,118,176)' : 'rgb(75,103,160)',
+    ide: dark ? 'rgb(96,188,242)' : 'rgb(52,137,214)',
+    promptBorder: dark ? 'rgb(69,97,150)' : 'rgb(116,142,191)',
+    promptBorderShimmer: dark ? 'rgb(100,127,179)' : 'rgb(146,171,214)',
+    text: dark ? 'rgb(226,238,250)' : 'rgb(17,31,51)',
+    inverseText: dark ? 'rgb(9,16,28)' : 'rgb(246,250,255)',
+    inactive: dark ? 'rgb(132,151,184)' : 'rgb(98,118,150)',
+    inactiveShimmer: dark ? 'rgb(165,184,214)' : 'rgb(130,149,181)',
+    subtle: dark ? 'rgb(34,50,77)' : 'rgb(208,221,240)',
+    suggestion: dark ? 'rgb(92,205,255)' : 'rgb(43,124,214)',
+    remember: dark ? 'rgb(128,220,255)' : 'rgb(56,160,235)',
+    background: dark ? 'rgb(8,14,24)' : 'rgb(232,241,252)',
+    success: dark ? 'rgb(96,191,163)' : 'rgb(46,140,118)',
+    error: dark ? 'rgb(218,112,134)' : 'rgb(181,73,98)',
+    warning: dark ? 'rgb(92,205,255)' : 'rgb(35,140,224)',
+    merged: dark ? 'rgb(83,176,237)' : 'rgb(44,125,204)',
+    warningShimmer: dark ? 'rgb(144,225,255)' : 'rgb(76,176,240)',
+    diffAdded: dark ? 'rgb(24,73,84)' : 'rgb(201,240,245)',
+    diffRemoved: dark ? 'rgb(92,43,62)' : 'rgb(242,211,219)',
+    diffAddedDimmed: dark ? 'rgb(18,56,63)' : 'rgb(219,244,247)',
+    diffRemovedDimmed: dark ? 'rgb(72,34,49)' : 'rgb(247,227,232)',
+    diffAddedWord: dark ? 'rgb(96,191,163)' : 'rgb(46,140,118)',
+    diffRemovedWord: dark ? 'rgb(218,112,134)' : 'rgb(181,73,98)',
+    professionalBlue: dark ? 'rgb(96,188,242)' : 'rgb(52,137,214)',
+    clawd_body: dark ? 'rgb(92,205,255)' : 'rgb(35,140,224)',
+    clawd_background: dark ? 'rgb(8,14,24)' : 'rgb(232,241,252)',
+    userMessageBackground: dark ? 'rgb(15,24,38)' : 'rgb(240,246,254)',
+    userMessageBackgroundHover: dark ? 'rgb(22,33,51)' : 'rgb(247,250,255)',
+    messageActionsBackground: dark ? 'rgb(18,28,44)' : 'rgb(227,237,250)',
+    selectionBg: dark ? 'rgb(28,78,125)' : 'rgb(184,220,247)',
+    bashMessageBackgroundColor: dark ? 'rgb(11,19,31)' : 'rgb(245,249,255)',
+    memoryBackgroundColor: dark ? 'rgb(16,26,40)' : 'rgb(236,244,253)',
+    rate_limit_fill: dark ? 'rgb(92,205,255)' : 'rgb(35,140,224)',
+    rate_limit_empty: dark ? 'rgb(39,61,91)' : 'rgb(198,216,240)',
+    fastMode: dark ? 'rgb(96,214,255)' : 'rgb(45,150,232)',
+    fastModeShimmer: dark ? 'rgb(155,229,255)' : 'rgb(88,188,247)',
+    briefLabelYou: dark ? 'rgb(158,189,227)' : 'rgb(73,106,150)',
+    briefLabelClaude: dark ? 'rgb(92,205,255)' : 'rgb(35,140,224)',
+  }
+}
+
 /**
  * Light theme using explicit RGB values to avoid inconsistencies
  * from users' custom terminal ANSI color definitions
@@ -598,17 +705,17 @@ const darkDaltonizedTheme: Theme = {
 export function getTheme(themeName: ThemeName): Theme {
   switch (themeName) {
     case 'light':
-      return lightTheme
+      return applyCaveTheme(lightTheme, 'light')
     case 'light-ansi':
-      return lightAnsiTheme
+      return applyCaveTheme(lightAnsiTheme, 'ansi')
     case 'dark-ansi':
-      return darkAnsiTheme
+      return applyCaveTheme(darkAnsiTheme, 'ansi')
     case 'light-daltonized':
-      return lightDaltonizedTheme
+      return applyCaveTheme(lightDaltonizedTheme, 'light')
     case 'dark-daltonized':
-      return darkDaltonizedTheme
+      return applyCaveTheme(darkDaltonizedTheme, 'dark')
     default:
-      return darkTheme
+      return applyCaveTheme(darkTheme, 'dark')
   }
 }
 

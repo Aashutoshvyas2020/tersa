@@ -96,6 +96,7 @@ import {
   processPreMappedToolResultBlock,
   processToolResultBlock,
 } from '../../utils/toolResultStorage.js'
+import { processCaveToolResult } from '../../utils/caveMode/index.js'
 import {
   extractDiscoveredToolNames,
   isToolSearchEnabledOptimistic,
@@ -322,6 +323,45 @@ function getMcpServerBaseUrlFromToolName(
     return undefined
   }
   return getLoggingSafeMcpBaseUrl(serverConnection.config)
+}
+
+export function getModelFacingToolResult(
+  tool: Pick<Tool, 'name' | 'isMcp'>,
+  input: unknown,
+  result: {
+    data: unknown
+    structured_output?: unknown
+  },
+  toolUseID: string,
+  toolUseContext: ToolUseContext,
+): {
+  output: unknown
+  caveProcessed: ReturnType<typeof processCaveToolResult> | null
+} {
+  const caveProcessed =
+    !isMcpTool(tool) &&
+    result.structured_output === undefined
+      ? processCaveToolResult({
+          toolName: tool.name,
+          input,
+          output: result.data,
+          toolUseId: toolUseID,
+          context: toolUseContext,
+          isError:
+            (tool.name === BASH_TOOL_NAME || tool.name === POWERSHELL_TOOL_NAME) &&
+            !!(
+              result.data &&
+              typeof result.data === 'object' &&
+              'interrupted' in result.data &&
+              result.data.interrupted
+            ),
+        })
+      : null
+
+  return {
+    output: caveProcessed && caveProcessed.changed ? caveProcessed.output : result.data,
+    caveProcessed,
+  }
 }
 
 export async function* runToolUse(
@@ -1281,10 +1321,19 @@ async function checkPermissionsAndCallTool(
       })
     }
 
+    const { output: modelFacingToolResult, caveProcessed } =
+      getModelFacingToolResult(
+        tool,
+        processedInput,
+        result,
+        toolUseID,
+        toolUseContext,
+      )
+
     // Map the tool result to API format once and cache it. This block is reused
     // by addToolResult (skipping the remap) and measured here for analytics.
     const mappedToolResultBlock = tool.mapToolResultToToolResultBlockParam(
-      result.data,
+      modelFacingToolResult,
       toolUseID,
     )
     const mappedContent = mappedToolResultBlock.content
@@ -1349,6 +1398,18 @@ async function checkPermissionsAndCallTool(
       }),
       ...mcpToolDetailsForAnalytics(tool.name, mcpServerType, mcpServerBaseUrl),
     })
+
+    if (caveProcessed) {
+      logEvent('tengu_cave_mode_tool_result', {
+        toolName: sanitizeToolNameForAnalytics(tool.name),
+        changed: caveProcessed.metadata.changed,
+        strategy:
+          caveProcessed.metadata.strategy as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+        originalChars: caveProcessed.metadata.originalChars,
+        compressedChars: caveProcessed.metadata.compressedChars,
+        compressionRatio: caveProcessed.metadata.compressionRatio,
+      })
+    }
 
     // Enrich tool parameters with git commit ID from successful git commit output
     if (
@@ -1454,7 +1515,7 @@ async function checkPermissionsAndCallTool(
 
     // TOOD(hackyon): refactor so we don't have different experiences for MCP tools
     if (!isMcpTool(tool)) {
-      await addToolResult(toolOutput, mappedToolResultBlock)
+      await addToolResult(modelFacingToolResult, mappedToolResultBlock)
     }
 
     const postToolHookInfos: StopHookInfo[] = []

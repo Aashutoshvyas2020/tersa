@@ -75,19 +75,34 @@ export const LOGO_PALETTES = {
     dim: [120, 120, 120],
     border: [95, 95, 95],
   },
+  caveman: {
+    gradient: [
+      [96, 214, 255],
+      [77, 188, 250],
+      [65, 160, 242],
+      [54, 132, 224],
+      [43, 108, 192],
+      [32, 86, 156],
+    ],
+    accent: [92, 205, 255],
+    cream: [198, 224, 242],
+    dim: [111, 129, 158],
+    border: [52, 94, 142],
+  },
 } as const satisfies Record<string, LogoPalette>
 
 export type LogoPaletteName = keyof typeof LOGO_PALETTES
 
 export const LOGO_PALETTE_NAMES = Object.keys(LOGO_PALETTES) as LogoPaletteName[]
 
-export const DEFAULT_LOGO_PALETTE: LogoPaletteName = 'sunset'
+export const DEFAULT_LOGO_PALETTE: LogoPaletteName = 'caveman'
 
 export const LOGO_PALETTE_LABELS: Record<LogoPaletteName, string> = {
   sunset: 'Sunset (default)',
   forest: 'Forest green',
   ocean: 'Ocean blue',
   monochrome: 'Monochrome',
+  caveman: 'Caveman blue',
 }
 
 export function isLogoPaletteName(value: unknown): value is LogoPaletteName {

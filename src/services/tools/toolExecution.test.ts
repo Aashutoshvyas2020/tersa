@@ -1,10 +1,14 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, mock, test } from 'bun:test'
 
+import { createFileStateCacheWithSizeLimit } from '../../utils/fileStateCache.js'
+import { createAssistantMessage } from '../../utils/messages.js'
+import type { ToolUseContext } from '../../Tool.js'
 import { SkillTool } from '../../tools/SkillTool/SkillTool.js'
 import { AskUserQuestionTool } from '../../tools/AskUserQuestionTool/AskUserQuestionTool.js'
 import {
   getSchemaValidationErrorOverride,
   getSchemaValidationToolUseResult,
+  getModelFacingToolResult,
   normalizeToolInputForValidation,
 } from './toolExecution.js'
 
@@ -137,3 +141,78 @@ describe('normalizeToolInputForValidation', () => {
     expect(normalizeToolInputForValidation({ name: 'Read' } as never, input)).toBe(input)
   })
 })
+
+describe('getModelFacingToolResult cave mode integration', () => {
+  test('compresses tool output before mapper stage', () => {
+    const context = createToolUseContext([])
+    const result = getModelFacingToolResult(
+      { name: 'Bash', isMcp: false } as never,
+      { command: 'cat huge.log' },
+      {
+        data: {
+          stdout: Array.from({ length: 100 }, (_, i) => `line ${i + 1}`).join('\n'),
+          stderr: '',
+          interrupted: false,
+        },
+      },
+      'tool-1',
+      context,
+    )
+
+    expect(result.caveProcessed?.changed).toBe(true)
+    expect(result.caveProcessed?.metadata.strategy).toBe('budget')
+    expect(result.output).toEqual({
+      stdout: expect.stringContaining('...[20 lines omitted]...'),
+      stderr: '',
+      interrupted: false,
+    })
+    expect((result.output as { stdout: string }).stdout).toContain('line 1')
+    expect((result.output as { stdout: string }).stdout).toContain('line 100')
+    expect((result.output as { stdout: string }).stdout).not.toContain('line 60')
+  })
+})
+
+function createToolUseContext(tools: unknown[]): ToolUseContext {
+  const appState = {
+    toolPermissionContext: {
+      mode: 'default',
+      additionalWorkingDirectories: new Map<string, string>(),
+      alwaysAllowRules: {},
+      alwaysDenyRules: {},
+      alwaysAskRules: {},
+      isBypassPermissionsModeAvailable: false,
+    },
+    mcp: {
+      clients: [],
+      tools: [],
+    },
+    todos: {},
+  }
+
+  return {
+    options: {
+      commands: [],
+      debug: false,
+      mainLoopModel: 'test-model',
+      tools: tools as never,
+      verbose: false,
+      thinkingConfig: { type: 'disabled' },
+      mcpClients: [],
+      mcpResources: {},
+      isNonInteractiveSession: false,
+      agentDefinitions: {
+        activeAgents: [],
+        allAgents: [],
+      },
+    },
+    abortController: new AbortController(),
+    readFileState: createFileStateCacheWithSizeLimit(32),
+    messages: [],
+    getAppState: () => appState as never,
+    setAppState: () => {},
+    setInProgressToolUseIDs: () => {},
+    setResponseLength: () => {},
+    updateFileHistoryState: () => {},
+    updateAttributionState: () => {},
+  } as unknown as ToolUseContext
+}

@@ -448,6 +448,19 @@ export const SettingsSchema = lazySchema(() =>
           'Auto-fix configuration: automatically run lint/test after AI file edits ' +
           'and feed errors back for self-repair.',
         ),
+      caveMode: z
+        .object({
+          enabled: z.boolean().optional(),
+          toolCompression: z.boolean().optional(),
+          structuredCompression: z.boolean().optional(),
+          readDeduplication: z.boolean().optional(),
+          mlCompression: z.boolean().optional(),
+          intensity: z.enum(['off', 'light', 'full']).optional(),
+        })
+        .optional()
+        .describe(
+          'Cave Mode compression for tool outputs before they enter model-facing context.',
+        ),
       worktree: z
         .object({
           symlinkDirectories: z

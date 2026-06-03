@@ -21,6 +21,7 @@ import {
   resolveLogoPalette,
   type RGB,
 } from './StartupScreen.palettes.js'
+import { CAVEMAN_COMPACT_ROCK } from './LogoV2/cavemanBrand.js'
 
 declare const MACRO: { VERSION: string; DISPLAY_VERSION?: string }
 
@@ -206,8 +207,15 @@ export function printStartupScreen(modelOverride?: string): void {
 
   out.push('')
 
+  for (const [index, line] of CAVEMAN_COMPACT_ROCK.entries()) {
+    const color =
+      index === 2 ? ACCENT : index === 3 ? CREAM : BORDER
+    out.push(`  ${ansiRgb(...color)}${line}${RESET}`)
+  }
+
   // Tagline
-  out.push(`  ${ansiRgb(...ACCENT)}\u2726${RESET} ${ansiRgb(...CREAM)}Any model. Every tool. Zero limits.${RESET} ${ansiRgb(...ACCENT)}\u2726${RESET}`)
+  out.push('')
+  out.push(`  ${ansiRgb(...ACCENT)}\u2726${RESET} ${ansiRgb(...CREAM)}Any model. Every tool. Sharp context.${RESET} ${ansiRgb(...ACCENT)}\u2726${RESET}`)
   out.push('')
 
   // Provider info box
