@@ -152,11 +152,11 @@ export function ListItem(t0) {
       if (!styled) {
         return;
       }
-      if (isSelected) {
-        return "success";
-      }
       if (isFocused) {
-        return "suggestion";
+        return "text";
+      }
+      if (isSelected) {
+        return "claude";
       }
     };
     t5 = getTextColor();
@@ -193,7 +193,7 @@ export function ListItem(t0) {
   }
   let t9;
   if ($[14] !== children || $[15] !== disabled || $[16] !== styled || $[17] !== textColor) {
-    t9 = styled ? <Text color={textColor} dimColor={disabled}>{children}</Text> : children;
+    t9 = styled ? <Text color={textColor} dimColor={disabled} bold={isFocused && !disabled}>{children}</Text> : children;
     $[14] = children;
     $[15] = disabled;
     $[16] = styled;
@@ -213,7 +213,7 @@ export function ListItem(t0) {
   }
   let t11;
   if ($[22] !== t10 || $[23] !== t8 || $[24] !== t9) {
-    t11 = <Box flexDirection="row" gap={1}>{t8}{t9}{t10}</Box>;
+    t11 = <Box flexDirection="row" gap={1} backgroundColor={isFocused && !disabled ? "messageActionsBackground" : undefined}>{t8}{t9}{t10}</Box>;
     $[22] = t10;
     $[23] = t8;
     $[24] = t9;
@@ -223,7 +223,7 @@ export function ListItem(t0) {
   }
   let t12;
   if ($[26] !== description) {
-    t12 = description && <Box paddingLeft={2}><Text color="inactive">{description}</Text></Box>;
+    t12 = description && <Box paddingLeft={2} backgroundColor={isFocused && !disabled ? "messageActionsBackground" : undefined}><Text color={isFocused && !disabled ? "text" : "inactive"}>{description}</Text></Box>;
     $[26] = description;
     $[27] = t12;
   } else {

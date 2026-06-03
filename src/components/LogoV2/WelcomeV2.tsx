@@ -9,20 +9,18 @@ export function WelcomeV2() {
   return (
     <Box width={CAVEMAN_WELCOME_WIDTH} flexDirection="column">
       <Text>
-        <Text color="claude">Welcome to OpenClaude </Text>
+        <Text color="claude">Welcome to Caveman </Text>
         <Text dimColor>v{MACRO.DISPLAY_VERSION ?? MACRO.VERSION}</Text>
       </Text>
       {CAVEMAN_ROCK_LINES.map((line, index) => (
         <Text
           key={index}
           color={
-            line.includes('🪨')
+            index <= 1
               ? 'fastMode'
-              : line.includes('OPENCLAUDE')
+              : line.includes('██')
                 ? 'clawd_body'
-                : index > 6
-                  ? 'inactive'
-                  : 'promptBorder'
+                : 'promptBorder'
           }
         >
           {line}

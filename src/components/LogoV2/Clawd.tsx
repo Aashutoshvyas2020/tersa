@@ -14,9 +14,7 @@ export function Clawd(_props: Props) {
       {CAVEMAN_COMPACT_ROCK.map((line, index) => (
         <Text
           key={index}
-          color={
-            index === 2 ? 'clawd_body' : index === 3 ? 'warning' : 'promptBorder'
-          }
+          color={index >= 2 && index <= 3 ? 'clawd_body' : 'claude'}
         >
           {line}
         </Text>
