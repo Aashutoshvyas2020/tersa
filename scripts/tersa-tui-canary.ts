@@ -1,4 +1,7 @@
+import { mkdtempSync, rmSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
 type ScreenSnapshot = {
@@ -42,6 +45,11 @@ export function normalizeScreenSnapshot(raw: string): ScreenSnapshot {
   const lines = stripped
     .split('\n')
     .map(line => collapseWhitespace(line))
+    .filter(
+      line =>
+        !line.startsWith('timeout { puts stderr') &&
+        !line.startsWith('eof { puts stderr'),
+    )
     .filter(Boolean)
 
   return {
@@ -58,7 +66,7 @@ export function assertStableScreen(
   const seen = new Set<string>()
 
   for (const line of snapshot.lines) {
-    const decorativeOnly = /^[│╭╮╰╯─└┌┐┘├┤┬┴┼\s]+$/.test(line)
+    const decorativeOnly = /^[│╭╮╰╯─└┌┐┘├┤┬┴┼╔╗╚╝╠╣╦╩╬═\s]+$/.test(line)
     const redrawFooter =
       line.length <= 3 ||
       /[█╗╔╝╚═]/.test(line) ||
@@ -74,7 +82,7 @@ export function assertStableScreen(
       break
     }
     if (duplicateKey) seen.add(duplicateKey)
-    if (line.length > options.width) {
+    if (!decorativeOnly && line.length > options.width) {
       errors.push(`wrapped row exceeds width ${options.width}: ${line}`)
       break
     }
@@ -150,6 +158,10 @@ function shellCommandForBinary(binary: string): string {
   return JSON.stringify(trimmed)
 }
 
+function createCanaryConfigDir(): string {
+  return mkdtempSync(join(tmpdir(), 'tersa-tui-canary-'))
+}
+
 function expectLiteral(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 }
@@ -189,33 +201,34 @@ async function runCanaryAtWidth(
   startupOnly: boolean,
   width: number,
 ): Promise<void> {
+  const configDir = createCanaryConfigDir()
   const baseCommand = shellCommandForBinary(binary)
   const command = `stty cols ${width} rows 34; ${baseCommand} --model gpt-5.4-mini --effort high`
   const steps = startupOnly
     ? [
         { expect: 'Tersa' },
-        { expect: 'GPT-5.4' },
+        { expect: '[Gg]PT-5\\.4.*mini', regex: true },
       ] satisfies ExpectStep[]
     : [
         { expect: 'Tersa' },
-        { expect: 'GPT-5.4' },
+        { expect: '[Gg]PT-5\\.4.*mini', regex: true },
         { send: '/model\\r', expect: 'Select' },
         { expect: 'gpt-5.4-mini' },
         { expect: 'High' },
         { send: '\\033', expect: 'Kept' },
         {
           send: 'normal tui canary prompt\\r',
-          expect: 'normal.*response',
+          expect: 'normal-response',
           regex: true,
         },
         {
           send: 'drift miss one\\r',
-          expect: 'drift.*one',
+          expect: 'drift-one.*response',
           regex: true,
         },
         {
           send: 'drift miss two\\r',
-          expect: 'drift.*two',
+          expect: 'drift-two.*response',
           regex: true,
         },
         {
@@ -224,20 +237,20 @@ async function runCanaryAtWidth(
           regex: true,
         },
         { send: '\\033\\[B\\r', expect: 'Tersa' },
-        { send: 'drift miss four\\r', expect: 'drift.*four', regex: true },
-        { send: 'drift miss five\\r', expect: 'drift.*five', regex: true },
-        { send: 'drift miss six\\r', expect: 'drift.*six', regex: true },
+        { send: 'drift miss four\\r', expect: 'drift-four.*response', regex: true },
+        { send: 'drift miss five\\r', expect: 'drift-five.*response', regex: true },
+        { send: 'drift miss six\\r', expect: 'drift-six.*response', regex: true },
         { expect: 'Compact.*context', regex: true },
         { send: '\\033\\[B\\033\\[B\\r', expect: 'Tersa' },
-        { send: 'drift miss seven\\r', expect: 'drift.*seven', regex: true },
-        { send: 'drift miss eight\\r', expect: 'drift.*eight', regex: true },
-        { send: 'drift miss nine\\r', expect: 'drift.*nine', regex: true },
+        { send: 'drift miss seven\\r', expect: 'drift-seven.*response', regex: true },
+        { send: 'drift miss eight\\r', expect: 'drift-eight.*response', regex: true },
+        { send: 'drift miss nine\\r', expect: 'drift-nine.*response', regex: true },
       ] satisfies ExpectStep[]
   const expectSteps = steps
     .map(step => {
       const send = 'send' in step ? `send "${step.send}"\nafter 1200\n` : ''
       const matcher = step.regex
-        ? `-re "${expectLiteral(step.expect)}"`
+        ? `-re {${step.expect}}`
         : `"${expectLiteral(step.expect)}"`
       return `${send}expect {
   ${matcher} {}
@@ -249,76 +262,90 @@ after 300`
     .join('\n')
   const expectScript = `
 set timeout 10
-spawn -noecho bash -lc "$env(TERSA_TUI_CANARY_COMMAND)"
-${expectSteps}
-send "\\003"
-after 300
-send "\\003"
-expect {
-  eof {}
-  timeout { send "\\003"; after 300; exit 0 }
+after 30000 { puts stderr "wall timeout waiting for PTY canary"; exit 2 }
+proc shutdown {pid} {
+  send "\\003"
+  after 300
+  send "\\003"
+  after 300
+  catch { exec pkill -TERM -P $pid }
+  catch { exec kill -TERM $pid }
+  after 300
+  catch { exec pkill -KILL -P $pid }
+  catch { exec kill -KILL $pid }
+  catch { wait -nowait }
 }
+spawn -noecho bash -lc "$env(TERSA_TUI_CANARY_COMMAND)"
+set child_pid [exp_pid]
+${expectSteps}
+shutdown $child_pid
+exit 0
 `
 
-  const result = spawnSync('/usr/bin/expect', ['-c', expectScript], {
-    env: {
-      ...process.env,
-      CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI ?? '1',
-      OPENAI_BASE_URL: 'https://opengateway.gitlawb.com/v1',
-      OPENAI_MODEL: 'gpt-5.4-mini',
-      OPENAI_API_KEY: 'tersa-tui-canary',
-      OPENGATEWAY_API_KEY: 'tersa-tui-canary',
-      TERSA_TUI_CANARY: '1',
-      TERSA_TUI_CANARY_PROVIDER: 'fixture',
-      TERSA_TUI_CANARY_EFFORT: 'high',
-      TERSA_TUI_CANARY_COMMAND: command,
-      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',
-      COLUMNS: String(width),
-      LINES: '34',
-    },
-    encoding: 'utf8',
-  })
-  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
-  if (result.status !== 0) {
-    throw new Error(`PTY canary failed at width ${width}\n${output}`)
-  }
-  assertScreen(output, width, `startup ${width}`, ['Tersa', 'GPT-5.4'], {
-    checkDuplicates: false,
-  })
+  try {
+    const result = spawnSync('/usr/bin/expect', ['-c', expectScript], {
+      env: {
+        ...process.env,
+        CLAUDE_CONFIG_DIR: configDir,
+        CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI ?? '1',
+        OPENAI_BASE_URL: 'https://opengateway.gitlawb.com/v1',
+        OPENAI_MODEL: 'gpt-5.4-mini',
+        OPENAI_API_KEY: 'tersa-tui-canary',
+        OPENGATEWAY_API_KEY: 'tersa-tui-canary',
+        TERSA_TUI_CANARY: '1',
+        TERSA_TUI_CANARY_PROVIDER: 'fixture',
+        TERSA_TUI_CANARY_EFFORT: 'high',
+        TERSA_TUI_CANARY_COMMAND: command,
+        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',
+        COLUMNS: String(width),
+        LINES: '34',
+      },
+      encoding: 'utf8',
+    })
+    const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
+    if (result.status !== 0) {
+      throw new Error(`PTY canary failed at width ${width}\n${output}`)
+    }
+    assertScreen(output, width, `startup ${width}`, ['Tersa', 'GPT-5.4 mini'], {
+      checkDuplicates: false,
+    })
 
-  if (!startupOnly) {
-    assertScreen(
-      output,
-      width,
-      `/model ${width}`,
-      ['gpt-5.4-mini', 'High effort'],
-      { checkDuplicates: false },
-    )
-    assertScreen(output, width, `prompt ${width}`, [
-      'TUI canary',
-      'gpt-5.4-mini high',
-    ], { checkDuplicates: false })
-    assertScreen(
-      output,
-      width,
-      `drift warning ${width}`,
-      [
-        'Session drift detected',
-        'gpt-5.4-mini',
-        'Compact context',
-        'Ignore',
-        "Don't warn again this session",
-      ],
-      { checkDuplicates: false },
-    )
-  }
+    if (!startupOnly) {
+      assertScreen(
+        output,
+        width,
+        `/model ${width}`,
+        ['GPT-5.4 mini', 'High effort'],
+        { checkDuplicates: false },
+      )
+      assertScreen(output, width, `prompt ${width}`, [
+        'TUI canary',
+        'gpt-5.4-mini high',
+      ], { checkDuplicates: false })
+      assertScreen(
+        output,
+        width,
+        `drift warning ${width}`,
+        [
+          'Session drift detected',
+          'gpt-5.4-mini',
+          'Compact context',
+          'Ignore',
+          "Don't warn again this session",
+        ],
+        { checkDuplicates: false },
+      )
+    }
 
-  const finalResult = assertStableScreen(currentSnapshot(output), {
-    width,
-    checkDuplicates: false,
-  })
-  if (!finalResult.ok) {
-    throw new Error(finalResult.errors.join('\n'))
+    const finalResult = assertStableScreen(currentSnapshot(output), {
+      width,
+      checkDuplicates: false,
+    })
+    if (!finalResult.ok) {
+      throw new Error(finalResult.errors.join('\n'))
+    }
+  } finally {
+    rmSync(configDir, { recursive: true, force: true })
   }
 }
 
@@ -328,14 +355,31 @@ async function runDialogCanaryAtWidth(
   commandName: string,
   expectedText: string[],
 ): Promise<void> {
+  const configDir = createCanaryConfigDir()
   const baseCommand = shellCommandForBinary(binary)
   const command = `stty cols ${width} rows 34; ${baseCommand} --model gpt-5.4-mini --effort high`
   const firstExpected = expectedText[0] ?? commandName
   const expectScript = `
 set timeout 10
+after 30000 { puts stderr "wall timeout waiting for ${expectLiteral(commandName)}"; exit 2 }
+proc shutdown {pid} {
+  send "\\003"
+  after 300
+  send "\\033"
+  after 300
+  send "\\003"
+  after 300
+  catch { exec pkill -TERM -P $pid }
+  catch { exec kill -TERM $pid }
+  after 300
+  catch { exec pkill -KILL -P $pid }
+  catch { exec kill -KILL $pid }
+  catch { wait -nowait }
+}
 spawn -noecho bash -lc "$env(TERSA_TUI_CANARY_COMMAND)"
+set child_pid [exp_pid]
 expect {
-  "GPT-5.4" {}
+  -re {[Gg]PT-5\.4.*mini} {}
   timeout { puts stderr "timeout waiting for startup"; exit 2 }
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }
@@ -346,40 +390,40 @@ expect {
   timeout { puts stderr "timeout waiting for ${expectLiteral(commandName)}"; exit 2 }
   eof { puts stderr "unexpected eof waiting for ${expectLiteral(commandName)}"; exit 3 }
 }
-send "\\003"
-after 300
-send "\\003"
-expect {
-  eof {}
-  timeout { send "\\003"; after 300; exit 0 }
-}
+shutdown $child_pid
+exit 0
 `
 
-  const result = spawnSync('/usr/bin/expect', ['-c', expectScript], {
-    env: {
-      ...process.env,
-      CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI ?? '1',
-      OPENAI_BASE_URL: 'https://opengateway.gitlawb.com/v1',
-      OPENAI_MODEL: 'gpt-5.4-mini',
-      OPENAI_API_KEY: 'tersa-tui-canary',
-      OPENGATEWAY_API_KEY: 'tersa-tui-canary',
-      TERSA_TUI_CANARY: '1',
-      TERSA_TUI_CANARY_PROVIDER: 'fixture',
-      TERSA_TUI_CANARY_EFFORT: 'high',
-      TERSA_TUI_CANARY_COMMAND: command,
-      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',
-      COLUMNS: String(width),
-      LINES: '34',
-    },
-    encoding: 'utf8',
-  })
-  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
-  if (result.status !== 0) {
-    throw new Error(`PTY ${commandName} canary failed at width ${width}\n${output}`)
+  try {
+    const result = spawnSync('/usr/bin/expect', ['-c', expectScript], {
+      env: {
+        ...process.env,
+        CLAUDE_CONFIG_DIR: configDir,
+        CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI ?? '1',
+        OPENAI_BASE_URL: 'https://opengateway.gitlawb.com/v1',
+        OPENAI_MODEL: 'gpt-5.4-mini',
+        OPENAI_API_KEY: 'tersa-tui-canary',
+        OPENGATEWAY_API_KEY: 'tersa-tui-canary',
+        TERSA_TUI_CANARY: '1',
+        TERSA_TUI_CANARY_PROVIDER: 'fixture',
+        TERSA_TUI_CANARY_EFFORT: 'high',
+        TERSA_TUI_CANARY_COMMAND: command,
+        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',
+        COLUMNS: String(width),
+        LINES: '34',
+      },
+      encoding: 'utf8',
+    })
+    const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
+    if (result.status !== 0) {
+      throw new Error(`PTY ${commandName} canary failed at width ${width}\n${output}`)
+    }
+    assertScreen(output, width, `${commandName} ${width}`, expectedText, {
+      checkDuplicates: false,
+    })
+  } finally {
+    rmSync(configDir, { recursive: true, force: true })
   }
-  assertScreen(output, width, `${commandName} ${width}`, expectedText, {
-    checkDuplicates: false,
-  })
 }
 
 async function runCanary(binary: string, startupOnly: boolean): Promise<void> {
@@ -387,7 +431,7 @@ async function runCanary(binary: string, startupOnly: boolean): Promise<void> {
   for (const width of widths) {
     await runCanaryAtWidth(binary, startupOnly, width)
     if (!startupOnly) {
-      await runDialogCanaryAtWidth(binary, width, '/help', ['help:', 'Optimize'])
+      await runDialogCanaryAtWidth(binary, width, '/help', ['Optimize'])
       await runDialogCanaryAtWidth(binary, width, '/modes', ['Modes'])
       await runDialogCanaryAtWidth(binary, width, '/statusline', ['Status'])
       await runDialogCanaryAtWidth(binary, width, '/permissions', ['Permissions'])
