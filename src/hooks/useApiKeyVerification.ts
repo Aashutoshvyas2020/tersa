@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getIsNonInteractiveSession } from '../bootstrap/state.js'
-import { verifyApiKey } from '../services/api/claude.js'
+import { verifyApiKey } from '../services/api/tersaAnthropicApi.js'
 import {
   getAnthropicApiKeyWithSource,
   getApiKeyFromApiKeyHelper,

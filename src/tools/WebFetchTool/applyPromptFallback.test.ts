@@ -6,15 +6,15 @@ import {
 
 // Mock the Anthropic-API-side before importing the module under test, so
 // queryHaiku resolves into whatever the individual test wants (slow, failing,
-// or successful). We preserve every other export from claude.js so unrelated
+// or successful). We preserve every other export from tersaAnthropicApi.js so unrelated
 // transitive imports still work.
 const haikuMock = mock()
 
 beforeEach(async () => {
   await acquireSharedMutationLock('tools/WebFetchTool/applyPromptFallback.test.ts')
   haikuMock.mockReset()
-  const actual = await import('../../services/api/claude.js')
-  mock.module('../../services/api/claude.js', () => ({
+  const actual = await import('../../services/api/tersaAnthropicApi.js')
+  mock.module('../../services/api/tersaAnthropicApi.js', () => ({
     ...actual,
     queryHaiku: haikuMock,
   }))

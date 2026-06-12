@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test'
 import { acquireSharedMutationLock, releaseSharedMutationLock } from '../test/sharedMutationLock.js'
 
-import { getMaxOutputTokensForModel } from '../services/api/claude.ts'
+import { getMaxOutputTokensForModel } from '../services/api/tersaAnthropicApi.ts'
 import { resolveOpenAIShimRuntimeContext } from '../integrations/runtimeMetadata.ts'
 import {
   getContextWindowForModel,

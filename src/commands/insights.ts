@@ -9,7 +9,7 @@ import {
 } from 'fs/promises'
 import { extname, join } from 'path'
 import type { Command } from '../commands.js'
-import { queryWithModel } from '../services/api/claude.js'
+import { queryWithModel } from '../services/api/tersaAnthropicApi.js'
 import {
   AGENT_TOOL_NAME,
   LEGACY_AGENT_TOOL_NAME,
