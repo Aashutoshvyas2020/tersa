@@ -162,7 +162,7 @@ import { peekForStdinData, writeToStderr } from 'src/utils/process.js';
 import { setCwd } from 'src/utils/Shell.js';
 import { type ProcessedResume, processResumedConversation } from 'src/utils/sessionRestore.js';
 import { plural } from 'src/utils/stringUtils.js';
-import { type ChannelEntry, getInitialMainLoopModel, getIsNonInteractiveSession, getSdkBetas, getSessionId, getUserMsgOptIn, setAllowedChannels, setClientType, setCwdState, setDirectConnectServerUrl, setInitialMainLoopModel, setInlinePlugins, setIsInteractive, setKairosActive, setOriginalCwd, setQuestionPreviewFormat, setSdkBetas, setSessionBypassPermissionsMode, setSessionDangerousPermissionMode, setSessionPersistenceDisabled, setSessionSource, setUserMsgOptIn, switchSession } from './bootstrap/state.js';
+import { type ChannelEntry, getInitialMainLoopModel, getIsNonInteractiveSession, getSdkBetas, getSessionId, getUserMsgOptIn, setAllowedChannels, setClientType, setCwdState, setInitialMainLoopModel, setInlinePlugins, setIsInteractive, setKairosActive, setOriginalCwd, setQuestionPreviewFormat, setSdkBetas, setSessionBypassPermissionsMode, setSessionDangerousPermissionMode, setSessionPersistenceDisabled, setSessionSource, setUserMsgOptIn, switchSession } from './bootstrap/state.js';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const autoModeStateModule = feature('TRANSCRIPT_CLASSIFIER') ? require('./utils/permissions/autoModeState.js') as typeof import('./utils/permissions/autoModeState.js') : null;
@@ -182,7 +182,6 @@ import { resetProToOpusDefault } from './migrations/resetProToOpusDefault.js';
 import { createRemoteSessionConfig } from './remote/RemoteSessionManager.js';
 /* eslint-enable @typescript-eslint/no-require-imports */
 // teleportWithProgress dynamically imported at call site
-import { createDirectConnectSession, DirectConnectError } from './server/createDirectConnectSession.js';
 import { initializeLspServerManager } from './services/lsp/manager.js';
 import { shouldEnablePromptSuggestion } from './services/PromptSuggestion/promptSuggestion.js';
 import { type AppState, getDefaultAppState, IDLE_SPECULATION_STATE } from './state/AppStateStore.js';
@@ -260,7 +259,7 @@ function isBeingDebugged() {
 }
 
 // Exit if we detect node debugging or inspection
-if ("external" !== 'ant' && isBeingDebugged()) {
+if (process.env.USER_TYPE !== 'ant' && isBeingDebugged()) {
   // Use process.exit directly here since we're in the top-level code before imports
   // and gracefulShutdown is not yet available
   // eslint-disable-next-line custom-rules/no-top-level-side-effects
@@ -334,7 +333,7 @@ function runMigrations(): void {
     if (feature('TRANSCRIPT_CLASSIFIER')) {
       resetAutoModeOptInForDefaultOffer();
     }
-    if ("external" === 'ant') {
+    if (process.env.USER_TYPE === 'ant') {
       migrateFennecToOpus();
     }
     saveGlobalConfig(prev => prev.migrationVersion === CURRENT_MIGRATION_VERSION ? prev : {
@@ -426,7 +425,7 @@ export function startDeferredPrefetches(): void {
   }
 
   // Event loop stall detector — logs when the main thread is blocked >500ms
-  if ("external" === 'ant') {
+  if (process.env.USER_TYPE === 'ant') {
     void import('./utils/eventLoopStallDetector.js').then(m => m.startEventLoopStallDetector());
   }
 }
@@ -546,33 +545,6 @@ export async function main() {
     process.exit(0);
   });
   profileCheckpoint('main_warning_handler_initialized');
-
-  // Check for cc:// or cc+unix:// URL in argv — rewrite so the main command
-  // handles it, giving the full interactive TUI instead of a stripped-down subcommand.
-  // For headless (-p), we rewrite to the internal `open` subcommand.
-  if (feature('DIRECT_CONNECT')) {
-    const rawCliArgs = process.argv.slice(2);
-    const ccIdx = rawCliArgs.findIndex(a => a.startsWith('cc://') || a.startsWith('cc+unix://'));
-    if (ccIdx !== -1 && _pendingConnect) {
-      const ccUrl = rawCliArgs[ccIdx]!;
-      const {
-        parseConnectUrl
-      } = await import('./server/parseConnectUrl.js');
-      const parsed = parseConnectUrl(ccUrl);
-      _pendingConnect.dangerouslySkipPermissions = hasYoloFlag(rawCliArgs);
-      if (rawCliArgs.includes('-p') || rawCliArgs.includes('--print')) {
-        // Headless: rewrite to internal `open` subcommand
-        const stripped = stripYoloFlags(rawCliArgs.filter((_, i) => i !== ccIdx));
-        process.argv = [process.argv[0]!, process.argv[1]!, 'open', ccUrl, ...stripped];
-      } else {
-        // Interactive: strip cc:// URL and flags, run main command
-        _pendingConnect.url = parsed.serverUrl;
-        _pendingConnect.authToken = parsed.authToken;
-        const stripped = stripYoloFlags(rawCliArgs.filter((_, i) => i !== ccIdx));
-        process.argv = [process.argv[0]!, process.argv[1]!, ...stripped];
-      }
-    }
-  }
 
   // Handle deep link URIs early — this is invoked by the OS protocol handler
   // and should bail out before full init since it only needs to parse the URI
@@ -1064,11 +1036,11 @@ async function run(): Promise<CommanderCommand> {
     const disableSlashCommands = options.disableSlashCommands || false;
 
     // Extract tasks mode options (internal-only)
-    const tasksOption = "external" === 'ant' && (options as {
+    const tasksOption = process.env.USER_TYPE === 'ant' && (options as {
       tasks?: boolean | string;
     }).tasks;
     const taskListId = tasksOption ? typeof tasksOption === 'string' ? tasksOption : DEFAULT_TASKS_MODE_TASK_LIST_ID : undefined;
-    if ("external" === 'ant' && taskListId) {
+    if (process.env.USER_TYPE === 'ant' && taskListId) {
       process.env.CLAUDE_CODE_TASK_LIST_ID = taskListId;
     }
 
@@ -1635,7 +1607,7 @@ async function run(): Promise<CommanderCommand> {
     } = initResult;
 
     // Handle overly broad shell allow rules for ant users (Bash(*), PowerShell(*))
-    if ("external" === 'ant' && overlyBroadBashPermissions.length > 0) {
+    if (process.env.USER_TYPE === 'ant' && overlyBroadBashPermissions.length > 0) {
       for (const permission of overlyBroadBashPermissions) {
         logForDebugging(`Ignoring overly broad shell permission ${permission.ruleDisplay} from ${permission.sourceDisplay}`);
       }
@@ -1885,7 +1857,7 @@ async function run(): Promise<CommanderCommand> {
     //  - no env override (which short-circuits _CACHED_MAY_BE_STALE before disk)
     //  - flag absent from disk (== null also catches pre-#22279 poisoned null)
     const explicitModel = options.model || process.env.ANTHROPIC_MODEL;
-    if ("external" === 'ant' && explicitModel && explicitModel !== 'default' && !hasGrowthBookEnvOverride('tengu_ant_model_override') && getGlobalConfig().cachedGrowthBookFeatures?.['tengu_ant_model_override'] == null) {
+    if (process.env.USER_TYPE === 'ant' && explicitModel && explicitModel !== 'default' && !hasGrowthBookEnvOverride('tengu_ant_model_override') && getGlobalConfig().cachedGrowthBookFeatures?.['tengu_ant_model_override'] == null) {
       await initializeGrowthBook();
     }
 
@@ -2033,7 +2005,7 @@ async function run(): Promise<CommanderCommand> {
         // Log agent memory loaded event for tmux teammates
         if (customAgent.memory) {
           logEvent('tengu_agent_memory_loaded', {
-            ...("external" === 'ant' && {
+            ...(process.env.USER_TYPE === 'ant' && {
               agent_type: customAgent.agentType as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
             }),
             scope: customAgent.memory as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
@@ -2097,7 +2069,7 @@ async function run(): Promise<CommanderCommand> {
       getFpsMetrics = ctx.getFpsMetrics;
       stats = ctx.stats;
       // Install asciicast recorder before Ink mounts (internal-only, opt-in via CLAUDE_CODE_TERMINAL_RECORDING=1)
-      if ("external" === 'ant') {
+      if (process.env.USER_TYPE === 'ant') {
         installAsciicastRecorder();
       }
       const {
@@ -2693,7 +2665,7 @@ async function run(): Promise<CommanderCommand> {
       if (!isBareMode()) {
         startDeferredPrefetches();
         void import('./utils/backgroundHousekeeping.js').then(m => m.startBackgroundHousekeeping());
-        if ("external" === 'ant') {
+        if (process.env.USER_TYPE === 'ant') {
           void import('./utils/sdkHeapDumpMonitor.js').then(m => m.startSdkMemoryMonitor());
         }
       }
@@ -2930,21 +2902,6 @@ async function run(): Promise<CommanderCommand> {
       logSessionTelemetry();
     });
 
-    // Set up per-turn session environment data uploader (internal-only build).
-    // Default-enabled for all ant users when working in an Anthropic-owned
-    // repo. Captures git/filesystem state (NOT transcripts) at each turn so
-    // environments can be recreated at any user message index. Gating:
-    //   - Build-time: this import is stubbed in external builds.
-    //   - Runtime: uploader checks github.com/anthropics/* remote + gcloud auth.
-    //   - Safety: CLAUDE_CODE_DISABLE_SESSION_DATA_UPLOAD=1 bypasses (tests set this).
-    // Import is dynamic + async to avoid adding startup latency.
-    const sessionUploaderPromise = "external" === 'ant' ? import('./utils/sessionDataUploader.js') : null;
-
-    // Defer session uploader resolution to the onTurnComplete callback to avoid
-    // adding a new top-level await in main.tsx (performance-critical path).
-    // The per-turn auth logic in sessionDataUploader.ts handles unauthenticated
-    // state gracefully (re-checks each turn, so auth recovery mid-session works).
-    const uploaderReady = sessionUploaderPromise ? sessionUploaderPromise.then(mod => mod.createSessionTurnUploader()).catch(() => null) : null;
     const sessionConfig = {
       debug: debug || debugToStderr,
       commands: [...commands, ...mcpCommands],
@@ -2960,12 +2917,7 @@ async function run(): Promise<CommanderCommand> {
       systemPrompt,
       appendSystemPrompt,
       taskListId,
-      thinkingConfig,
-      ...(uploaderReady && {
-        onTurnComplete: (messages: MessageType[]) => {
-          void uploaderReady.then(uploader => uploader?.(messages));
-        }
-      })
+      thinkingConfig
     };
 
     // Shared context for processResumedConversation calls
@@ -3032,205 +2984,6 @@ async function run(): Promise<CommanderCommand> {
         logError(error);
         return await exitWithError(root, errorMessage(error), () => gracefulShutdown(1));
       }
-    } else if (feature('DIRECT_CONNECT') && _pendingConnect?.url) {
-      // `claude connect <url>` — full interactive TUI connected to a remote server
-      let directConnectConfig;
-      try {
-        const session = await createDirectConnectSession({
-          serverUrl: _pendingConnect.url,
-          authToken: _pendingConnect.authToken,
-          cwd: getOriginalCwd(),
-          dangerouslySkipPermissions: _pendingConnect.dangerouslySkipPermissions
-        });
-        if (session.workDir) {
-          setOriginalCwd(session.workDir);
-          setCwdState(session.workDir);
-        }
-        setDirectConnectServerUrl(_pendingConnect.url);
-        directConnectConfig = session.config;
-      } catch (err) {
-        return await exitWithError(root, err instanceof DirectConnectError ? err.message : String(err), () => gracefulShutdown(1));
-      }
-      const connectInfoMessage = createSystemMessage(`Connected to server at ${_pendingConnect.url}\nSession: ${directConnectConfig.sessionId}`, 'info');
-      await launchRepl(root, {
-        getFpsMetrics,
-        stats,
-        initialState
-      }, {
-        debug: debug || debugToStderr,
-        commands,
-        initialTools: [],
-        initialMessages: [connectInfoMessage],
-        mcpClients: [],
-        autoConnectIdeFlag: ide,
-        mainThreadAgentDefinition,
-        disableSlashCommands,
-        directConnectConfig,
-        thinkingConfig
-      }, renderAndRun);
-      return;
-    } else if (feature('SSH_REMOTE') && _pendingSSH?.host) {
-      // `claude ssh <host> [dir]` — probe remote, deploy binary if needed,
-      // spawn ssh with unix-socket -R forward to a local auth proxy, hand
-      // the REPL an SSHSession. Tools run remotely, UI renders locally.
-      // `--local` skips probe/deploy/ssh and spawns the current binary
-      // directly with the same env — e2e test of the proxy/auth plumbing.
-      const {
-        createSSHSession,
-        createLocalSSHSession,
-        SSHSessionError
-      } = await import('./ssh/createSSHSession.js');
-      let sshSession;
-      try {
-        if (_pendingSSH.local) {
-          process.stderr.write('Starting local ssh-proxy test session...\n');
-          sshSession = createLocalSSHSession({
-            cwd: _pendingSSH.cwd,
-            permissionMode: _pendingSSH.permissionMode,
-            dangerouslySkipPermissions: _pendingSSH.dangerouslySkipPermissions
-          });
-        } else {
-          process.stderr.write(`Connecting to ${_pendingSSH.host}…\n`);
-          // In-place progress: \r + EL0 (erase to end of line). Final \n on
-          // success so the next message lands on a fresh line. No-op when
-          // stderr isn't a TTY (piped/redirected) — \r would just emit noise.
-          const isTTY = process.stderr.isTTY;
-          let hadProgress = false;
-          sshSession = await createSSHSession({
-            host: _pendingSSH.host,
-            cwd: _pendingSSH.cwd,
-            localVersion: MACRO.VERSION,
-            permissionMode: _pendingSSH.permissionMode,
-            dangerouslySkipPermissions: _pendingSSH.dangerouslySkipPermissions,
-            extraCliArgs: _pendingSSH.extraCliArgs
-          }, isTTY ? {
-            onProgress: msg => {
-              hadProgress = true;
-              process.stderr.write(`\r  ${msg}\x1b[K`);
-            }
-          } : {});
-          if (hadProgress) process.stderr.write('\n');
-        }
-        setOriginalCwd(sshSession.remoteCwd);
-        setCwdState(sshSession.remoteCwd);
-        setDirectConnectServerUrl(_pendingSSH.local ? 'local' : _pendingSSH.host);
-      } catch (err) {
-        return await exitWithError(root, err instanceof SSHSessionError ? err.message : String(err), () => gracefulShutdown(1));
-      }
-      const sshInfoMessage = createSystemMessage(_pendingSSH.local ? `Local ssh-proxy test session\ncwd: ${sshSession.remoteCwd}\nAuth: unix socket → local proxy` : `SSH session to ${_pendingSSH.host}\nRemote cwd: ${sshSession.remoteCwd}\nAuth: unix socket -R → local proxy`, 'info');
-      await launchRepl(root, {
-        getFpsMetrics,
-        stats,
-        initialState
-      }, {
-        debug: debug || debugToStderr,
-        commands,
-        initialTools: [],
-        initialMessages: [sshInfoMessage],
-        mcpClients: [],
-        autoConnectIdeFlag: ide,
-        mainThreadAgentDefinition,
-        disableSlashCommands,
-        sshSession,
-        thinkingConfig
-      }, renderAndRun);
-      return;
-    } else if (feature('KAIROS') && _pendingAssistantChat && (_pendingAssistantChat.sessionId || _pendingAssistantChat.discover)) {
-      // `claude assistant [sessionId]` — REPL as a pure viewer client
-      // of a remote assistant session. The agentic loop runs remotely; this
-      // process streams live events and POSTs messages. History is lazy-
-      // loaded by useAssistantHistory on scroll-up (no blocking fetch here).
-      const {
-        discoverAssistantSessions
-      } = await import('./assistant/sessionDiscovery.js');
-      let targetSessionId = _pendingAssistantChat.sessionId;
-
-      // Discovery flow — list bridge environments, filter sessions
-      if (!targetSessionId) {
-        let sessions;
-        try {
-          sessions = await discoverAssistantSessions();
-        } catch (e) {
-          return await exitWithError(root, `Failed to discover sessions: ${e instanceof Error ? e.message : e}`, () => gracefulShutdown(1));
-        }
-        if (sessions.length === 0) {
-          let installedDir: string | null;
-          try {
-            installedDir = await launchAssistantInstallWizard(root);
-          } catch (e) {
-            return await exitWithError(root, `Assistant installation failed: ${e instanceof Error ? e.message : e}`, () => gracefulShutdown(1));
-          }
-          if (installedDir === null) {
-            await gracefulShutdown(0);
-            process.exit(0);
-          }
-          // The daemon needs a few seconds to spin up its worker and
-          // establish a bridge session before discovery will find it.
-          return await exitWithMessage(root, `Assistant installed in ${installedDir}. The daemon is starting up — run \`tersa assistant\` again in a few seconds to connect.`, {
-            exitCode: 0,
-            beforeExit: () => gracefulShutdown(0)
-          });
-        }
-        if (sessions.length === 1) {
-          targetSessionId = sessions[0]!.id;
-        } else {
-          const picked = await launchAssistantSessionChooser(root, {
-            sessions
-          });
-          if (!picked) {
-            await gracefulShutdown(0);
-            process.exit(0);
-          }
-          targetSessionId = picked;
-        }
-      }
-
-      // Auth — call prepareApiRequest() once for orgUUID, but use a
-      // getAccessToken closure for the token so reconnects get fresh tokens.
-      const {
-        checkAndRefreshOAuthTokenIfNeeded,
-        getClaudeAIOAuthTokens
-      } = await import('./utils/auth.js');
-      await checkAndRefreshOAuthTokenIfNeeded();
-      let apiCreds;
-      try {
-        apiCreds = await prepareApiRequest();
-      } catch (e) {
-        return await exitWithError(root, `Error: ${e instanceof Error ? e.message : 'Failed to authenticate'}`, () => gracefulShutdown(1));
-      }
-      const getAccessToken = (): string => getClaudeAIOAuthTokens()?.accessToken ?? apiCreds.accessToken;
-
-      // Brief mode activation: setKairosActive(true) satisfies BOTH opt-in
-      // and entitlement for isBriefEnabled() (BriefTool.ts:124-132).
-      setKairosActive(true);
-      setUserMsgOptIn(true);
-      setIsRemoteMode(true);
-      const remoteSessionConfig = createRemoteSessionConfig(targetSessionId, getAccessToken, apiCreds.orgUUID, /* hasInitialPrompt */false, /* viewerOnly */true);
-      const infoMessage = createSystemMessage(`Attached to assistant session ${targetSessionId.slice(0, 8)}…`, 'info');
-      const assistantInitialState: AppState = {
-        ...initialState,
-        isBriefOnly: true,
-        kairosEnabled: false,
-        replBridgeEnabled: false
-      };
-      const remoteCommands = filterCommandsForRemoteMode(commands);
-      await launchRepl(root, {
-        getFpsMetrics,
-        stats,
-        initialState: assistantInitialState
-      }, {
-        debug: debug || debugToStderr,
-        commands: remoteCommands,
-        initialTools: [],
-        initialMessages: [infoMessage],
-        mcpClients: [],
-        autoConnectIdeFlag: ide,
-        mainThreadAgentDefinition,
-        disableSlashCommands,
-        remoteSessionConfig,
-        thinkingConfig
-      }, renderAndRun);
-      return;
     } else if (options.resume || options.fromPr || teleport || remote !== null) {
       // Handle resume flow - from file (internal-only), session ID, or interactive selector
 
@@ -3457,46 +3210,11 @@ async function run(): Promise<CommanderCommand> {
           }
         }
       }
-      if ("external" === 'ant') {
+      if (process.env.USER_TYPE === 'ant') {
         if (options.resume && typeof options.resume === 'string' && !maybeSessionId) {
-          // Check for ccshare URL (e.g. https://go/ccshare/boris-20260311-211036)
-          const {
-            parseCcshareId,
-            loadCcshare
-          } = await import('./utils/ccshareResume.js');
-          const ccshareId = parseCcshareId(options.resume);
-          if (ccshareId) {
-            try {
-              const resumeStart = performance.now();
-              const logOption = await loadCcshare(ccshareId);
-              const result = await loadConversationForResume(logOption, undefined);
-              if (result) {
-                processedResume = await processResumedConversation(result, {
-                  forkSession: true,
-                  transcriptPath: result.fullPath
-                }, resumeContext);
-                if (processedResume.restoredAgentDef) {
-                  mainThreadAgentDefinition = processedResume.restoredAgentDef;
-                }
-                logEvent('tengu_session_resumed', {
-                  entrypoint: 'ccshare' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-                  success: true,
-                  resume_duration_ms: Math.round(performance.now() - resumeStart)
-                });
-              } else {
-                logEvent('tengu_session_resumed', {
-                  entrypoint: 'ccshare' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-                  success: false
-                });
-              }
-            } catch (error) {
-              logEvent('tengu_session_resumed', {
-                entrypoint: 'ccshare' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-                success: false
-              });
-              logError(error);
-              await exitWithError(root, `Unable to resume from ccshare: ${errorMessage(error)}`, () => gracefulShutdown(1));
-            }
+          const ccshareMatch = options.resume.match(/\/ccshare\/([^/?#]+)/);
+          if (ccshareMatch) {
+            await exitWithError(root, 'ccshare resume is unavailable in this Tersa source snapshot', () => gracefulShutdown(1));
           } else {
             const resolvedPath = resolve(options.resume);
             try {
@@ -3688,7 +3406,7 @@ async function run(): Promise<CommanderCommand> {
   if (canUserConfigureAdvisor()) {
     program.addOption(new Option('--advisor <model>', 'Enable the server-side advisor tool with the specified model (alias or full ID).').hideHelp());
   }
-  if ("external" === 'ant') {
+  if (process.env.USER_TYPE === 'ant') {
     program.addOption(new Option('--delegate-permissions', '[internal-only] Alias for --permission-mode auto.').implies({
       permissionMode: 'auto'
     }));
@@ -3832,144 +3550,6 @@ async function run(): Promise<CommanderCommand> {
     } = await import('./cli/handlers/mcp.js');
     await mcpResetChoicesHandler();
   });
-
-  // claude server
-  if (feature('DIRECT_CONNECT')) {
-    program.command('server').description('Start an Tersa session server').option('--port <number>', 'HTTP port', '0').option('--host <string>', 'Bind address', '0.0.0.0').option('--auth-token <token>', 'Bearer token for auth').option('--unix <path>', 'Listen on a unix domain socket').option('--workspace <dir>', 'Default working directory for sessions that do not specify cwd').option('--idle-timeout <ms>', 'Idle timeout for detached sessions in ms (0 = never expire)', '600000').option('--max-sessions <n>', 'Maximum concurrent sessions (0 = unlimited)', '32').action(async (opts: {
-      port: string;
-      host: string;
-      authToken?: string;
-      unix?: string;
-      workspace?: string;
-      idleTimeout: string;
-      maxSessions: string;
-    }) => {
-      const {
-        randomBytes
-      } = await import('crypto');
-      const {
-        startServer
-      } = await import('./server/server.js');
-      const {
-        SessionManager
-      } = await import('./server/sessionManager.js');
-      const {
-        DangerousBackend
-      } = await import('./server/backends/dangerousBackend.js');
-      const {
-        printBanner
-      } = await import('./server/serverBanner.js');
-      const {
-        createServerLogger
-      } = await import('./server/serverLog.js');
-      const {
-        writeServerLock,
-        removeServerLock,
-        probeRunningServer
-      } = await import('./server/lockfile.js');
-      const existing = await probeRunningServer();
-      if (existing) {
-        process.stderr.write(`An Tersa server is already running (pid ${existing.pid}) at ${existing.httpUrl}\n`);
-        process.exit(1);
-      }
-      const authToken = opts.authToken ?? `sk-ant-cc-${randomBytes(16).toString('base64url')}`;
-      const config = {
-        port: parseInt(opts.port, 10),
-        host: opts.host,
-        authToken,
-        unix: opts.unix,
-        workspace: opts.workspace,
-        idleTimeoutMs: parseInt(opts.idleTimeout, 10),
-        maxSessions: parseInt(opts.maxSessions, 10)
-      };
-      const backend = new DangerousBackend();
-      const sessionManager = new SessionManager(backend, {
-        idleTimeoutMs: config.idleTimeoutMs,
-        maxSessions: config.maxSessions
-      });
-      const logger = createServerLogger();
-      const server = startServer(config, sessionManager, logger);
-      const actualPort = server.port ?? config.port;
-      printBanner(config, authToken, actualPort);
-      await writeServerLock({
-        pid: process.pid,
-        port: actualPort,
-        host: config.host,
-        httpUrl: config.unix ? `unix:${config.unix}` : `http://${config.host}:${actualPort}`,
-        startedAt: Date.now()
-      });
-      let shuttingDown = false;
-      const shutdown = async () => {
-        if (shuttingDown) return;
-        shuttingDown = true;
-        // Stop accepting new connections before tearing down sessions.
-        server.stop(true);
-        await sessionManager.destroyAll();
-        await removeServerLock();
-        process.exit(0);
-      };
-      process.once('SIGINT', () => void shutdown());
-      process.once('SIGTERM', () => void shutdown());
-    });
-  }
-
-  // `claude ssh <host> [dir]` — registered here only so --help shows it.
-  // The actual interactive flow is handled by early argv rewriting in main()
-  // (parallels the DIRECT_CONNECT/cc:// pattern above). If commander reaches
-  // this action it means the argv rewrite didn't fire (e.g. user ran
-  // `claude ssh` with no host) — just print usage.
-  if (feature('SSH_REMOTE')) {
-    program.command('ssh <host> [dir]').description('Run Tersa on a remote host over SSH. Deploys the binary and ' + 'tunnels API auth back through your local machine — no remote setup needed.').option('--permission-mode <mode>', 'Permission mode for the remote session').option('--yolo', 'Skip all permission prompts on the remote (dangerous)').addOption(new Option('--dangerously-skip-permissions', '[deprecated] Alias for --yolo').hideHelp()).option('--local', 'e2e test mode — spawn the child CLI locally (skip ssh/deploy). ' + 'Exercises the auth proxy and unix-socket plumbing without a remote host.').action(async () => {
-      // Argv rewriting in main() should have consumed `ssh <host>` before
-      // commander runs. Reaching here means host was missing or the
-      // rewrite predicate didn't match.
-      process.stderr.write('Usage: tersa ssh <user@host | ssh-config-alias> [dir]\n\n' + "Runs Tersa on a remote Linux host. You don't need to install\n" + 'anything on the remote or run `tersa auth login` there — the binary is\n' + 'deployed over SSH and API auth tunnels back through your local machine.\n');
-      process.exit(1);
-    });
-  }
-
-  // claude connect — subcommand only handles -p (headless) mode.
-  // Interactive mode (without -p) is handled by early argv rewriting in main()
-  // which redirects to the main command with full TUI support.
-  if (feature('DIRECT_CONNECT')) {
-    program.command('open <cc-url>').description('Connect to an Tersa server (internal — use cc:// URLs)').option('-p, --print [prompt]', 'Print mode (headless)').option('--output-format <format>', 'Output format: text, json, stream-json', 'text').action(async (ccUrl: string, opts: {
-      print?: string | boolean;
-      outputFormat: string;
-    }) => {
-      const {
-        parseConnectUrl
-      } = await import('./server/parseConnectUrl.js');
-      const {
-        serverUrl,
-        authToken
-      } = parseConnectUrl(ccUrl);
-      let connectConfig;
-      try {
-        const session = await createDirectConnectSession({
-          serverUrl,
-          authToken,
-          cwd: getOriginalCwd(),
-          dangerouslySkipPermissions: _pendingConnect?.dangerouslySkipPermissions
-        });
-        if (session.workDir) {
-          setOriginalCwd(session.workDir);
-          setCwdState(session.workDir);
-        }
-        setDirectConnectServerUrl(serverUrl);
-        connectConfig = session.config;
-      } catch (err) {
-        // biome-ignore lint/suspicious/noConsole: intentional error output
-        console.error(err instanceof DirectConnectError ? err.message : String(err));
-        process.exit(1);
-      }
-      const {
-        runConnectHeadless
-      } = await import('./server/connectHeadless.js');
-      const prompt = typeof opts.print === 'string' ? opts.print : '';
-      const interactive = opts.print === true;
-      await runConnectHeadless(connectConfig, prompt, opts.outputFormat, interactive);
-    });
-  }
 
   // claude auth
 
@@ -4213,29 +3793,6 @@ async function run(): Promise<CommanderCommand> {
   // false via the try/catch — but not before paying ~65ms of side effects
   // (25ms settings Zod parse + 40ms sync `security` keychain subprocess).
   // The dynamic visibility never worked; the command was always hidden.
-  if (feature('BRIDGE_MODE')) {
-    program.command('remote-control', {
-      hidden: true
-    }).alias('rc').description('Connect your local environment for remote-control sessions via claude.ai/code').action(async () => {
-      // Unreachable — cli.tsx fast-path handles this command before main.tsx loads.
-      // If somehow reached, delegate to bridgeMain.
-      const {
-        bridgeMain
-      } = await import('./bridge/bridgeMain.js');
-      await bridgeMain(process.argv.slice(3));
-    });
-  }
-  if (feature('KAIROS')) {
-    program.command('assistant [sessionId]').description('Attach the REPL as a client to a running bridge session. Discovers sessions via API if no sessionId given.').action(() => {
-      // Argv rewriting above should have consumed `assistant [id]`
-      // before commander runs. Reaching here means a root flag came first
-      // (e.g. `--debug assistant`) and the position-0 predicate
-      // didn't match. Print usage like the ssh stub does.
-      process.stderr.write('Usage: tersa assistant [sessionId]\n\n' + 'Attach the REPL as a viewer client to a running bridge session.\n' + 'Omit sessionId to discover and pick from available sessions.\n');
-      process.exit(1);
-    });
-  }
-
   // Doctor command - check installation health
   program.command('doctor').description('Check the health of your Tersa auto-updater. Note: The workspace trust dialog is skipped and stdio servers from .mcp.json are spawned for health checks. Only use this command in directories you trust.').action(async () => {
     const [{
@@ -4260,31 +3817,6 @@ async function run(): Promise<CommanderCommand> {
     await update();
   });
 
-  // claude up — run the project's CLAUDE.md "# claude up" setup instructions.
-  if ("external" === 'ant') {
-    program.command('up').description('[internal-only] Initialize or upgrade the local dev environment using the "# claude up" section of the nearest CLAUDE.md').action(async () => {
-      const {
-        up
-      } = await import('src/cli/up.js');
-      await up();
-    });
-  }
-
-  // claude rollback (internal-only)
-  // Rolls back to previous releases
-  if ("external" === 'ant') {
-    program.command('rollback [target]').description('[internal-only] Roll back to a previous release\n\nExamples:\n  claude rollback                                    Go 1 version back from current\n  claude rollback 3                                  Go 3 versions back from current\n  claude rollback 2.0.73-dev.20251217.t190658        Roll back to a specific version').option('-l, --list', 'List recent published versions with ages').option('--dry-run', 'Show what would be installed without installing').option('--safe', 'Roll back to the server-pinned safe version (set by oncall during incidents)').action(async (target?: string, options?: {
-      list?: boolean;
-      dryRun?: boolean;
-      safe?: boolean;
-    }) => {
-      const {
-        rollback
-      } = await import('src/cli/rollback.js');
-      await rollback(target, options);
-    });
-  }
-
   // claude install
   program.command('install [target]').description('Install Tersa native build. Use [target] to specify version (stable, latest, or specific version)').option('--force', 'Force installation even if already installed').action(async (target: string | undefined, options: {
     force?: boolean;
@@ -4295,94 +3827,7 @@ async function run(): Promise<CommanderCommand> {
     await installHandler(target, options);
   });
 
-  // internal-only commands
-  if ("external" === 'ant') {
-    const validateLogId = (value: string) => {
-      const maybeSessionId = validateUuid(value);
-      if (maybeSessionId) return maybeSessionId;
-      return Number(value);
-    };
-    // claude log
-    program.command('log').description('[internal-only] Manage conversation logs.').argument('[number|sessionId]', 'A number (0, 1, 2, etc.) to display a specific log, or the sesssion ID (uuid) of a log', validateLogId).action(async (logId: string | number | undefined) => {
-      const {
-        logHandler
-      } = await import('./cli/handlers/ant.js');
-      await logHandler(logId);
-    });
-
-    // claude error
-    program.command('error').description('[internal-only] View error logs. Optionally provide a number (0, -1, -2, etc.) to display a specific log.').argument('[number]', 'A number (0, 1, 2, etc.) to display a specific log', parseInt).action(async (number: number | undefined) => {
-      const {
-        errorHandler
-      } = await import('./cli/handlers/ant.js');
-      await errorHandler(number);
-    });
-
-    // claude export
-    program.command('export').description('[internal-only] Export a conversation to a text file.').usage('<source> <outputFile>').argument('<source>', 'Session ID, log index (0, 1, 2...), or path to a .json/.jsonl log file').argument('<outputFile>', 'Output file path for the exported text').addHelpText('after', `
-Examples:
-  $ claude export 0 conversation.txt                Export conversation at log index 0
-  $ claude export <uuid> conversation.txt           Export conversation by session ID
-  $ claude export input.json output.txt             Render JSON log file to text
-  $ claude export <uuid>.jsonl output.txt           Render JSONL session file to text`).action(async (source: string, outputFile: string) => {
-      const {
-        exportHandler
-      } = await import('./cli/handlers/ant.js');
-      await exportHandler(source, outputFile);
-    });
-    if ("external" === 'ant') {
-      const taskCmd = program.command('task').description('[internal-only] Manage task list tasks');
-      taskCmd.command('create <subject>').description('Create a new task').option('-d, --description <text>', 'Task description').option('-l, --list <id>', 'Task list ID (defaults to "tasklist")').action(async (subject: string, opts: {
-        description?: string;
-        list?: string;
-      }) => {
-        const {
-          taskCreateHandler
-        } = await import('./cli/handlers/ant.js');
-        await taskCreateHandler(subject, opts);
-      });
-      taskCmd.command('list').description('List all tasks').option('-l, --list <id>', 'Task list ID (defaults to "tasklist")').option('--pending', 'Show only pending tasks').option('--json', 'Output as JSON').action(async (opts: {
-        list?: string;
-        pending?: boolean;
-        json?: boolean;
-      }) => {
-        const {
-          taskListHandler
-        } = await import('./cli/handlers/ant.js');
-        await taskListHandler(opts);
-      });
-      taskCmd.command('get <id>').description('Get details of a task').option('-l, --list <id>', 'Task list ID (defaults to "tasklist")').action(async (id: string, opts: {
-        list?: string;
-      }) => {
-        const {
-          taskGetHandler
-        } = await import('./cli/handlers/ant.js');
-        await taskGetHandler(id, opts);
-      });
-      taskCmd.command('update <id>').description('Update a task').option('-l, --list <id>', 'Task list ID (defaults to "tasklist")').option('-s, --status <status>', `Set status (${TASK_STATUSES.join(', ')})`).option('--subject <text>', 'Update subject').option('-d, --description <text>', 'Update description').option('--owner <agentId>', 'Set owner').option('--clear-owner', 'Clear owner').action(async (id: string, opts: {
-        list?: string;
-        status?: string;
-        subject?: string;
-        description?: string;
-        owner?: string;
-        clearOwner?: boolean;
-      }) => {
-        const {
-          taskUpdateHandler
-        } = await import('./cli/handlers/ant.js');
-        await taskUpdateHandler(id, opts);
-      });
-      taskCmd.command('dir').description('Show the tasks directory path').option('-l, --list <id>', 'Task list ID (defaults to "tasklist")').action(async (opts: {
-        list?: string;
-      }) => {
-        const {
-          taskDirHandler
-        } = await import('./cli/handlers/ant.js');
-        await taskDirHandler(opts);
-      });
-    }
-
-    // claude completion <shell>
+  if (process.env.USER_TYPE === 'ant') {
     program.command('completion <shell>', {
       hidden: true
     }).description('Generate shell completion script (bash, zsh, or fish)').option('--output <file>', 'Write completion script directly to a file instead of stdout').action(async (shell: string, opts: {
@@ -4489,7 +3934,7 @@ async function logTenguInit({
         assistantActivationPath: assistantActivationPath as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
       }),
       autoUpdatesChannel: (getInitialSettings().autoUpdatesChannel ?? 'latest') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-      ...("external" === 'ant' ? (() => {
+      ...(process.env.USER_TYPE === 'ant' ? (() => {
         const cwd = getCwd();
         const gitRoot = findGitRoot(cwd);
         const rp = gitRoot ? relative(gitRoot, cwd) || '.' : undefined;

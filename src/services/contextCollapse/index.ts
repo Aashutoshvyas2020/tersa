@@ -7,3 +7,7 @@ export function getContextCollapseState() {
 }
 
 export function resetContextCollapse(): void {}
+
+export function initContextCollapse(): never {
+  throw new Error('contextCollapse is unavailable in this Tersa source snapshot')
+}
