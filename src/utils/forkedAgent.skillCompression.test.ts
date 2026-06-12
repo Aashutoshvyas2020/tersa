@@ -1,21 +1,26 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
-
-const getCaveModeConfig = mock(() => ({
-  skillPromptCompression: true,
-  skillPromptCompressionStyle: 'wenyan-full',
-}))
-
-mock.module('./caveMode/config.js', () => ({
-  getCaveModeConfig,
-}))
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { DEFAULT_CAVE_MODE_CONFIG } from './caveMode/config.js'
+import {
+  resetSettingsCache,
+  setSessionSettingsCache,
+} from './settings/settingsCache.js'
 
 describe('prepareForkedCommandContext skill compression', () => {
   beforeEach(() => {
-    getCaveModeConfig.mockClear()
+    setSessionSettingsCache({
+      settings: {
+        caveMode: {
+          ...DEFAULT_CAVE_MODE_CONFIG,
+          skillPromptCompression: true,
+          skillPromptCompressionStyle: 'wenyan-full',
+        },
+      },
+      errors: [],
+    })
   })
 
-  afterAll(() => {
-    mock.restore()
+  afterEach(() => {
+    resetSettingsCache()
   })
 
   test('compresses skill text before prompt message creation', async () => {
