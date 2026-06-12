@@ -105,7 +105,7 @@ function getLegacyGlobalConfigFiles(homeDir: string): string[] {
   }
 }
 
-export function migrateLegacyClaudeConfigHome(options?: {
+export function migrateLegacyTersaConfigHome(options?: {
   configDirEnv?: string
   homeDir?: string
 }): boolean {
@@ -114,7 +114,7 @@ export function migrateLegacyClaudeConfigHome(options?: {
   }
 
   const homeDir = options?.homeDir ?? homedir()
-  const openClaudeDir = join(homeDir, '.openclaude')
+  const openClaudeDir = join(homeDir, '.tersa')
   const legacyClaudeDir = join(homeDir, '.claude')
 
   try {
@@ -130,7 +130,7 @@ export function migrateLegacyClaudeConfigHome(options?: {
     }
 
     for (const legacyFile of legacyGlobalConfigFiles) {
-      const openClaudeFile = legacyFile.replace(/^\.claude/, '.openclaude')
+      const openClaudeFile = legacyFile.replace(/^\.claude/, '.tersa')
       copyMissingPathSync(
         join(homeDir, legacyFile),
         join(homeDir, openClaudeFile),
@@ -142,7 +142,7 @@ export function migrateLegacyClaudeConfigHome(options?: {
   }
 }
 
-export function resolveClaudeConfigHomeDir(options?: {
+export function resolveTersaConfigHomeDir(options?: {
   configDirEnv?: string
   homeDir?: string
 }): string {
@@ -151,14 +151,14 @@ export function resolveClaudeConfigHomeDir(options?: {
   }
 
   const homeDir = options?.homeDir ?? homedir()
-  const openClaudeDir = join(homeDir, '.openclaude')
+  const openClaudeDir = join(homeDir, '.tersa')
 
   return openClaudeDir.normalize('NFC')
 }
 
 let claudeConfigHomeDirOverride: string | undefined
 
-export function setClaudeConfigHomeDirForTesting(
+export function setTersaConfigHomeDirForTesting(
   configDir: string | undefined,
 ): void {
   claudeConfigHomeDirOverride = configDir?.normalize('NFC')
@@ -166,7 +166,7 @@ export function setClaudeConfigHomeDirForTesting(
 
 // Memoized: 150+ callers, many on hot paths. Keyed off CLAUDE_CONFIG_DIR so
 // tests that change the env var get a fresh value without explicit cache.clear.
-export const getClaudeConfigHomeDir = memoize(
+export const getTersaConfigHomeDir = memoize(
   (): string => {
     if (claudeConfigHomeDirOverride) {
       return claudeConfigHomeDirOverride
@@ -174,11 +174,11 @@ export const getClaudeConfigHomeDir = memoize(
 
     const configDirEnv = process.env.CLAUDE_CONFIG_DIR
     const homeDir = homedir()
-    const migrationSucceeded = migrateLegacyClaudeConfigHome({
+    const migrationSucceeded = migrateLegacyTersaConfigHome({
       configDirEnv,
       homeDir,
     })
-    const openClaudeDir = join(homeDir, '.openclaude')
+    const openClaudeDir = join(homeDir, '.tersa')
     const legacyClaudeDir = join(homeDir, '.claude')
 
     if (
@@ -190,7 +190,7 @@ export const getClaudeConfigHomeDir = memoize(
       return legacyClaudeDir.normalize('NFC')
     }
 
-    return resolveClaudeConfigHomeDir({
+    return resolveTersaConfigHomeDir({
       configDirEnv,
       homeDir,
     })
@@ -198,12 +198,16 @@ export const getClaudeConfigHomeDir = memoize(
   () => `${claudeConfigHomeDirOverride ?? ''}\0${process.env.CLAUDE_CONFIG_DIR ?? ''}`,
 )
 
+export const getClaudeConfigHomeDir = getTersaConfigHomeDir
+export const setClaudeConfigHomeDirForTesting = setTersaConfigHomeDirForTesting
+export const resolveClaudeConfigHomeDir = resolveTersaConfigHomeDir
+
 export function getTeamsDir(): string {
-  return join(getClaudeConfigHomeDir(), 'teams')
+  return join(getTersaConfigHomeDir(), 'teams')
 }
 
 export function getProjectsDir(): string {
-  return join(getClaudeConfigHomeDir(), 'projects')
+  return join(getTersaConfigHomeDir(), 'projects')
 }
 
 /**
@@ -312,7 +316,7 @@ export function isRunningOnHomespace(): boolean {
 }
 
 /**
- * Conservative check for whether Claude Code is running inside a protected
+ * Conservative check for whether Tersa is running inside a protected
  * (privileged or ASL3+) COO namespace or cluster.
  *
  * Conservative means: when signals are ambiguous, assume protected. We would

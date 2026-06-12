@@ -1,0 +1,28 @@
+import * as React from 'react'
+import { Box, Text } from '../../ink.js'
+
+export const TERSA_ASCII_LINES = [
+  '████████╗███████╗██████╗ ███████╗ █████╗',
+  '╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗',
+  '   ██║   █████╗  ██████╔╝███████╗███████║',
+  '   ██║   ██╔══╝  ██╔══██╗╚════██║██╔══██║',
+  '   ██║   ███████╗██║  ██║███████║██║  ██║',
+  '   ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝',
+] as const
+
+type Props = {
+  compact?: boolean
+}
+
+export function TersaAsciiLogo({ compact = false }: Props) {
+  const lines = TERSA_ASCII_LINES
+  return (
+    <Box flexDirection="column">
+      {lines.map((line, index) => (
+        <Text key={index} color={index < 2 ? 'tersaShimmer' : 'tersa'}>
+          {line}
+        </Text>
+      ))}
+    </Box>
+  )
+}

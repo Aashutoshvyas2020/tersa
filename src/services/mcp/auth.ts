@@ -34,7 +34,7 @@ import xss from 'xss'
 import { MCP_CLIENT_METADATA_URL } from '../../constants/oauth.js'
 import { openBrowser } from '../../utils/browser.js'
 import { createCombinedAbortSignal } from '../../utils/combinedAbortSignal.js'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { getTersaConfigHomeDir } from '../../utils/envUtils.js'
 import { errorMessage, getErrnoCode } from '../../utils/errors.js'
 import * as lockfile from '../../utils/lockfile.js'
 import { logMCPDebug } from '../../utils/log.js'
@@ -261,7 +261,7 @@ export async function normalizeOAuthErrorBody(
 
 /**
  * Creates a fetch function with a fresh 30-second timeout for each OAuth request.
- * Used by ClaudeAuthProvider for metadata discovery and token refresh.
+ * Used by TersaAuthProvider for metadata discovery and token refresh.
  * Prevents stale timeout signals from affecting auth operations.
  */
 function createAuthFetch(): FetchLike {
@@ -409,7 +409,7 @@ export function hasMcpDiscoveryButNoToken(
 /**
  * Revokes a single token on the OAuth server.
  *
- * Per RFC 7009, public clients (like Claude Code) should authenticate by including
+ * Per RFC 7009, public clients (like Tersa) should authenticate by including
  * client_id in the request body, NOT via an Authorization header. The Bearer token
  * in an Authorization header is meant for resource owner authentication, not client
  * authentication.
@@ -836,7 +836,7 @@ async function performMCPXaaAuth(
     }
 
     // Save tokens via the same storage path as normal OAuth. We write directly
-    // (instead of ClaudeAuthProvider.saveTokens) to avoid instantiating the
+    // (instead of TersaAuthProvider.saveTokens) to avoid instantiating the
     // whole provider just to write the same keys.
     const storage = getSecureStorage()
     const existingData = storage.read() || {}
@@ -903,7 +903,7 @@ export async function performMCPOAuthFlow(
   // If the IdP id_token isn't cached, this pops the browser once at the IdP
   // (shared across all XAA servers for that issuer). Subsequent servers hit
   // the cache and are silent. Tokens land in the same keychain slot, so the
-  // rest of CC's transport wiring (ClaudeAuthProvider.tokens() in client.ts)
+  // rest of CC's transport wiring (TersaAuthProvider.tokens() in client.ts)
   // works unchanged.
   //
   // No silent fallback: if `oauth.xaa` is set, XAA is the only path. We
@@ -1010,7 +1010,7 @@ export async function performMCPOAuthFlow(
       `Using redirect port: ${port}${configuredCallbackPort ? ' (from config)' : ''}`,
     )
 
-    const provider = new ClaudeAuthProvider(
+    const provider = new TersaAuthProvider(
       serverName,
       serverConfig,
       redirectUri,
@@ -1185,7 +1185,7 @@ export async function performMCPOAuthFlow(
 
           res.writeHead(200, { 'Content-Type': 'text/html' })
           res.end(
-            `<h1>Authentication Successful</h1><p>You can close this window. Return to OpenClaude.</p>`,
+            `<h1>Authentication Successful</h1><p>You can close this window. Return to Tersa.</p>`,
           )
           cleanup()
           resolveOnce(result.code)
@@ -1395,7 +1395,7 @@ export async function performMCPOAuthFlow(
  */
 export function wrapFetchWithStepUpDetection(
   baseFetch: FetchLike,
-  provider: ClaudeAuthProvider,
+  provider: TersaAuthProvider,
 ): FetchLike {
   return async (url, init) => {
     const response = await baseFetch(url, init)
@@ -1415,7 +1415,7 @@ export function wrapFetchWithStepUpDetection(
   }
 }
 
-export class ClaudeAuthProvider implements OAuthClientProvider {
+export class TersaAuthProvider implements OAuthClientProvider {
   private serverName: string
   private serverConfig: McpSSEServerConfig | McpHTTPServerConfig
   private redirectUri: string
@@ -1458,7 +1458,7 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
 
   get clientMetadata(): OAuthClientMetadata {
     const metadata: OAuthClientMetadata = {
-      client_name: `Claude Code (${this.serverName})`,
+      client_name: `Tersa (${this.serverName})`,
       redirect_uris: [this.redirectUri],
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
@@ -2133,7 +2133,7 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
     refreshToken: string,
   ): Promise<OAuthTokens | undefined> {
     const serverKey = getServerKey(this.serverName, this.serverConfig)
-    const claudeDir = getClaudeConfigHomeDir()
+    const claudeDir = getTersaConfigHomeDir()
     await mkdir(claudeDir, { recursive: true })
     const sanitizedKey = serverKey.replace(/[^a-zA-Z0-9]/g, '_')
     const lockfilePath = join(claudeDir, `mcp-refresh-${sanitizedKey}.lock`)
@@ -2400,6 +2400,8 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
     return undefined
   }
 }
+
+export const ClaudeAuthProvider = TersaAuthProvider
 
 export async function readClientSecret(): Promise<string> {
   const envSecret = process.env.MCP_CLIENT_SECRET

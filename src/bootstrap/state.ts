@@ -16,6 +16,14 @@ import type { ModelStrings } from 'src/utils/model/modelStrings.js'
 import type { SettingSource } from 'src/utils/settings/constants.js'
 import { resetSettingsCache } from 'src/utils/settings/settingsCache.js'
 import type { PluginHookMatcher } from 'src/utils/settings/types.js'
+import {
+  createSessionCanaryState,
+  createSessionCanaryStreamState,
+  resetSessionCanaryState,
+  resetSessionCanaryStreamState,
+  type SessionCanaryState,
+  type SessionCanaryStreamState,
+} from 'src/utils/sessionCanary.js'
 import { createSignal } from 'src/utils/signal.js'
 
 // Union type for registered hooks - can be SDK callbacks or native plugin hooks
@@ -99,8 +107,6 @@ type State = {
   inMemoryErrorLog: Array<{ error: string; timestamp: string }>
   // Session-only plugins from --plugin-dir flag
   inlinePlugins: Array<string>
-  // Explicit --chrome / --no-chrome flag value (undefined = not set on CLI)
-  chromeFlagOverride: boolean | undefined
   // Use cowork_plugins directory instead of plugins (--cowork flag or env var)
   useCoworkPlugins: boolean
   // Session-only bypass permissions mode flag (not persisted)
@@ -169,6 +175,9 @@ type State = {
     durationMs: number
     timestamp: number
   }>
+  // Session-drift canary state
+  sessionCanary: SessionCanaryState
+  sessionCanaryStream: SessionCanaryStreamState
   // SDK-provided betas (e.g., context-1m-2025-08-07)
   sdkBetas: string[] | undefined
   // Main thread agent type (from --agent flag or settings)
@@ -311,8 +320,6 @@ function getInitialState(): State {
     inMemoryErrorLog: [],
     // Session-only plugins from --plugin-dir flag
     inlinePlugins: [],
-    // Explicit --chrome / --no-chrome flag value (undefined = not set on CLI)
-    chromeFlagOverride: undefined,
     // Use cowork_plugins directory instead of plugins
     useCoworkPlugins: false,
     // Session-only bypass permissions mode flag (not persisted)
@@ -345,6 +352,9 @@ function getInitialState(): State {
     invokedSkills: new Map(),
     // Track slow operations for dev bar display
     slowOperations: [],
+    // Session-drift canary state
+    sessionCanary: createSessionCanaryState(),
+    sessionCanaryStream: createSessionCanaryStreamState(),
     // SDK-provided betas
     sdkBetas: undefined,
     // Main thread agent type
@@ -405,6 +415,8 @@ type SdkContext = {
   cwd: string
   originalCwd: string
   parentSessionId?: SessionId
+  sessionCanary?: SessionCanaryState
+  sessionCanaryStream?: SessionCanaryStreamState
 }
 
 import { AsyncLocalStorage } from 'async_hooks'
@@ -459,6 +471,12 @@ export function regenerateSessionId(
     STATE.sessionId = newId
     STATE.sessionProjectDir = null
   }
+  resetSessionCanaryState(
+    ctx ? ctx.sessionCanary : STATE.sessionCanary,
+  )
+  resetSessionCanaryStreamState(
+    ctx ? ctx.sessionCanaryStream : STATE.sessionCanaryStream,
+  )
   return newId
 }
 
@@ -499,6 +517,12 @@ export function switchSession(
     STATE.sessionId = sessionId
     STATE.sessionProjectDir = projectDir
   }
+  resetSessionCanaryState(
+    ctx ? ctx.sessionCanary : STATE.sessionCanary,
+  )
+  resetSessionCanaryStreamState(
+    ctx ? ctx.sessionCanaryStream : STATE.sessionCanaryStream,
+  )
   sessionSwitched.emit(sessionId)
 }
 
@@ -1172,14 +1196,6 @@ export function getInlinePlugins(): Array<string> {
   return STATE.inlinePlugins
 }
 
-export function setChromeFlagOverride(value: boolean | undefined): void {
-  STATE.chromeFlagOverride = value
-}
-
-export function getChromeFlagOverride(): boolean | undefined {
-  return STATE.chromeFlagOverride
-}
-
 export function setUseCoworkPlugins(value: boolean): void {
   STATE.useCoworkPlugins = value
   resetSettingsCache()
@@ -1558,6 +1574,55 @@ export function clearSystemPromptSectionState(): void {
   STATE.systemPromptSectionCache.clear()
 }
 
+export function getSessionCanaryState(): SessionCanaryState {
+  const ctx = getSdkContext()
+  return ctx?.sessionCanary ?? STATE.sessionCanary
+}
+
+export function setSessionCanaryState(state: SessionCanaryState): void {
+  const ctx = getSdkContext()
+  if (ctx) {
+    ctx.sessionCanary = state
+  } else {
+    STATE.sessionCanary = state
+  }
+}
+
+export function resetSessionCanaryStateForSession(
+  options: { enabled?: boolean } = {},
+): SessionCanaryState {
+  const current = getSessionCanaryState()
+  const next = resetSessionCanaryState(
+    current,
+    options.enabled ?? current.enabled,
+  )
+  setSessionCanaryState(next)
+  return next
+}
+
+export function getSessionCanaryStreamState(): SessionCanaryStreamState {
+  const ctx = getSdkContext()
+  return ctx?.sessionCanaryStream ?? STATE.sessionCanaryStream
+}
+
+export function setSessionCanaryStreamState(
+  state: SessionCanaryStreamState,
+): void {
+  const ctx = getSdkContext()
+  if (ctx) {
+    ctx.sessionCanaryStream = state
+  } else {
+    STATE.sessionCanaryStream = state
+  }
+}
+
+export function resetSessionCanaryStreamStateForSession(): SessionCanaryStreamState {
+  const current = getSessionCanaryStreamState()
+  const next = resetSessionCanaryStreamState(current)
+  setSessionCanaryStreamState(next)
+  return next
+}
+
 // Last emitted date accessors (for detecting midnight date changes)
 
 export function getLastEmittedDate(): string | null {
@@ -1572,11 +1637,17 @@ export function getAdditionalDirectoriesForClaudeMd(): string[] {
   return STATE.additionalDirectoriesForClaudeMd
 }
 
+export const getAdditionalDirectoriesForTersaMd =
+  getAdditionalDirectoriesForClaudeMd
+
 export function setAdditionalDirectoriesForClaudeMd(
   directories: string[],
 ): void {
   STATE.additionalDirectoriesForClaudeMd = directories
 }
+
+export const setAdditionalDirectoriesForTersaMd =
+  setAdditionalDirectoriesForClaudeMd
 
 export function getAllowedChannels(): ChannelEntry[] {
   return STATE.allowedChannels
@@ -1669,4 +1740,3 @@ export function isReplBridgeActive(): boolean {
 export function getReplBridgeHandle(): null {
   return null
 }
-

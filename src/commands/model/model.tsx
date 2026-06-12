@@ -68,6 +68,8 @@ import {
   getProfileModelOptions,
   setActiveOpenAIModelOptionsCache,
 } from '../../utils/providerProfiles.js'
+import { getAPIProvider } from '../../utils/model/providers.js'
+import { getModelOptions } from '../../utils/model/modelOptions.js'
 
 type ModelDiscoveryContext =
   | {
@@ -209,6 +211,92 @@ function getOpenAIDiscoveryRequestOptions(routeId?: string | null): {
   }
 }
 
+function isAnthropicOnlyOptionValue(value: ModelOption['value']): boolean {
+  if (value === null) {
+    return false
+  }
+
+  const normalized = String(value).trim().toLowerCase()
+  return (
+    normalized === 'sonnet' ||
+    normalized === 'opus' ||
+    normalized === 'haiku' ||
+    normalized === 'sonnet[1m]' ||
+    normalized === 'opus[1m]' ||
+    normalized.includes('tersa-')
+  )
+}
+
+const CODEX_MODEL_STRENGTH_ORDER = [
+  'gpt-5.5',
+  'gpt-5.4',
+  'gpt-5.4-mini',
+] as const
+
+function sortModelOptionsByStrength(options: ModelOption[]): ModelOption[] {
+  return [...options].sort((left, right) => {
+    const leftValue = left.value === null ? '' : String(left.value)
+    const rightValue = right.value === null ? '' : String(right.value)
+    const leftCodexRank = CODEX_MODEL_STRENGTH_ORDER.indexOf(
+      leftValue as (typeof CODEX_MODEL_STRENGTH_ORDER)[number],
+    )
+    const rightCodexRank = CODEX_MODEL_STRENGTH_ORDER.indexOf(
+      rightValue as (typeof CODEX_MODEL_STRENGTH_ORDER)[number],
+    )
+
+    if (leftCodexRank !== -1 || rightCodexRank !== -1) {
+      if (leftCodexRank === -1) return 1
+      if (rightCodexRank === -1) return -1
+      return leftCodexRank - rightCodexRank
+    }
+
+    return left.label.localeCompare(right.label)
+  })
+}
+
+function codexScopedOptions(
+  fallbackOptions: ModelOption[],
+  discoveredOptions?: ModelOption[],
+): ModelOption[] {
+  const defaultOption = fallbackOptions.find(option => option.value === null)
+  const sourceOptions =
+    (discoveredOptions?.length ?? 0) > 1 ? discoveredOptions! : fallbackOptions
+  const sourceByValue = new Map(
+    sourceOptions.map(option => [String(option.value), option]),
+  )
+  const scoped = CODEX_MODEL_STRENGTH_ORDER.flatMap(model => {
+    const option = sourceByValue.get(model)
+    return option ? [option] : []
+  })
+
+  return defaultOption ? [defaultOption, ...scoped] : scoped
+}
+
+export function getProviderScopedLegacyOptions(
+  fastMode = false,
+  discoveredOptions?: ModelOption[],
+): ModelOption[] | undefined {
+  const provider = getAPIProvider()
+  const baseOptions = getModelOptions(fastMode)
+  const defaultOption = baseOptions.find(option => option.value === null)
+  const cachedOptions = discoveredOptions ?? getActiveOpenAIModelOptionsCache()
+
+  if (provider === 'codex') {
+    return codexScopedOptions(baseOptions, cachedOptions)
+  }
+
+  if (getAdditionalModelOptionsCacheScope()?.startsWith('openai:')) {
+    const routeOptions =
+      cachedOptions.length > 0
+        ? sortModelOptionsByStrength(cachedOptions)
+        : baseOptions.filter(option => !isAnthropicOnlyOptionValue(option.value))
+
+    return defaultOption ? [defaultOption, ...routeOptions] : routeOptions
+  }
+
+  return undefined
+}
+
 export function shouldAutoRefreshRouteCatalog(options: {
   catalog: ModelCatalogConfig
   hasCachedModels: boolean
@@ -324,6 +412,7 @@ async function loadDescriptorDiscoveryContext(
 }
 
 async function loadModelDiscoveryContext(): Promise<ModelDiscoveryContext | null> {
+  const provider = getAPIProvider()
   const routeId = getActiveRouteId()
   if (routeId && routeId !== 'anthropic') {
     const descriptorContext = await loadDescriptorDiscoveryContext(routeId)
@@ -332,7 +421,7 @@ async function loadModelDiscoveryContext(): Promise<ModelDiscoveryContext | null
     }
   }
 
-  if (getAdditionalModelOptionsCacheScope()?.startsWith('openai:')) {
+  if (provider === 'codex' || getAdditionalModelOptionsCacheScope()?.startsWith('openai:')) {
     const { baseUrl } = getOpenAIDiscoveryRequestOptions()
     return {
       kind: 'legacy-openai',
@@ -439,6 +528,8 @@ function ModelPickerWrapper({
   const [optionsOverride, setOptionsOverride] = React.useState<ModelOption[] | undefined>(
     discoveryContext?.kind === 'descriptor'
       ? discoveryContext.optionsOverride
+      : discoveryContext?.kind === 'legacy-openai'
+        ? getProviderScopedLegacyOptions(Boolean(isFastMode))
       : undefined,
   )
   const [discoveryState, setDiscoveryState] =
@@ -571,6 +662,10 @@ function ModelPickerWrapper({
         setActiveOpenAIModelOptionsCache(discoveredOptions)
       }
 
+      setOptionsOverride(
+        getProviderScopedLegacyOptions(Boolean(isFastMode), discoveredOptions),
+      )
+
       setDiscoveryState(
         legacyDiscoveryStateForOptions({
           changed,
@@ -651,7 +746,7 @@ function SetModelAndClose({
 
       if (model && isOpus1mUnavailable(model)) {
         onDone(
-          'Opus 4.6 with 1M context is not available for your account. Learn more: https://code.claude.com/docs/en/model-config#extended-context-with-1m',
+          'Opus 4.6 with 1M context is not available for your account. Learn more: https://code.tersa.com/docs/en/model-config#extended-context-with-1m',
           {
             display: 'system',
           },
@@ -660,7 +755,7 @@ function SetModelAndClose({
       }
       if (model && isSonnet1mUnavailable(model)) {
         onDone(
-          'Sonnet 4.6 with 1M context is not available for your account. Learn more: https://code.claude.com/docs/en/model-config#extended-context-with-1m',
+          'Sonnet 4.6 with 1M context is not available for your account. Learn more: https://code.tersa.com/docs/en/model-config#extended-context-with-1m',
           {
             display: 'system',
           },

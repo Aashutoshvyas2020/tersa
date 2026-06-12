@@ -6,19 +6,19 @@ import { access, chmod, writeFile } from 'fs/promises'
 import { homedir } from 'os'
 import { join } from 'path'
 import { type ReleaseChannel, saveGlobalConfig } from './config.js'
-import { getClaudeConfigHomeDir } from './envUtils.js'
+import { getTersaConfigHomeDir } from './envUtils.js'
 import { getErrnoCode } from './errors.js'
 import { execFileNoThrowWithCwd } from './execFileNoThrow.js'
 import { getFsImplementation } from './fsOperations.js'
 import { logError } from './log.js'
 import { jsonStringify } from './slowOperations.js'
 
-// Lazy getters: getClaudeConfigHomeDir() is memoized and reads process.env.
+// Lazy getters: getTersaConfigHomeDir() is memoized and reads process.env.
 // Evaluating at module scope would capture the value before entrypoints like
 // hfi.tsx get a chance to set CLAUDE_CONFIG_DIR in main(), and would also
 // populate the memoize cache with that stale value for all 150+ other callers.
 function getLocalInstallDir(): string {
-  return join(getClaudeConfigHomeDir(), 'local')
+  return join(getTersaConfigHomeDir(), 'local')
 }
 
 function getLegacyLocalInstallDir(homeDir = homedir()): string {
@@ -30,7 +30,7 @@ export function getCandidateLocalInstallDirs(options?: {
   homeDir?: string
 }): string[] {
   const homeDir = options?.homeDir ?? homedir()
-  const configHomeDir = options?.configHomeDir ?? getClaudeConfigHomeDir()
+  const configHomeDir = options?.configHomeDir ?? getTersaConfigHomeDir()
   return Array.from(
     new Set([join(configHomeDir, 'local'), getLegacyLocalInstallDir(homeDir)]),
   )
@@ -38,7 +38,7 @@ export function getCandidateLocalInstallDirs(options?: {
 
 function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
   return [
-    join(localInstallDir, 'node_modules', '.bin', 'openclaude'),
+    join(localInstallDir, 'node_modules', '.bin', 'tersa'),
     join(localInstallDir, 'node_modules', '.bin', 'claude'),
   ]
 }
@@ -46,13 +46,13 @@ function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
 export function isManagedLocalInstallationPath(execPath: string): boolean {
   const normalizedExecPath = execPath.replace(/\\+/g, '/')
   return (
-    normalizedExecPath.includes('/.openclaude/local/node_modules/') ||
+    normalizedExecPath.includes('/.tersa/local/node_modules/') ||
     normalizedExecPath.includes('/.claude/local/node_modules/')
   )
 }
 
 export function getLocalClaudePath(): string {
-  return join(getLocalInstallDir(), 'openclaude')
+  return join(getLocalInstallDir(), 'tersa')
 }
 
 /**
@@ -95,7 +95,7 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
     await writeIfMissing(
       join(localInstallDir, 'package.json'),
       jsonStringify(
-        { name: 'openclaude-local', version: '0.0.1', private: true },
+        { name: 'tersa-local', version: '0.0.1', private: true },
         null,
         2,
       ),
@@ -105,7 +105,7 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
     const wrapperPath = getLocalClaudePath()
     const created = await writeIfMissing(
       wrapperPath,
-      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/openclaude" "$@"`,
+      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/tersa" "$@"`,
       0o755,
     )
     if (created) {
@@ -167,6 +167,8 @@ export async function installOrUpdateClaudePackage(
     return 'install_failed'
   }
 }
+
+export const installOrUpdateTersaPackage = installOrUpdateClaudePackage
 
 /**
  * Check if local installation exists.

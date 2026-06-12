@@ -1,10 +1,10 @@
 {
-  "name": "@gitlawb/openclaude",
+  "name": "tersa",
   "version": "0.16.1",
-  "description": "OpenClaude opens coding-agent workflows to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
+  "description": "Tersa opens coding-agent workflows to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
   "type": "module",
   "bin": {
-    "openclaude": "./bin/openclaude"
+    "tersa": "./bin/tersa"
   },
   "exports": {
     "./package.json": "./package.json",
@@ -26,7 +26,7 @@
     "build": "bun run scripts/build.ts",
     "integrations:generate": "bun run scripts/generate-integrations-artifacts.ts",
     "integrations:check": "bun run scripts/generate-integrations-artifacts.ts --check",
-    "dev": "bun run build && node bin/openclaude",
+    "dev": "bun run build && node bin/tersa",
     "dev:profile": "bun run scripts/provider-launch.ts",
     "dev:profile:fast": "bun run scripts/provider-launch.ts auto --fast --bare",
     "dev:codex": "bun run scripts/provider-launch.ts codex",
@@ -45,7 +45,7 @@
     "dev:code": "bun run profile:code && bun run dev:profile",
     "dev:grpc": "bun run scripts/start-grpc.ts",
     "dev:grpc:cli": "bun run scripts/grpc-cli.ts",
-    "start": "node bin/openclaude",
+    "start": "node bin/tersa",
     "web:dev": "bun run --cwd web dev",
     "web:build": "bun run --cwd web build",
     "web:preview": "bun run --cwd web preview",
@@ -57,7 +57,25 @@
     "security:pr-scan": "bun run scripts/pr-intent-scan.ts",
     "test:provider-recommendation": "bun test src/utils/providerRecommendation.test.ts src/utils/providerProfile.test.ts",
     "typecheck": "tsc --noEmit",
+    "typecheck:tersa:baseline": "bun run scripts/tersa-typecheck-baseline.ts",
+    "typecheck:tersa:baseline:update": "bun run scripts/tersa-typecheck-baseline.ts --update",
     "smoke": "bun run build && node dist/cli.mjs --version",
+    "smoke:tersa": "bun run scripts/tersa-cli-smoke.ts -- node dist/cli.mjs",
+    "audit:branding:tersa": "bun run scripts/tersa-branding-audit.ts src bin web vscode-extension/tersa-vscode package.json README.md ANDROID_INSTALL.md CHANGELOG.md",
+    "audit:release:tersa": "bun run scripts/tersa-release-gate.ts audit",
+    "benchmark:tokens:tersa": "bun run scripts/tersa-token-benchmarks.ts",
+    "bench:honest": "bun run research/evals/run-honest-bench.ts",
+    "bench:honest:dry-run": "bun run research/evals/run-honest-bench.ts --dry-run",
+    "test:tersa:focused": "TERSA_CAVE_MODE=1 bun test --max-concurrency=1 scripts/tersa-branding-audit.test.ts scripts/tersa-cli-smoke.test.ts scripts/tersa-token-benchmarks.test.ts src/commands/help/index.test.ts src/commands/model/model.test.tsx src/commands/modes/index.test.ts src/commands/permissions/index.test.ts src/commands/provider/provider.test.tsx src/commands/status/index.test.ts src/commands/statusline.test.ts src/components/HelpV2/General.test.tsx src/components/StartupScreen.test.ts src/utils/caveMode/structuredCompression.test.ts src/utils/internalPromptCompression.test.ts src/utils/forkedAgent.skillCompression.test.ts src/utils/sessionCanary.test.ts",
+    "test:tersa:interactive": "bun run scripts/tersa-tui-canary.ts --binary node dist/cli.mjs",
+    "test:tersa:quarantined": "bun test --max-concurrency=1 src/utils/caveMode/toolCompression.test.ts src/utils/caveMode/queryPipeline.test.ts src/utils/caveMode/rtkRewrite.test.ts src/services/tools/toolExecution.test.ts",
+    "test:tersa": "TERSA_CAVE_MODE=1 bun test --max-concurrency=1 scripts/tersa-branding-audit.test.ts scripts/tersa-cli-smoke.test.ts scripts/tersa-package-verify.test.ts scripts/tersa-release-gate.test.ts scripts/tersa-token-benchmarks.test.ts scripts/tersa-tui-canary.test.ts scripts/tersa-typecheck-baseline.test.ts src/utils/caveMode/structuredCompression.test.ts src/utils/modes/config.test.ts src/utils/modes/overlap.test.ts src/commands/help/index.test.ts src/commands/model/model.test.tsx src/commands/modes/index.test.ts src/commands/permissions/index.test.ts src/commands/provider/provider.test.tsx src/commands/status/index.test.ts src/commands/statusline.test.ts src/utils/tersaPaths.test.ts src/utils/tersaInstallSurfaces.test.ts src/components/HelpV2/General.test.tsx src/components/StartupScreen.test.ts src/utils/internalPromptCompression.test.ts src/utils/forkedAgent.skillCompression.test.ts src/utils/sessionCanary.test.ts scripts/tersa-bin-heap.test.ts",
+    "test:research": "bun test research/evals/run-honest-bench.test.ts",
+    "verify:tersa:dev": "bun run scripts/tersa-release-gate.ts dev",
+    "verify:tersa:interactive": "bun run scripts/tersa-release-gate.ts interactive",
+    "verify:tersa:release": "bun run scripts/tersa-release-gate.ts release",
+    "verify:tersa": "bun run verify:tersa:release",
+    "package:tersa:tester": "bun run scripts/tersa-package-verify.ts",
     "check": "bun run smoke && bun run test:full",
     "verify:privacy": "bun run scripts/verify-no-phone-home.ts",
     "build:verified": "bun run build && bun run verify:privacy",
@@ -149,7 +167,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Gitlawb/openclaude.git"
+    "url": "https://github.com/Gitlawb/tersa.git"
   },
   "keywords": [
     "claude-code",

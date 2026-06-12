@@ -8,6 +8,15 @@ export const DEFAULT_CAVE_MODE_CONFIG: CaveModeConfig = {
   structuredCompression: true,
   readDeduplication: true,
   mlCompression: false,
+  skillPromptCompression: true,
+  skillPromptCompressionStyle: 'full',
+  softHistoryCompression: true,
+  rtkRewrite: true,
+  repoMapInjection: true,
+  memoryRecallInjection: true,
+  historyPreserveRecentCount: 8,
+  repoMapTokenBudget: 300,
+  memoryRecallTokenBudget: 600,
   intensity: 'full',
 }
 
@@ -18,11 +27,14 @@ export function getCaveModeConfig(): CaveModeConfig {
     ...settings,
   }
 
-  if (process.env.OPENCLAUDE_CAVE_MODE === '0') {
+  if (process.env.TERSA_CAVE_MODE === '0') {
     return { ...merged, enabled: false }
   }
 
-  if (process.env.OPENCLAUDE_CAVE_MODE === '1' || isEnvTruthy(process.env.OPENCLAUDE_CAVE_MODE)) {
+  if (
+    process.env.TERSA_CAVE_MODE === '1' ||
+    isEnvTruthy(process.env.TERSA_CAVE_MODE)
+  ) {
     return { ...merged, enabled: true }
   }
 

@@ -50,11 +50,11 @@ async function expectModelCommandDoesNotWaitForRefresh(
   const result = await Promise.race([
     commandPromise,
     new Promise(resolve =>
-      setTimeout(() => resolve(Symbol.for('openclaude.test.timeout')), 1_000),
+      setTimeout(() => resolve(Symbol.for('tersa.test.timeout')), 1_000),
     ),
   ])
 
-  expect(result).not.toBe(Symbol.for('openclaude.test.timeout'))
+  expect(result).not.toBe(Symbol.for('tersa.test.timeout'))
   return result
 }
 
@@ -431,6 +431,60 @@ test('descriptor model options skip saved profile models for env-selected routes
       description: 'Provider: OpenRouter',
     },
   ])
+})
+
+test('legacy openai picker scopes Codex OAuth to codex models only', async () => {
+  process.env.CLAUDE_CODE_USE_OPENAI = '1'
+  process.env.OPENAI_BASE_URL = 'https://chatgpt.com/backend-api/codex'
+  process.env.OPENAI_MODEL = 'codexplan'
+
+  mock.module('../../utils/providerProfiles.js', () => ({
+    getActiveOpenAIModelOptionsCache: () => [],
+    getActiveProviderProfile: () => null,
+    getProfileModelOptions: () => [],
+    setActiveOpenAIModelOptionsCache: () => {},
+  }))
+
+  const { getProviderScopedLegacyOptions } =
+    await importFreshModelModule('legacy-codex-scoped-options')
+
+  const options = getProviderScopedLegacyOptions(false) ?? []
+  const values = options.map(option => option.value)
+
+  expect(values).toContain(null)
+  expect(values).toEqual([null, 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini'])
+  expect(values).not.toContain('sonnet')
+  expect(values).not.toContain('opus')
+  expect(values).not.toContain('haiku')
+  expect(values).not.toContain('gpt-5.3-codex')
+  expect(values).not.toContain('codexspark')
+})
+
+test('legacy openai picker does not collapse Codex OAuth to a single pinned profile model', async () => {
+  process.env.CLAUDE_CODE_USE_OPENAI = '1'
+  process.env.OPENAI_BASE_URL = 'https://chatgpt.com/backend-api/codex'
+  process.env.OPENAI_MODEL = 'codexplan'
+
+  mock.module('../../utils/providerProfiles.js', () => ({
+    getActiveOpenAIModelOptionsCache: () => [
+      {
+        value: 'codexplan',
+        label: 'codexplan',
+        description: 'Provider: Codex',
+      },
+    ],
+    getActiveProviderProfile: () => null,
+    getProfileModelOptions: () => [],
+    setActiveOpenAIModelOptionsCache: () => {},
+  }))
+
+  const { getProviderScopedLegacyOptions } =
+    await importFreshModelModule('legacy-codex-single-profile-cache')
+
+  const options = getProviderScopedLegacyOptions(false) ?? []
+  const values = options.map(option => option.value)
+
+  expect(values).toEqual([null, 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini'])
 })
 
 test('/model refresh clears descriptor cache and reports updates', async () => {

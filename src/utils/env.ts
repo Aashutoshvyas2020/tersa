@@ -5,9 +5,9 @@ import { fileSuffixForOauthConfig } from '../constants/oauth.js'
 import { isRunningWithBun } from './bundledMode.js'
 import { createCombinedAbortSignal } from './combinedAbortSignal.js'
 import {
-  getClaudeConfigHomeDir,
+  getTersaConfigHomeDir,
   isEnvTruthy,
-  migrateLegacyClaudeConfigHome,
+  migrateLegacyTersaConfigHome,
 } from './envUtils.js'
 import { findExecutable } from './findExecutable.js'
 import { getFsImplementation } from './fsOperations.js'
@@ -25,7 +25,7 @@ export function resolveGlobalClaudeFile(options: {
   const oauthSuffix = options.oauthSuffix ?? ''
   const configDir = options.configDirEnv || options.homeDir || homedir()
   const hasExplicitConfigDir = Boolean(options.configDirEnv)
-  const newFilename = `.openclaude${oauthSuffix}.json`
+  const newFilename = `.tersa${oauthSuffix}.json`
   const legacyFilename = `.claude${oauthSuffix}.json`
 
   if (
@@ -43,10 +43,10 @@ export const getGlobalClaudeFile = memoize((): string => {
   // Legacy fallback for backwards compatibility
   if (
     getFsImplementation().existsSync(
-      join(getClaudeConfigHomeDir(), '.config.json'),
+      join(getTersaConfigHomeDir(), '.config.json'),
     )
   ) {
-    return join(getClaudeConfigHomeDir(), '.config.json')
+    return join(getTersaConfigHomeDir(), '.config.json')
   }
 
   const oauthSuffix = fileSuffixForOauthConfig()
@@ -55,10 +55,10 @@ export const getGlobalClaudeFile = memoize((): string => {
   let migrationSucceeded = true
 
   if (!hasExplicitConfigDir) {
-    migrationSucceeded = migrateLegacyClaudeConfigHome({ homeDir: configDir })
+    migrationSucceeded = migrateLegacyTersaConfigHome({ homeDir: configDir })
   }
 
-  // Default installs hard-cut to .openclaude.json after the migration above.
+  // Default installs hard-cut to .tersa.json after the migration above.
   // Explicit CLAUDE_CONFIG_DIR users keep the legacy filename fallback because
   // that env var is the opt-out for automatic migration.
   return resolveGlobalClaudeFile({

@@ -18,7 +18,7 @@ import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
 } from '../services/analytics/index.js'
-import { accumulateUsage, updateUsage } from '../services/api/claude.js'
+import { accumulateUsage, updateUsage } from '../services/api/tersaAnthropicApi.js'
 import { EMPTY_USAGE, type NonNullableUsage } from '../services/api/logging.js'
 import type { ToolUseContext } from '../Tool.js'
 import type { AgentDefinition } from '../tools/AgentTool/loadAgentsDir.js'
@@ -27,6 +27,11 @@ import type { Message } from '../types/message.js'
 import { createChildAbortController } from './abortController.js'
 import { logForDebugging } from './debug.js'
 import { cloneFileStateCache } from './fileStateCache.js'
+import {
+  compressInternalPromptText,
+  getSkillPromptCompressionStyle,
+  isSkillPromptCompressionEnabled,
+} from './internalPromptCompression.js'
 import type { REPLHookContext } from './hooks/postSamplingHooks.js'
 import {
   createUserMessage,
@@ -195,9 +200,15 @@ export async function prepareForkedCommandContext(
 ): Promise<PreparedForkedContext> {
   // Get skill content with $ARGUMENTS replaced
   const skillPrompt = await command.getPromptForCommand(args, context)
-  const skillContent = skillPrompt
+  const rawSkillContent = skillPrompt
     .map(block => (block.type === 'text' ? block.text : ''))
     .join('\n')
+  const skillContent = isSkillPromptCompressionEnabled()
+    ? compressInternalPromptText(
+        rawSkillContent,
+        getSkillPromptCompressionStyle(),
+      )
+    : rawSkillContent
 
   // Parse and prepare allowed tools
   const allowedTools = parseToolListFromCLI(command.allowedTools ?? [])

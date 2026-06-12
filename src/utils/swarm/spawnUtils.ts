@@ -3,7 +3,6 @@
  */
 
 import {
-  getChromeFlagOverride,
   getFlagSettingsPath,
   getInlinePlugins,
   getMainLoopModelOverride,
@@ -52,7 +51,7 @@ export function buildInheritedCliFlags(options?: {
     permissionMode === 'bypassPermissions' ||
     getSessionBypassPermissionsMode()
   ) {
-    flags.push('--dangerously-skip-permissions')
+    flags.push('--yolo')
   } else if (permissionMode === 'acceptEdits') {
     flags.push('--permission-mode acceptEdits')
   }
@@ -78,14 +77,6 @@ export function buildInheritedCliFlags(options?: {
   // Propagate --teammate-mode so tmux teammates use the same mode as leader
   const sessionMode = getTeammateModeFromSnapshot()
   flags.push(`--teammate-mode ${sessionMode}`)
-
-  // Propagate --chrome / --no-chrome if explicitly set on the CLI
-  const chromeFlagOverride = getChromeFlagOverride()
-  if (chromeFlagOverride === true) {
-    flags.push('--chrome')
-  } else if (chromeFlagOverride === false) {
-    flags.push('--no-chrome')
-  }
 
   return flags.join(' ')
 }

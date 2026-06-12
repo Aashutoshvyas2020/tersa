@@ -4,7 +4,6 @@
  */
 
 import {
-  getChromeFlagOverride,
   getFlagSettingsPath,
   getInlinePlugins,
   getMainLoopModelOverride,
@@ -224,7 +223,7 @@ function buildInheritedCliFlags(options?: {
     permissionMode === 'bypassPermissions' ||
     getSessionBypassPermissionsMode()
   ) {
-    flags.push('--dangerously-skip-permissions')
+    flags.push('--yolo')
   } else if (permissionMode === 'acceptEdits') {
     flags.push('--permission-mode acceptEdits')
   } else if (permissionMode === 'auto') {
@@ -250,14 +249,6 @@ function buildInheritedCliFlags(options?: {
   const inlinePlugins = getInlinePlugins()
   for (const pluginDir of inlinePlugins) {
     flags.push(`--plugin-dir ${quote([pluginDir])}`)
-  }
-
-  // Propagate --chrome / --no-chrome if explicitly set on the CLI
-  const chromeFlagOverride = getChromeFlagOverride()
-  if (chromeFlagOverride === true) {
-    flags.push('--chrome')
-  } else if (chromeFlagOverride === false) {
-    flags.push('--no-chrome')
   }
 
   return flags.join(' ')
@@ -478,7 +469,7 @@ async function handleSpawnSplitPane(
     await enablePaneBorderStatus()
   }
 
-  // Build the command to spawn Claude Code with teammate identity
+  // Build the command to spawn Tersa with teammate identity
   // Note: We spawn without a prompt - initial instructions are sent via mailbox
   const binaryPath = getTeammateCommand()
 
@@ -680,7 +671,7 @@ async function handleSpawnSeparateWindow(
 
   const paneId = createWindowResult.stdout.trim()
 
-  // Build the command to spawn Claude Code with teammate identity
+  // Build the command to spawn Tersa with teammate identity
   // Note: We spawn without a prompt - initial instructions are sent via mailbox
   const binaryPath = getTeammateCommand()
 
@@ -1102,7 +1093,7 @@ async function handleSpawnInProcess(
 }
 
 /**
- * Handle spawn operation - creates a new Claude Code instance.
+ * Handle spawn operation - creates a new Tersa instance.
  * Uses in-process mode when enabled, otherwise uses tmux/iTerm2 split-pane view.
  * Falls back to in-process if pane backend detection fails (e.g., iTerm2 without
  * it2 CLI or tmux installed).

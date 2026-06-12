@@ -8,7 +8,7 @@ import type { PermissionResult } from 'src/utils/permissions/PermissionResult.js
 
 import { z } from 'zod/v4'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
-import { queryModelWithStreaming } from '../../services/api/claude.js'
+import { queryModelWithStreaming } from '../../services/api/tersaAnthropicApi.js'
 import { collectCodexCompletedResponse } from '../../services/api/codexShim.js'
 import { fetchWithProxyRetry } from '../../services/api/fetchWithProxyRetry.js'
 import {
@@ -224,7 +224,7 @@ function buildCodexWebSearchInput(input: Input): Array<Record<string, unknown>> 
 
 function buildCodexWebSearchInstructions(): string {
   return [
-    'You are the OpenClaude web search tool.',
+    'You are the Tersa web search tool.',
     'Search the web for the user query and return a concise factual answer.',
     'Include source URLs in the response.',
   ].join(' ')
@@ -421,7 +421,7 @@ async function runCodexWebSearch(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${credentials.apiKey}`,
       'chatgpt-account-id': credentials.accountId,
-      originator: 'openclaude',
+      originator: 'tersa',
     },
     body: JSON.stringify(body),
     signal,

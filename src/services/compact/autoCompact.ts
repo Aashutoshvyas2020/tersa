@@ -15,7 +15,7 @@ import { tokenCountWithEstimation } from '../../utils/tokens.js'
 import { partitionContext } from '../../utils/contextPartitioning.js'
 import { pruneByRelevance } from '../../utils/relevancePruning.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../analytics/growthbook.js'
-import { getMaxOutputTokensForModel } from '../api/claude.js'
+import { getMaxOutputTokensForModel } from '../api/tersaAnthropicApi.js'
 import { notifyCompaction } from '../api/promptCacheBreakDetection.js'
 import { setLastSummarizedMessageId } from '../SessionMemory/sessionMemoryUtils.js'
 import {
@@ -83,7 +83,7 @@ export const AUTOCOMPACT_FAILURE_COOLDOWN_MS = 5 * 60 * 1000
 export const MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3
 
 export function getAutoCompactFailureCooldownMs(): number {
-  const override = process.env.OPENCLAUDE_AUTOCOMPACT_FAILURE_COOLDOWN_MS
+  const override = process.env.TERSA_AUTOCOMPACT_FAILURE_COOLDOWN_MS
   if (override) {
     const trimmed = override.trim()
     const parsed = Number(trimmed)

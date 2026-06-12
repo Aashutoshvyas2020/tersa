@@ -128,11 +128,11 @@ import { classifyMcpToolForCollapse } from '../../tools/MCPTool/classifyForColla
 import { clearKeychainCache } from '../../utils/secureStorage/macOsKeychainHelpers.js'
 import { sleep } from '../../utils/sleep.js'
 import {
-  ClaudeAuthProvider,
+  TersaAuthProvider,
   hasMcpDiscoveryButNoToken,
   wrapFetchWithStepUpDetection,
 } from './auth.js'
-import { markClaudeAiMcpConnected } from './claudeai.js'
+import { markTersaAiMcpConnected } from './tersaAi.js'
 import { getAllMcpConfigs, isMcpServerDisabled } from './config.js'
 import { getMcpServerHeaders } from './headersHelper.js'
 import { SdkControlClientTransport } from './SdkControlTransport.js'
@@ -232,13 +232,6 @@ function getMcpToolTimeoutMs(): number {
   )
 }
 
-import { isClaudeInChromeMCPServer } from '../../utils/claudeInChrome/common.js'
-
-// Lazy: toolRendering.tsx pulls React/ink; only needed when Claude-in-Chrome MCP server is connected
-/* eslint-disable @typescript-eslint/no-require-imports */
-const claudeInChromeToolRendering =
-  (): typeof import('../../utils/claudeInChrome/toolRendering.js') =>
-    require('../../utils/claudeInChrome/toolRendering.js')
 // Lazy: wrapper.tsx → hostAdapter.ts → executor.ts pulls both native modules
 // (@ant/computer-use-input + @ant/computer-use-swift). Runtime-gated by
 // GrowthBook tengu_malort_pedway (see gates.ts).
@@ -254,7 +247,7 @@ const isComputerUseMCPServer = feature('CHICAGO_MCP')
 
 import { mkdir, readFile, unlink, writeFile } from 'fs/promises'
 import { dirname, join } from 'path'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { getTersaConfigHomeDir } from '../../utils/envUtils.js'
 /* eslint-enable @typescript-eslint/no-require-imports */
 import { jsonParse, jsonStringify } from '../../utils/slowOperations.js'
 
@@ -263,7 +256,7 @@ const MCP_AUTH_CACHE_TTL_MS = 15 * 60 * 1000 // 15 min
 type McpAuthCacheData = Record<string, { timestamp: number }>
 
 function getMcpAuthCachePath(): string {
-  return join(getClaudeConfigHomeDir(), 'mcp-needs-auth-cache.json')
+  return join(getTersaConfigHomeDir(), 'mcp-needs-auth-cache.json')
 }
 
 // Memoized so N concurrent isMcpAuthCached() calls during batched connection
@@ -373,7 +366,7 @@ function handleRemoteAuthFailure(
  * stale token mass-401s every claude.ai connector and sticks them all in the
  * 15-min needs-auth cache.
  */
-export function createClaudeAiProxyFetch(innerFetch: FetchLike): FetchLike {
+export function createTersaAiProxyFetch(innerFetch: FetchLike): FetchLike {
   return async (url, init) => {
     const doRequest = async () => {
       await checkAndRefreshOAuthTokenIfNeeded()
@@ -636,7 +629,7 @@ export const connectToServer = memoize(
 
       if (serverRef.type === 'sse') {
         // Create an auth provider for this server
-        const authProvider = new ClaudeAuthProvider(name, serverRef)
+        const authProvider = new TersaAuthProvider(name, serverRef)
 
         // Get combined headers (static + dynamic)
         const combinedHeaders = await getMcpServerHeaders(name, serverRef)
@@ -817,7 +810,7 @@ export const connectToServer = memoize(
         )
 
         // Create an auth provider for this server
-        const authProvider = new ClaudeAuthProvider(name, serverRef)
+        const authProvider = new TersaAuthProvider(name, serverRef)
 
         // Get combined headers (static + dynamic)
         const combinedHeaders = await getMcpServerHeaders(name, serverRef)
@@ -900,7 +893,7 @@ export const connectToServer = memoize(
         logMCPDebug(name, `Using claude.ai proxy at ${proxyUrl}`)
 
         // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
-        const fetchWithAuth = createClaudeAiProxyFetch(globalThis.fetch)
+        const fetchWithAuth = createTersaAiProxyFetch(globalThis.fetch)
 
         const proxyOptions = getProxyFetchOptions()
         const transportOptions: StreamableHTTPClientTransportOptions = {
@@ -920,26 +913,6 @@ export const connectToServer = memoize(
           transportOptions,
         )
         logMCPDebug(name, `claude.ai proxy transport created successfully`)
-      } else if (
-        (serverRef.type === 'stdio' || !serverRef.type) &&
-        isClaudeInChromeMCPServer(name)
-      ) {
-        // Run the Chrome MCP server in-process to avoid spawning a ~325 MB subprocess
-        const { createChromeContext } = await import(
-          '../../utils/claudeInChrome/mcpServer.js'
-        )
-        const { createClaudeForChromeMcpServer } = await import(
-          '@ant/claude-for-chrome-mcp'
-        )
-        const { createLinkedTransportPair } = await import(
-          './InProcessTransport.js'
-        )
-        const context = createChromeContext(serverRef.env)
-        inProcessServer = createClaudeForChromeMcpServer(context)
-        const [clientTransport, serverTransport] = createLinkedTransportPair()
-        await inProcessServer.connect(serverTransport)
-        transport = clientTransport
-        logMCPDebug(name, `In-process Chrome MCP server started`)
       } else if (
         feature('CHICAGO_MCP') &&
         (serverRef.type === 'stdio' || !serverRef.type) &&
@@ -1005,9 +978,9 @@ export const connectToServer = memoize(
           // name stays 'claude-code' for compatibility with MCP servers that
           // gate features on the upstream client identifier.
           name: 'claude-code',
-          title: 'OpenClaude',
+          title: 'Tersa',
           version: MACRO.VERSION ?? 'unknown',
-          description: 'OpenClaude — coding-agent CLI for any LLM provider',
+          description: 'Tersa — coding-agent CLI for any LLM provider',
           websiteUrl: PRODUCT_URL,
         },
         {
@@ -2017,12 +1990,6 @@ export const fetchToolsForClient = memoizeWithLRU(
               const displayName = tool.annotations?.title || tool.name
               return `${client.name} - ${displayName} (MCP)`
             },
-            ...(isClaudeInChromeMCPServer(client.name) &&
-              (client.config.type === 'stdio' || !client.config.type)
-              ? claudeInChromeToolRendering().getClaudeInChromeMCPToolOverrides(
-                tool.name,
-              )
-              : {}),
             ...(feature('CHICAGO_MCP') &&
               (client.config.type === 'stdio' || !client.config.type) &&
               isComputerUseMCPServer!(client.name)
@@ -2206,7 +2173,7 @@ export async function reconnectMcpServerImpl(
     }
 
     if (config.type === 'claudeai-proxy') {
-      markClaudeAiMcpConnected(name)
+      markTersaAiMcpConnected(name)
     }
 
     const supportsResources = !!client.capabilities?.resources
@@ -2379,7 +2346,7 @@ export async function getMcpToolsCommandsAndResources(
       }
 
       if (config.type === 'claudeai-proxy') {
-        markClaudeAiMcpConnected(name)
+        markTersaAiMcpConnected(name)
       }
 
       const supportsResources = !!client.capabilities?.resources
@@ -3342,9 +3309,9 @@ export async function setupSdkMcpClients(
           // name stays 'claude-code' for compatibility with MCP servers that
           // gate features on the upstream client identifier.
           name: 'claude-code',
-          title: 'OpenClaude',
+          title: 'Tersa',
           version: MACRO.VERSION ?? 'unknown',
-          description: 'OpenClaude — coding-agent CLI for any LLM provider',
+          description: 'Tersa — coding-agent CLI for any LLM provider',
           websiteUrl: PRODUCT_URL,
         },
         {

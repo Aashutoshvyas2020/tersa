@@ -12,7 +12,7 @@ export type LogoPalette = {
   accent: RGB
   /** Soft body text color (tagline value, label values). */
   cream: RGB
-  /** Dim color for label names and the openclaude prefix. */
+  /** Dim color for label names and the tersa prefix. */
   dim: RGB
   /** Box-drawing border color. */
   border: RGB
@@ -75,19 +75,19 @@ export const LOGO_PALETTES = {
     dim: [120, 120, 120],
     border: [95, 95, 95],
   },
-  caveman: {
+  tersa: {
     gradient: [
-      [96, 214, 255],
-      [77, 188, 250],
-      [65, 160, 242],
-      [54, 132, 224],
-      [43, 108, 192],
-      [32, 86, 156],
+      [112, 220, 255],
+      [95, 200, 252],
+      [80, 174, 246],
+      [67, 148, 232],
+      [56, 124, 209],
+      [47, 102, 182],
     ],
-    accent: [92, 205, 255],
-    cream: [198, 224, 242],
-    dim: [111, 129, 158],
-    border: [52, 94, 142],
+    accent: [110, 214, 255],
+    cream: [228, 238, 248],
+    dim: [165, 186, 214],
+    border: [102, 150, 206],
   },
 } as const satisfies Record<string, LogoPalette>
 
@@ -95,14 +95,14 @@ export type LogoPaletteName = keyof typeof LOGO_PALETTES
 
 export const LOGO_PALETTE_NAMES = Object.keys(LOGO_PALETTES) as LogoPaletteName[]
 
-export const DEFAULT_LOGO_PALETTE: LogoPaletteName = 'caveman'
+export const DEFAULT_LOGO_PALETTE: LogoPaletteName = 'tersa'
 
 export const LOGO_PALETTE_LABELS: Record<LogoPaletteName, string> = {
-  sunset: 'Sunset (default)',
+  sunset: 'Sunset',
   forest: 'Forest green',
   ocean: 'Ocean blue',
   monochrome: 'Monochrome',
-  caveman: 'Caveman blue',
+  tersa: 'Tersa blue (default)',
 }
 
 export function isLogoPaletteName(value: unknown): value is LogoPaletteName {

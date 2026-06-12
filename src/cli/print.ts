@@ -262,7 +262,7 @@ import { LOCAL_COMMAND_STDOUT_TAG } from 'src/constants/xml.js'
 import {
   statusListeners,
   type ClaudeAILimits,
-} from 'src/services/claudeAiLimits.js'
+} from 'src/services/tersaAiLimits.js'
 import {
   getDefaultMainLoopModel,
   getMainLoopModel,
@@ -3516,7 +3516,7 @@ function runHeadlessStreaming(
           // both URLs and wait. Automatic URL → localhost listener catches
           // the redirect if the browser is on this host; manual URL → the
           // success page shows "code#state" for claude_oauth_callback.
-          const { loginWithClaudeAi } = message.request
+          const { loginWithTersaAi } = message.request
 
           // Clean up any prior flow. cleanup() closes the localhost listener
           // and nulls the manual resolver. The prior `flow` promise is left
@@ -3526,7 +3526,7 @@ function runHeadlessStreaming(
           claudeOAuth?.service.cleanup()
 
           logEvent('tengu_oauth_flow_start', {
-            loginWithClaudeAi: loginWithClaudeAi ?? true,
+            loginWithTersaAi: loginWithTersaAi ?? true,
           })
 
           const service = new OAuthService()
@@ -3549,7 +3549,7 @@ function runHeadlessStreaming(
                 urlResolver({ manualUrl, automaticUrl: automaticUrl! })
               },
               {
-                loginWithClaudeAi: loginWithClaudeAi ?? true,
+                loginWithTersaAi: loginWithTersaAi ?? true,
                 skipBrowserOpen: true,
               },
             )
@@ -3561,7 +3561,7 @@ function runHeadlessStreaming(
               // next API call re-reads keychain/file and works. No respawn.
               await installOAuthTokens(tokens)
               logEvent('tengu_oauth_success', {
-                loginWithClaudeAi: loginWithClaudeAi ?? true,
+                loginWithTersaAi: loginWithTersaAi ?? true,
               })
             })
             .finally(() => {
@@ -5052,7 +5052,7 @@ async function loadInitialMessages(
       )
       if (!parsedSessionId) {
         let errorMessage =
-          'Error: --resume requires a valid session ID when used with --print. Usage: openclaude -p --resume <session-id>'
+          'Error: --resume requires a valid session ID when used with --print. Usage: tersa -p --resume <session-id>'
         if (typeof options.resume === 'string') {
           errorMessage += `. Session IDs must be in UUID format (e.g., 550e8400-e29b-41d4-a716-446655440000). Provided value "${options.resume}" is not a valid UUID`
         }

@@ -102,7 +102,7 @@ function setupOpenAIMode(baseUrl: string, model: string): void {
 }
 
 describe('printStartupScreen logo', () => {
-  test('renders the Caveman startup logo and branding', () => {
+  test('renders the Tersa startup logo and branding', () => {
     ;(globalThis as Record<string, unknown>).MACRO = { VERSION: 'test-version' }
     Object.defineProperty(process.stdout, 'isTTY', {
       configurable: true,
@@ -118,10 +118,11 @@ describe('printStartupScreen logo', () => {
     printStartupScreen()
 
     const plainOutput = stripAnsi(output)
-    expect(plainOutput).toContain('███████╗ █████╗ ██╗   ██╗')
-    expect(plainOutput).toContain('████████████')
-    expect(plainOutput).toContain('✦ Caveman. Any model. Every tool. ✦')
-    expect(plainOutput).toContain('caveman vtest-version')
+    expect(plainOutput).toContain('████████╗███████╗██████╗ ███████╗ █████╗')
+    expect(plainOutput).toContain('╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗')
+    expect(plainOutput).toContain('Provider')
+    expect(plainOutput).toContain('Mode')
+    expect(plainOutput).toContain('tersa vtest-version')
   })
 })
 
@@ -281,28 +282,28 @@ describe('detectProvider — explicit dedicated-provider env flags', () => {
 
 describe('detectProvider — modelOverride from --model flag', () => {
   test('modelOverride overrides default Anthropic model', () => {
-    const result = detectProvider('claude-opus-4-6')
+    const result = detectProvider('tersa-opus-4-6')
     expect(result.name).toBe('Anthropic')
     expect(result.model).toContain('opus')
   })
 
   test('modelOverride alias is resolved for Anthropic', () => {
-    process.env.ANTHROPIC_DEFAULT_OPUS_MODEL = 'claude-opus-4-6'
+    process.env.ANTHROPIC_DEFAULT_OPUS_MODEL = 'tersa-opus-4-6'
     const result = detectProvider('opus')
     expect(result.name).toBe('Anthropic')
     expect(result.model).toContain('opus')
   })
 
   test('modelOverride takes priority over ANTHROPIC_MODEL env var', () => {
-    process.env.ANTHROPIC_MODEL = 'claude-haiku-4-5-20251001'
-    const result = detectProvider('claude-opus-4-6')
+    process.env.ANTHROPIC_MODEL = 'tersa-haiku-4-5-20251001'
+    const result = detectProvider('tersa-opus-4-6')
     expect(result.name).toBe('Anthropic')
     expect(result.model).toContain('opus')
   })
 
   test('modelOverride takes priority over CLAUDE_MODEL env var', () => {
-    process.env.CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
-    const result = detectProvider('claude-opus-4-6')
+    process.env.CLAUDE_MODEL = 'tersa-haiku-4-5-20251001'
+    const result = detectProvider('tersa-opus-4-6')
     expect(result.name).toBe('Anthropic')
     expect(result.model).toContain('opus')
   })
@@ -334,14 +335,14 @@ describe('detectProvider — modelOverride from --model flag', () => {
   })
 
   test('undefined modelOverride preserves default behavior', () => {
-    process.env.ANTHROPIC_MODEL = 'claude-sonnet-4-6'
+    process.env.ANTHROPIC_MODEL = 'tersa-sonnet-4-6'
     const result = detectProvider(undefined)
     expect(result.name).toBe('Anthropic')
     expect(result.model).toContain('sonnet')
   })
 
   test('no argument preserves default behavior', () => {
-    process.env.ANTHROPIC_MODEL = 'claude-sonnet-4-6'
+    process.env.ANTHROPIC_MODEL = 'tersa-sonnet-4-6'
     const result = detectProvider()
     expect(result.name).toBe('Anthropic')
     expect(result.model).toContain('sonnet')

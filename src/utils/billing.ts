@@ -50,7 +50,7 @@ export function setMockBillingAccessOverride(value: boolean | null): void {
   mockBillingAccessOverride = value
 }
 
-export function hasClaudeAiBillingAccess(): boolean {
+export function hasTersaAiBillingAccess(): boolean {
   // Check for mock billing access first (for /mock-limits testing)
   if (mockBillingAccessOverride !== null) {
     return mockBillingAccessOverride
@@ -76,3 +76,5 @@ export function hasClaudeAiBillingAccess(): boolean {
     ['admin', 'billing', 'owner', 'primary_owner'].includes(orgRole)
   )
 }
+
+export const hasClaudeAiBillingAccess = hasTersaAiBillingAccess

@@ -1,5 +1,5 @@
 /**
- * OpenClaude build script — bundles the TypeScript source into a single
+ * Tersa build script — bundles the TypeScript source into a single
  * distributable JS file using Bun's bundler.
  *
  * Handles:
@@ -129,10 +129,10 @@ result = await Bun.build({
     'MACRO.DISPLAY_VERSION': JSON.stringify(version),
     'MACRO.BUILD_TIME': JSON.stringify(new Date().toISOString()),
     'MACRO.ISSUES_EXPLAINER':
-      JSON.stringify('report the issue at https://github.com/Gitlawb/openclaude/issues'),
+      JSON.stringify('report the issue at https://github.com/Gitlawb/tersa/issues'),
     'MACRO.FEEDBACK_CHANNEL':
-      JSON.stringify('https://github.com/Gitlawb/openclaude/issues'),
-    'MACRO.PACKAGE_URL': JSON.stringify('@gitlawb/openclaude'),
+      JSON.stringify('https://github.com/Gitlawb/tersa/issues'),
+    'MACRO.PACKAGE_URL': JSON.stringify('tersa'),
     'MACRO.NATIVE_PACKAGE_URL': 'undefined',
   },
   plugins: [
@@ -221,7 +221,6 @@ export async function handleBgFlag() { throw new Error("Background sessions are 
           'url-handler-napi',
           'color-diff-napi',
           '@anthropic-ai/mcpb',
-          '@ant/claude-for-chrome-mcp',
           '@anthropic-ai/sandbox-runtime',
           'asciichart',
           'plist',
@@ -456,7 +455,7 @@ if (!result.success) {
   }
   process.exitCode = 1
 } else {
-  console.log(`✓ Built openclaude v${version} → dist/cli.mjs`)
+  console.log(`✓ Built tersa v${version} → dist/cli.mjs`)
 }
 
 // ── SDK Bundle Build ──────────────────────────────────────────────────────
@@ -477,10 +476,10 @@ sdkResult = await Bun.build({
     'MACRO.DISPLAY_VERSION': JSON.stringify(version),
     'MACRO.BUILD_TIME': JSON.stringify(new Date().toISOString()),
     'MACRO.ISSUES_EXPLAINER':
-      JSON.stringify('report the issue at https://github.com/Gitlawb/openclaude/issues'),
+      JSON.stringify('report the issue at https://github.com/Gitlawb/tersa/issues'),
     'MACRO.FEEDBACK_CHANNEL':
-      JSON.stringify('https://github.com/Gitlawb/openclaude/issues'),
-    'MACRO.PACKAGE_URL': JSON.stringify('@gitlawb/openclaude'),
+      JSON.stringify('https://github.com/Gitlawb/tersa/issues'),
+    'MACRO.PACKAGE_URL': JSON.stringify('tersa'),
     'MACRO.NATIVE_PACKAGE_URL': 'undefined',
   },
   // External: everything TUI-related + native modules
@@ -494,7 +493,6 @@ sdkResult = await Bun.build({
       setup(build) {
         const missingModules = [
           '@anthropic-ai/mcpb',
-          '@ant/claude-for-chrome-mcp',
           '@ant/computer-use-mcp',
           '@ant/computer-use-swift',
           '@ant/computer-use-input',
