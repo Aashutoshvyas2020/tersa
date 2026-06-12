@@ -61,7 +61,7 @@
     "typecheck:tersa:baseline:update": "bun run scripts/tersa-typecheck-baseline.ts --update",
     "smoke": "bun run build && node dist/cli.mjs --version",
     "smoke:tersa": "bun run scripts/tersa-cli-smoke.ts -- node dist/cli.mjs",
-    "audit:branding:tersa": "bun run scripts/tersa-branding-audit.ts src bin web vscode-extension/tersa-vscode package.json README.md ANDROID_INSTALL.md CHANGELOG.md",
+    "audit:branding:tersa": "bun run scripts/tersa-branding-audit.ts package.json README.md docs/tester-builds.md src/entrypoints/cli.tsx src/components/LogoV2 src/components/StartupScreen.ts src/services/notifier.ts bin",
     "audit:release:tersa": "bun run scripts/tersa-release-gate.ts audit",
     "benchmark:tokens:tersa": "bun run scripts/tersa-token-benchmarks.ts",
     "bench:honest": "bun run research/evals/run-honest-bench.ts",
