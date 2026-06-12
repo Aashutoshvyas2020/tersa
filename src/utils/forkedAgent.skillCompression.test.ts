@@ -7,13 +7,13 @@ import {
 
 describe('prepareForkedCommandContext skill compression', () => {
   beforeEach(() => {
+    const caveMode = {
+      ...DEFAULT_CAVE_MODE_CONFIG,
+    }
+    caveMode.skillPromptCompressionStyle = 'wenyan-full'
     setSessionSettingsCache({
       settings: {
-        caveMode: {
-          ...DEFAULT_CAVE_MODE_CONFIG,
-          skillPromptCompression: true,
-          skillPromptCompressionStyle: 'wenyan-full',
-        },
+        caveMode,
       },
       errors: [],
     })
