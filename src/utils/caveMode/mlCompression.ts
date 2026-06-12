@@ -1,6 +1,5 @@
 import { spawnSync, type SpawnSyncOptionsWithStringEncoding, type SpawnSyncReturns } from 'node:child_process'
 import { getCaveModeConfig } from './config.js'
-import type { ProcessCaveToolResultArgs } from './types.js'
 
 const DEFAULT_MIN_INPUT_CHARS = 2400
 const DEFAULT_MIN_SAVINGS_RATIO = 0.12
@@ -126,8 +125,13 @@ export function getMlCompressionStatusLabel(): string {
 }
 
 export function maybeCompressTextWithMlSidecar(
-  args: ProcessCaveToolResultArgs & {
+  args: {
+    toolName: string
+    input: unknown
+    toolUseId: string
     text: string
+    output: unknown
+    isError: boolean
     deterministicChanged: boolean
     deterministicStrategies: string[]
   },
