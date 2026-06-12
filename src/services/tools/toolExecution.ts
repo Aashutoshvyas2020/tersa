@@ -96,7 +96,10 @@ import {
   processPreMappedToolResultBlock,
   processToolResultBlock,
 } from '../../utils/toolResultStorage.js'
-import { processCaveToolResult } from '../../utils/caveMode/index.js'
+import {
+  maybeRewriteBashInputWithRtk,
+  processCaveToolResult,
+} from '../../utils/caveMode/index.js'
 import {
   extractDiscoveredToolNames,
   isToolSearchEnabledOptimistic,
@@ -1288,6 +1291,26 @@ async function checkPermissionsAndCallTool(
     } as typeof processedInput
   } else if (processedInput !== backfilledClone) {
     callInput = processedInput
+  }
+
+  if (
+    (tool.name === BASH_TOOL_NAME || tool.name === POWERSHELL_TOOL_NAME) &&
+    callInput &&
+    typeof callInput === 'object' &&
+    'command' in callInput &&
+    typeof (callInput as { command?: unknown }).command === 'string'
+  ) {
+    const rtkResult = await maybeRewriteBashInputWithRtk(
+      callInput as BashToolInput & { command: string },
+    )
+    callInput = rtkResult.input as typeof callInput
+    if (rtkResult.metadata.attempted) {
+      logEvent('tengu_cave_mode_rtk_rewrite', {
+        toolName: sanitizeToolNameForAnalytics(tool.name),
+        available: rtkResult.metadata.available,
+        changed: rtkResult.metadata.changed,
+      })
+    }
   }
   try {
     const result = await tool.call(

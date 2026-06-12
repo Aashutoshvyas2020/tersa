@@ -1,6 +1,11 @@
 import type { ToolUseContext } from '../../Tool.js'
 
 export type CaveModeIntensity = 'off' | 'light' | 'full'
+export type SkillPromptCompressionStyle =
+  | 'lite'
+  | 'full'
+  | 'wenyan-lite'
+  | 'wenyan-full'
 
 export type CaveModeConfig = {
   enabled: boolean
@@ -8,6 +13,17 @@ export type CaveModeConfig = {
   structuredCompression: boolean
   readDeduplication: boolean
   mlCompression: boolean
+  mlCompressionCommand?: string
+  mlCompressionTimeoutMs?: number
+  skillPromptCompression?: boolean
+  skillPromptCompressionStyle?: SkillPromptCompressionStyle
+  softHistoryCompression: boolean
+  rtkRewrite: boolean
+  repoMapInjection: boolean
+  memoryRecallInjection: boolean
+  historyPreserveRecentCount: number
+  repoMapTokenBudget: number
+  memoryRecallTokenBudget: number
   intensity: CaveModeIntensity
 }
 
@@ -19,6 +35,7 @@ export type CaveCompressionStrategy =
   | 'json'
   | 'xml'
   | 'read_dedup'
+  | 'ml'
   | 'combined'
 
 export type CaveCompressionMetadata = {
@@ -28,6 +45,25 @@ export type CaveCompressionMetadata = {
   compressedChars: number
   compressionRatio: number
   strategy: CaveCompressionStrategy
+  changed: boolean
+}
+
+export type CaveQueryOptimizationMetadata = {
+  caveModeEnabled: boolean
+  changed: boolean
+  softHistoryCompressed: boolean
+  repoMapInjected: boolean
+  memoryRecallInjected: boolean
+  baselineTokens: number
+  postHistoryCompressionTokens: number
+  finalEstimatedTokens: number
+  repoMapTokens: number
+  memoryRecallTokens: number
+}
+
+export type RtkRewriteMetadata = {
+  available: boolean
+  attempted: boolean
   changed: boolean
 }
 

@@ -1,6 +1,7 @@
 import stripAnsi from 'strip-ansi'
 import { compressStructuredBashOutput } from './structuredCompression.js'
 import { getCaveModeConfig } from './config.js'
+import { maybeCompressTextWithMlSidecar } from './mlCompression.js'
 import type {
   CaveCompressionMetadata,
   CaveCompressionStrategy,
@@ -102,6 +103,9 @@ function compressText(
     allowStructured: boolean
     command?: string
     isError: boolean
+    toolName: string
+    input: unknown
+    toolUseId: string
   },
 ): TextCompressionResult {
   let next = text
@@ -141,6 +145,21 @@ function compressText(
 
   if (!isMeaningfulReduction(text, next) && strategies.some(s => s === 'json' || s === 'xml')) {
     return { text, changed: false, strategies: [] }
+  }
+
+  const mlResult = maybeCompressTextWithMlSidecar({
+    toolName: options.toolName,
+    input: options.input,
+    toolUseId: options.toolUseId,
+    output: next,
+    text: next,
+    isError: options.isError,
+    deterministicChanged: next !== text,
+    deterministicStrategies: strategies,
+  })
+  if (mlResult.changed) {
+    next = mlResult.text
+    strategies.push('ml')
   }
 
   return { text: next, changed: next !== text, strategies }
@@ -188,6 +207,9 @@ function compressStringField(
     allowStructured,
     command,
     isError: args.isError,
+    toolName: args.toolName,
+    input: args.input,
+    toolUseId: args.toolUseId,
   })
 
   if (!result.changed) {
@@ -262,6 +284,9 @@ export function processCaveToolResult(
     const result = compressText(args.output, BUDGETS.fallback, {
       allowStructured: false,
       isError: args.isError,
+      toolName: args.toolName,
+      input: args.input,
+      toolUseId: args.toolUseId,
     })
     return {
       output: result.changed ? result.text : args.output,
@@ -291,6 +316,9 @@ export function processCaveToolResult(
         const result = compressText(file.content, BUDGETS.read, {
           allowStructured: false,
           isError: args.isError,
+          toolName: args.toolName,
+          input: args.input,
+          toolUseId: args.toolUseId,
         })
         if (result.changed) {
           const next = {
@@ -320,6 +348,9 @@ export function processCaveToolResult(
           ? String((args.input as { command?: unknown }).command ?? '')
           : undefined,
       isError: args.isError,
+      toolName: args.toolName,
+      input: args.input,
+      toolUseId: args.toolUseId,
     })
     return {
       output: result.changed ? result.text : args.output,
