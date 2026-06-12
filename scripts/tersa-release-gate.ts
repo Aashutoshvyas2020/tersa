@@ -32,13 +32,13 @@ const RELEASE_SURFACE_FORBIDDEN = [
 
 const DEFAULT_RELEASE_SURFACE_FILES = [
   'README.md',
-  'ANDROID_INSTALL.md',
-  'docs',
   'package.json',
-  'src/commands',
-  'src/components',
-  'web/src',
-  'vscode-extension/tersa-vscode',
+  'docs/tester-builds.md',
+  'src/entrypoints/cli.tsx',
+  'src/components/LogoV2',
+  'src/components/StartupScreen.ts',
+  'src/services/notifier.ts',
+  'bin',
 ] as const
 
 export type ReleaseSurfaceValidation = {
