@@ -20,6 +20,16 @@ export function validatePackFilename(fileName: string): { ok: boolean; error?: s
   return ok ? { ok } : { ok, error: `Unexpected tarball name: ${fileName}` }
 }
 
+export function parsePackJsonOutput(output: string): Array<{ filename: string }> {
+  const start = output.indexOf('[\n')
+  const fallbackStart = output.indexOf('[{')
+  const jsonStart = start >= 0 ? start : fallbackStart
+  if (jsonStart < 0) {
+    throw new Error('npm pack did not emit a JSON payload')
+  }
+  return JSON.parse(output.slice(jsonStart)) as Array<{ filename: string }>
+}
+
 function run(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env): string {
   const result = spawnSync('bash', ['-lc', command], {
     cwd,
@@ -37,7 +47,7 @@ function run(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env)
 
 function packTarball(cwd: string): string {
   const json = run('npm pack --json', cwd)
-  const parsed = JSON.parse(json) as Array<{ filename: string }>
+  const parsed = parsePackJsonOutput(json)
   const filename = parsed[0]?.filename
   if (!filename) {
     throw new Error('npm pack did not return a tarball filename')

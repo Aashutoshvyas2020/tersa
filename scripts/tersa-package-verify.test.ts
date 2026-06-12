@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildPackInstallVerificationPlan,
+  parsePackJsonOutput,
   validatePackFilename,
 } from './tersa-package-verify.ts'
 
@@ -23,5 +24,16 @@ describe('tersa package verification', () => {
   test('accepts tersa tarballs and rejects mismatched package names', () => {
     expect(validatePackFilename('tersa-0.16.1.tgz').ok).toBe(true)
     expect(validatePackFilename('@gitlawb-tersa-0.16.1.tgz').ok).toBe(false)
+  })
+
+  test('parses npm pack json after prepack log noise', () => {
+    const parsed = parsePackJsonOutput([
+      '> tersa@0.16.1 prepack',
+      '> npm run build',
+      '',
+      '[{"filename":"tersa-0.16.1.tgz"}]',
+    ].join('\n'))
+
+    expect(parsed).toEqual([{ filename: 'tersa-0.16.1.tgz' }])
   })
 })
