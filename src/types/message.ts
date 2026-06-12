@@ -23,4 +23,4 @@ export type AttachmentMessage = any
 export type ProgressMessage<T = any> = any
 export type HookResultMessage = any
 export type NormalizedUserMessage = any
-export type PartialCompactDirection = 'from' | 'to'
+export type PartialCompactDirection = 'from' | 'up_to'

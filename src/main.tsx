@@ -2853,6 +2853,7 @@ async function run(): Promise<CommanderCommand> {
       replBridgeError: undefined,
       replBridgeInitialName: remoteControlName,
       showRemoteCallout: false,
+      sessionDriftWarning: null,
       notifications: {
         current: null,
         queue: initialNotifications

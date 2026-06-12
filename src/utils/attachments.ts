@@ -1435,7 +1435,7 @@ export function getDateChangeAttachments(
   // message timestamp so a multi-day gap flushes each day correctly.
   if (feature('KAIROS')) {
     if (getKairosActive() && messages !== undefined) {
-      sessionTranscriptModule?.flushOnDateChange(messages, currentDate)
+      sessionTranscriptModule?.flushOnDateChange?.(messages, currentDate)
     }
   }
 
