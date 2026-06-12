@@ -48,7 +48,7 @@ export function buildAuthUrl({
   state,
   port,
   isManual,
-  loginWithClaudeAi,
+  loginWithTersaAi,
   inferenceOnly,
   orgUUID,
   loginHint,
@@ -58,13 +58,13 @@ export function buildAuthUrl({
   state: string
   port: number
   isManual: boolean
-  loginWithClaudeAi?: boolean
+  loginWithTersaAi?: boolean
   inferenceOnly?: boolean
   orgUUID?: string
   loginHint?: string
   loginMethod?: string
 }): string {
-  const authUrlBase = loginWithClaudeAi
+  const authUrlBase = loginWithTersaAi
     ? getOauthConfig().CLAUDE_AI_AUTHORIZE_URL
     : getOauthConfig().CONSOLE_AUTHORIZE_URL
 

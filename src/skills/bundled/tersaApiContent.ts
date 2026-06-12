@@ -1,38 +1,45 @@
-// Content for the claude-api bundled skill.
-// Each .md file is inlined as a string at build time via Bun's text loader.
+// Reduced inline content for the tersa-api bundled skill.
+// The original markdown asset tree is absent from this source snapshot, so the
+// release branch keeps a small self-contained fallback bundle here instead of
+// importing missing files.
 
-import csharpClaudeApi from './claude-api/csharp/claude-api.md'
-import curlExamples from './claude-api/curl/examples.md'
-import goClaudeApi from './claude-api/go/claude-api.md'
-import javaClaudeApi from './claude-api/java/claude-api.md'
-import phpClaudeApi from './claude-api/php/claude-api.md'
-import pythonAgentSdkPatterns from './claude-api/python/agent-sdk/patterns.md'
-import pythonAgentSdkReadme from './claude-api/python/agent-sdk/README.md'
-import pythonClaudeApiBatches from './claude-api/python/claude-api/batches.md'
-import pythonClaudeApiFilesApi from './claude-api/python/claude-api/files-api.md'
-import pythonClaudeApiReadme from './claude-api/python/claude-api/README.md'
-import pythonClaudeApiStreaming from './claude-api/python/claude-api/streaming.md'
-import pythonClaudeApiToolUse from './claude-api/python/claude-api/tool-use.md'
-import rubyClaudeApi from './claude-api/ruby/claude-api.md'
-import skillPrompt from './claude-api/SKILL.md'
-import sharedErrorCodes from './claude-api/shared/error-codes.md'
-import sharedLiveSources from './claude-api/shared/live-sources.md'
-import sharedModels from './claude-api/shared/models.md'
-import sharedPromptCaching from './claude-api/shared/prompt-caching.md'
-import sharedToolUseConcepts from './claude-api/shared/tool-use-concepts.md'
-import typescriptAgentSdkPatterns from './claude-api/typescript/agent-sdk/patterns.md'
-import typescriptAgentSdkReadme from './claude-api/typescript/agent-sdk/README.md'
-import typescriptClaudeApiBatches from './claude-api/typescript/claude-api/batches.md'
-import typescriptClaudeApiFilesApi from './claude-api/typescript/claude-api/files-api.md'
-import typescriptClaudeApiReadme from './claude-api/typescript/claude-api/README.md'
-import typescriptClaudeApiStreaming from './claude-api/typescript/claude-api/streaming.md'
-import typescriptClaudeApiToolUse from './claude-api/typescript/claude-api/tool-use.md'
+const SHARED_MODELS = `# Current Models
 
-// @[MODEL LAUNCH]: Update the model IDs/names below. These are substituted into {{VAR}}
-// placeholders in the .md files at runtime before the skill prompt is sent.
-// After updating these constants, manually update the two files that still hardcode models:
-//   - claude-api/SKILL.md (Current Models pricing table)
-//   - claude-api/shared/models.md (full model catalog with legacy versions and alias mappings)
+- Opus: {{OPUS_NAME}} (\`{{OPUS_ID}}\`)
+- Sonnet: {{SONNET_NAME}} (\`{{SONNET_ID}}\`)
+- Haiku: {{HAIKU_NAME}} (\`{{HAIKU_ID}}\`)
+
+Prefer canonical model IDs in API requests and config.`
+
+const SHARED_TOOL_USE = `# Tool Use Concepts
+
+- Declare tool schemas explicitly.
+- Return structured tool results.
+- Keep tool prompts deterministic and narrowly scoped.`
+
+const SHARED_PROMPT_CACHING = `# Prompt Caching
+
+- Cache large stable prefixes.
+- Separate volatile user turns from reusable instructions.
+- Measure cache-hit behavior per provider.`
+
+const SHARED_ERROR_CODES = `# Error Handling
+
+- Validate auth and model IDs first.
+- Retry only transient network and rate-limit failures.
+- Surface provider-specific status details in logs and user messages.`
+
+const SHARED_LIVE_SOURCES = `# Live Sources
+
+- Check provider docs for current pricing, quotas, and model availability.
+- Do not hardcode recently changing operational limits without verification.`
+
+const languageGuide = (language: string) => `# ${language} API Quickstart
+
+Use the Anthropic-compatible Tersa API helpers in this repo as the reference
+surface for ${language}. Start with one request, then add streaming, tool use,
+and prompt caching as needed.`
+
 export const SKILL_MODEL_VARS = {
   OPUS_ID: 'claude-opus-4-6',
   OPUS_NAME: 'Claude Opus 4.6',
@@ -40,36 +47,25 @@ export const SKILL_MODEL_VARS = {
   SONNET_NAME: 'Claude Sonnet 4.6',
   HAIKU_ID: 'claude-haiku-4-5',
   HAIKU_NAME: 'Claude Haiku 4.5',
-  // Previous Sonnet ID — used in "do not append date suffixes" example in SKILL.md.
   PREV_SONNET_ID: 'claude-sonnet-4-5',
 } satisfies Record<string, string>
 
-export const SKILL_PROMPT: string = skillPrompt
+export const SKILL_PROMPT = `Use the bundled reference docs below to answer
+API questions. Prefer the language-specific README first, then the shared docs
+for models, prompt caching, tool use, and error handling.`
 
 export const SKILL_FILES: Record<string, string> = {
-  'csharp/claude-api.md': csharpClaudeApi,
-  'curl/examples.md': curlExamples,
-  'go/claude-api.md': goClaudeApi,
-  'java/claude-api.md': javaClaudeApi,
-  'php/claude-api.md': phpClaudeApi,
-  'python/agent-sdk/README.md': pythonAgentSdkReadme,
-  'python/agent-sdk/patterns.md': pythonAgentSdkPatterns,
-  'python/claude-api/README.md': pythonClaudeApiReadme,
-  'python/claude-api/batches.md': pythonClaudeApiBatches,
-  'python/claude-api/files-api.md': pythonClaudeApiFilesApi,
-  'python/claude-api/streaming.md': pythonClaudeApiStreaming,
-  'python/claude-api/tool-use.md': pythonClaudeApiToolUse,
-  'ruby/claude-api.md': rubyClaudeApi,
-  'shared/error-codes.md': sharedErrorCodes,
-  'shared/live-sources.md': sharedLiveSources,
-  'shared/models.md': sharedModels,
-  'shared/prompt-caching.md': sharedPromptCaching,
-  'shared/tool-use-concepts.md': sharedToolUseConcepts,
-  'typescript/agent-sdk/README.md': typescriptAgentSdkReadme,
-  'typescript/agent-sdk/patterns.md': typescriptAgentSdkPatterns,
-  'typescript/claude-api/README.md': typescriptClaudeApiReadme,
-  'typescript/claude-api/batches.md': typescriptClaudeApiBatches,
-  'typescript/claude-api/files-api.md': typescriptClaudeApiFilesApi,
-  'typescript/claude-api/streaming.md': typescriptClaudeApiStreaming,
-  'typescript/claude-api/tool-use.md': typescriptClaudeApiToolUse,
+  'python/claude-api/README.md': languageGuide('Python'),
+  'typescript/claude-api/README.md': languageGuide('TypeScript'),
+  'java/claude-api/README.md': languageGuide('Java'),
+  'go/claude-api/README.md': languageGuide('Go'),
+  'ruby/claude-api.md': languageGuide('Ruby'),
+  'php/claude-api.md': languageGuide('PHP'),
+  'csharp/claude-api.md': languageGuide('C#'),
+  'curl/examples.md': languageGuide('curl'),
+  'shared/models.md': SHARED_MODELS,
+  'shared/tool-use-concepts.md': SHARED_TOOL_USE,
+  'shared/prompt-caching.md': SHARED_PROMPT_CACHING,
+  'shared/error-codes.md': SHARED_ERROR_CODES,
+  'shared/live-sources.md': SHARED_LIVE_SOURCES,
 }

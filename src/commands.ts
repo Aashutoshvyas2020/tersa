@@ -101,11 +101,6 @@ const webCmd = feature('CCR_REMOTE_SETUP')
       require('./commands/remote-setup/index.js') as typeof import('./commands/remote-setup/index.js')
     ).default
   : null
-const clearSkillIndexCache = feature('EXPERIMENTAL_SKILL_SEARCH')
-  ? (
-      require('./services/skillSearch/localSearch.js') as typeof import('./services/skillSearch/localSearch.js')
-    ).clearSkillIndexCache
-  : null
 const subscribePr = feature('KAIROS_GITHUB_WEBHOOKS')
   ? require('./commands/subscribe-pr.js').default
   : null
@@ -113,11 +108,6 @@ const ultraplan = feature('ULTRAPLAN')
   ? require('./commands/ultraplan.js').default
   : null
 const torch = feature('TORCH') ? require('./commands/torch.js').default : null
-const peersCmd = feature('UDS_INBOX')
-  ? (
-      require('./commands/peers/index.js') as typeof import('./commands/peers/index.js')
-    ).default
-  : null
 const buddy = isBuddyEnabled()
   ? (
       require('./commands/buddy/index.js') as typeof import('./commands/buddy/index.js')
@@ -353,7 +343,6 @@ const COMMANDS = memoize((): Command[] => [
   sandboxToggle,
   ...(!isUsing3PServices() ? [logout, login()].filter(Boolean) : []),
   passes,
-  ...(peersCmd ? [peersCmd] : []),
   tasks,
   ...(torch ? [torch] : []),
   ...(process.env.USER_TYPE === 'ant' && !process.env.IS_DEMO
@@ -539,7 +528,6 @@ export function clearCommandMemoizationCaches(): void {
   // built ON TOP of getSkillToolCommands/getCommands. Clearing only the inner
   // caches is a no-op for the outer — lodash memoize returns the cached result
   // without ever reaching the cleared inners. Must clear it explicitly.
-  clearSkillIndexCache?.()
 }
 
 export function clearCommandsCache(): void {
