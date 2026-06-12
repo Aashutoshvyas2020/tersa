@@ -1,5 +1,13 @@
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { createHash } from 'node:crypto'
+import { arch, platform, release, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
@@ -45,6 +53,10 @@ function run(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env)
   return result.stdout ?? ''
 }
 
+function sha256(filePath: string): string {
+  return createHash('sha256').update(readFileSync(filePath)).digest('hex')
+}
+
 function packTarball(cwd: string): string {
   const json = run('npm pack --json', cwd)
   const parsed = parsePackJsonOutput(json)
@@ -61,6 +73,9 @@ function packTarball(cwd: string): string {
 
 if (import.meta.main) {
   const cwd = process.cwd()
+  const version = JSON.parse(readFileSync(resolve(cwd, 'package.json'), 'utf8')).version as string
+  const commit = run('git rev-parse HEAD', cwd).trim()
+  const bunVersion = run('bun --version', cwd).trim()
   run('bun run verify:tersa:release', cwd)
   run('npm pack --dry-run', cwd)
   const tarball = packTarball(cwd)
@@ -77,7 +92,83 @@ if (import.meta.main) {
       cwd,
       env,
     )
+    const artifactDir = join(tmpdir(), `tersa-tester-${commit.slice(0, 8)}`)
+    rmSync(artifactDir, { recursive: true, force: true })
+    mkdirSync(artifactDir, { recursive: true })
+    const artifactTarball = join(artifactDir, tarball)
+    renameSync(resolve(cwd, tarball), artifactTarball)
+    const checksum = sha256(artifactTarball)
+    writeFileSync(
+      join(artifactDir, 'README-TESTERS.md'),
+      `# Tersa Tester Build
+
+Version: ${version}
+Commit: ${commit}
+
+Verified environment:
+
+- OS: ${platform()} ${release()} ${arch()}
+- Node: ${process.version}
+- Bun: ${bunVersion}
+- Provider profile: OpenAI-compatible route
+- Verified model: gpt-5.4-mini
+- Reasoning effort: high
+- Automatic fallback: disabled for tester validation
+
+## Install
+
+\`\`\`bash
+npm install -g ./${tarball}
+tersa
+\`\`\`
+
+Windows users should run the same npm commands from PowerShell after installing Node ${process.version} or a compatible supported Node version.
+
+## Health Checks
+
+\`\`\`bash
+tersa --version
+tersa --help
+tersa
+/doctor
+\`\`\`
+
+## Provider Setup
+
+Configure an OpenAI-compatible provider with access to \`gpt-5.4-mini\`. Tester validation used \`gpt-5.4-mini\` with high reasoning effort only. Do not assume other providers or models are verified by this package.
+
+## Update Or Uninstall
+
+\`\`\`bash
+npm install -g ./tersa-<new-version>.tgz
+npm uninstall -g tersa
+\`\`\`
+
+## Bug Reports
+
+Include the Tersa version, commit SHA, OS, Node version, Bun version if used, terminal app, command run, and a short reproduction. Do not include API keys, OAuth tokens, private code, proprietary logs, or credentials.
+`,
+    )
+    writeFileSync(
+      join(artifactDir, 'KNOWN-LIMITS.md'),
+      `# Known Limits
+
+- This is a tester build, not a final stable release.
+- Provider credentials are required for real model use.
+- The only verified model for this package is \`gpt-5.4-mini\` with high reasoning effort.
+- The package was verified on ${platform()} ${release()} ${arch()} only.
+- Some usage and token counters may be estimated depending on provider support.
+- OAuth behavior can vary by provider account and local credential state.
+- No Tersa tests remain quarantined in this tester build.
+`,
+    )
+    writeFileSync(
+      join(artifactDir, 'CHECKSUMS.txt'),
+      `${checksum}  ${tarball}\n`,
+    )
     console.log(`PASS: tester package verified (${tarball})`)
+    console.log(`Artifact: ${artifactDir}`)
+    console.log(`Checksum: ${checksum}`)
   } finally {
     rmSync(prefix, { recursive: true, force: true })
   }

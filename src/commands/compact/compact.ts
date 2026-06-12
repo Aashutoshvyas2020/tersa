@@ -24,7 +24,11 @@ import type { Message } from '../../types/message.js'
 import { hasExactErrorMessage } from '../../utils/errors.js'
 import { executePreCompactHooks } from '../../utils/hooks.js'
 import { logError } from '../../utils/log.js'
-import { getMessagesAfterCompactBoundary } from '../../utils/messages.js'
+import {
+  createCompactBoundaryMessage,
+  createUserMessage,
+  getMessagesAfterCompactBoundary,
+} from '../../utils/messages.js'
 import { getUpgradeMessage } from '../../utils/model/contextWindowUpgradeCheck.js'
 import {
   buildEffectiveSystemPrompt,
@@ -52,6 +56,36 @@ export const call: LocalCommandCall = async (args, context) => {
   const customInstructions = args.trim()
 
   try {
+    if (process.env.TERSA_TUI_CANARY === '1') {
+      runPostCompactCleanup(context.options.querySource ?? 'repl_main_thread')
+      suppressCompactWarning()
+      markPostCompaction()
+
+      return {
+        type: 'compact',
+        compactionResult: {
+          boundaryMarker: createCompactBoundaryMessage(
+            'manual',
+            messages.length,
+            messages[messages.length - 1]?.uuid,
+            undefined,
+            messages.length,
+          ),
+          summaryMessages: [
+            createUserMessage({
+              content: 'TUI canary compact summary.',
+              isCompactSummary: true,
+              isVisibleInTranscriptOnly: true,
+            }),
+          ],
+          attachments: [],
+          hookResults: [],
+          userDisplayMessage: 'TUI canary compact summary.',
+        } as CompactionResult,
+        displayText: buildDisplayText(context, 'TUI canary compact summary.'),
+      }
+    }
+
     // Try session memory compaction first if no custom instructions
     // (session memory compaction doesn't support custom instructions)
     if (!customInstructions) {

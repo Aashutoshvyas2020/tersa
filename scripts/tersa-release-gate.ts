@@ -11,6 +11,7 @@ export const RELEASE_GATE_STEPS = [
   'bun run audit:release:tersa',
   'bun run benchmark:tokens:tersa',
   'bun run test:tersa',
+  'bun run test:tersa:quarantined',
 ] as const
 
 const DEV_GATE_STEPS = [

@@ -49,12 +49,15 @@ import {
   createUserInterruptionMessage,
   normalizeMessagesForAPI,
   createSystemMessage,
+  createAssistantMessage,
   createAssistantAPIErrorMessage,
   getMessagesAfterCompactBoundary,
   createToolUseSummaryMessage,
   createMicrocompactBoundaryMessage,
 } from './utils/messages.js'
+import { sanitizeSessionCanaryAssistantMessage } from './utils/sessionCanary.js'
 import { analyzeContinuationIntent } from './utils/continuation.js'
+import { getSessionCanaryState } from './bootstrap/state.js'
 import { generateToolUseSummary } from './services/toolUseSummary/toolUseSummaryGenerator.js'
 import { prependUserContext, appendSystemContext } from './utils/api.js'
 import {
@@ -173,6 +176,58 @@ function* yieldMissingToolResultBlocks(
 const MAX_OUTPUT_TOKENS_RECOVERY_LIMIT = 3
 const MAX_CONTINUATION_NUDGES = 3
 
+function getLastUserText(messages: Message[]): string {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message?.type !== 'user') continue
+    const content = message.message?.content ?? message.content
+    if (typeof content === 'string') return content
+    if (Array.isArray(content)) {
+      const text = content
+        .filter(block => block?.type === 'text' && typeof block.text === 'string')
+        .map(block => block.text)
+        .join('\n')
+      if (text.trim()) return text
+    }
+  }
+  return ''
+}
+
+function shouldUseTuiCanaryFixture(): boolean {
+  return (
+    process.env.TERSA_TUI_CANARY === '1' &&
+    process.env.TERSA_TUI_CANARY_PROVIDER === 'fixture'
+  )
+}
+
+function createTuiCanaryFixtureMessage(
+  messages: Message[],
+  querySource: QuerySource,
+): Message {
+  const marker = getSessionCanaryState().marker
+  const prompt = getLastUserText(messages).toLowerCase()
+  const driftMatches = [
+    ...prompt.matchAll(/drift miss (one|two|three|four|five|six|seven|eight|nine)/g),
+  ]
+  const driftMatch = driftMatches[driftMatches.length - 1]
+  const visibleResponse = 'TUI canary normal-response from gpt-5.4-mini high.'
+  const includeMarker = querySource.startsWith('repl_main_thread')
+  const response =
+    driftMatch
+      ? `TUI canary drift-${driftMatch[1]} response from gpt-5.4-mini high.`
+      : `${includeMarker ? marker : ''}${visibleResponse}`
+
+  return createAssistantMessage({
+    content: response,
+    usage: {
+      input_tokens: 12,
+      output_tokens: 8,
+      cache_creation_input_tokens: 0,
+      cache_read_input_tokens: 0,
+    },
+  })
+}
+
 function formatAutoCompactRetryDelay(delayMs: number): string {
   const totalSeconds = Math.max(1, Math.ceil(delayMs / 1000))
   if (totalSeconds < 60) {
@@ -258,6 +313,16 @@ export async function* query(
   | ToolUseSummaryMessage,
   Terminal
 > {
+  if (shouldUseTuiCanaryFixture()) {
+    if (process.env.OPENAI_MODEL !== 'gpt-5.4-mini') {
+      throw new Error(
+        `TERSA_TUI_CANARY_PROVIDER=fixture requires OPENAI_MODEL=gpt-5.4-mini, got ${process.env.OPENAI_MODEL ?? '<unset>'}`,
+      )
+    }
+    yield createTuiCanaryFixtureMessage(params.messages, params.querySource)
+    return { reason: 'completed' }
+  }
+
   const consumedCommandUuids: string[] = []
   const terminal = yield* queryLoop(params, consumedCommandUuids)
   // Only reached if queryLoop returned normally. Skipped on throw (error
@@ -992,7 +1057,12 @@ async function* queryLoop(
               yield yieldMessage
             }
             if (message.type === 'assistant') {
-              assistantMessages.push(message)
+              assistantMessages.push(
+                sanitizeSessionCanaryAssistantMessage(
+                  message,
+                  getSessionCanaryState().marker,
+                ).message,
+              )
 
               const msgToolUseBlocks = message.message.content.filter(
                 content => content.type === 'tool_use',

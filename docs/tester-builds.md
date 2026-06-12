@@ -17,6 +17,7 @@ That command runs:
 5. packaged `tersa --version`
 6. packaged `tersa --help`
 7. packaged PTY interactive canary
+8. tester handoff bundle generation under `/tmp/tersa-tester-<sha>`
 
 ## Install A Tarball
 
@@ -42,20 +43,20 @@ Release verification uses `typecheck:tersa:baseline` for TypeScript. Current
 repo-wide TypeScript debt is recorded in `scripts/tersa-typecheck-baseline.json`;
 new TypeScript error signatures fail the gate.
 
-`test:tersa:quarantined` tracks excluded tests that are not counted in the
-current release gate. Treat failures there as open release debt, not as passing
-coverage.
+`test:tersa:quarantined` is an explicit empty quarantine report for this tester
+build. It must list every excluded test with path, owner, reproduction command,
+reason, and removal condition if a future quarantine is added.
 
 Current quarantine list:
 
-- `src/utils/caveMode/toolCompression.test.ts`: previously failed under shared
-  Cave Mode env/settings state; kept tracked until isolation is proven stable.
-- `src/utils/caveMode/queryPipeline.test.ts`: previously failed under shared
-  Cave Mode env/settings state; kept tracked until isolation is proven stable.
-- `src/utils/caveMode/rtkRewrite.test.ts`: previously failed under shared
-  Cave Mode env/settings state; kept tracked until isolation is proven stable.
-- `src/services/tools/toolExecution.test.ts`: previously failed through Cave
-  Mode integration state; kept tracked until isolation is proven stable.
+- None.
+
+Restored tests:
+
+- `src/utils/caveMode/toolCompression.test.ts`
+- `src/utils/caveMode/queryPipeline.test.ts`
+- `src/utils/caveMode/rtkRewrite.test.ts`
+- `src/services/tools/toolExecution.test.ts`
 
 ## Token Optimization Validation
 
@@ -81,24 +82,30 @@ bun run test:tersa:interactive
 The PTY canary drives an interactive menu flow and blocks release packaging:
 
 - `/help`
+- `/model`
 - `/modes`
 - `/statusline`
 - `/permissions`
 - `/status`
+- normal prompt submission
+- session drift warning: two misses stay quiet, third miss warns, Ignore and
+  session suppression actions close the dialog correctly
 
 Packaged verification runs the same canary against the installed `tersa`
 binary.
 
 Default scripted profile:
 
-- provider family: codex-style OpenAI route
+- provider family: deterministic OpenAI-compatible fixture for the blocking
+  canary
 - model: `gpt-5.4-mini`
 - effort: `high`
+- fallback: disabled
 
 ## Known Limits
 
 - Real provider credentials are still required for full interactive testing.
 - Some usage and token counters remain estimated on certain providers.
-- The PTY canary defaults to `gpt-5.4-mini` with `high` effort semantics.
-- The canary does not yet cover `/model`, normal prompt submission, or the full
-  session drift warning flow; those remain release-hardening follow-up work.
+- The PTY canary validates `gpt-5.4-mini` with `high` effort only.
+- The tester package is verified only on environments explicitly listed in the
+  generated handoff README.
