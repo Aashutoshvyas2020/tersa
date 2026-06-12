@@ -929,6 +929,9 @@ export const connectToServer = memoize(
         )
         inProcessServer = await createComputerUseMcpServerForCli()
         const [clientTransport, serverTransport] = createLinkedTransportPair()
+        if (!inProcessServer) {
+          throw new Error('failed to initialize in-process MCP server')
+        }
         await inProcessServer.connect(serverTransport)
         transport = clientTransport
         logMCPDebug(name, `In-process Computer Use MCP server started`)

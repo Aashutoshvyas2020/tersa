@@ -20,6 +20,7 @@ export type UserMessage = any
 export type SystemMessage = any
 export type SystemAPIErrorMessage = any
 export type AttachmentMessage = any
-export type ProgressMessage = any
+export type ProgressMessage<T = any> = any
 export type HookResultMessage = any
 export type NormalizedUserMessage = any
+export type PartialCompactDirection = 'from' | 'to'

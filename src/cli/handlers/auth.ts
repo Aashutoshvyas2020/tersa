@@ -198,7 +198,7 @@ export async function authLogin({
         process.stdout.write(`If the browser didn't open, visit: ${url}\n`)
       },
       {
-        loginWithClaudeAi,
+        loginWithTersaAi: loginWithClaudeAi,
         loginHint: email,
         loginMethod: resolvedLoginMethod,
         orgUUID,
