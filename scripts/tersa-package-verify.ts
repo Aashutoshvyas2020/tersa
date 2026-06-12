@@ -73,7 +73,7 @@ if (import.meta.main) {
     run(`${JSON.stringify(bin)} --version`, cwd, env)
     run(`${JSON.stringify(bin)} --help`, cwd, env)
     run(
-      `bun run test:tersa:interactive -- --binary ${JSON.stringify(bin)} --startup-only`,
+      `bun run test:tersa:interactive -- --binary ${JSON.stringify(bin)}`,
       cwd,
       env,
     )

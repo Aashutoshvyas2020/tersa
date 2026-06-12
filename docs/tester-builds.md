@@ -16,7 +16,7 @@ That command runs:
 4. temp-prefix global install verification
 5. packaged `tersa --version`
 6. packaged `tersa --help`
-7. packaged PTY startup canary
+7. packaged PTY interactive canary
 
 ## Install A Tarball
 
@@ -78,10 +78,16 @@ The release benchmark checks:
 bun run test:tersa:interactive
 ```
 
-The packaged artifact smoke currently runs a startup-only PTY canary. The full
-interactive command is intended to drive `/help`, `/model`, `/modes`,
-`/statusline`, `/permissions`, and `/status`, but that flow still needs hard
-verification before it can be treated as a complete TUI gate.
+The PTY canary drives an interactive menu flow and blocks release packaging:
+
+- `/help`
+- `/modes`
+- `/statusline`
+- `/permissions`
+- `/status`
+
+Packaged verification runs the same canary against the installed `tersa`
+binary.
 
 Default scripted profile:
 
@@ -94,3 +100,5 @@ Default scripted profile:
 - Real provider credentials are still required for full interactive testing.
 - Some usage and token counters remain estimated on certain providers.
 - The PTY canary defaults to `gpt-5.4-mini` with `high` effort semantics.
+- The canary does not yet cover `/model`, normal prompt submission, or the full
+  session drift warning flow; those remain release-hardening follow-up work.
