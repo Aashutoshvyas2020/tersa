@@ -9,7 +9,7 @@ import {
   validateProviderEnvForStartupOrExit,
 } from '../utils/providerValidation.js'
 
-// OpenClaude: polyfill globalThis.File for Node < 20.
+// Tersa: polyfill globalThis.File for Node < 20.
 // undici v7 references `File` at module evaluation time (webidl type
 // assertions). Node 18 lacks the global, causing a ReferenceError inside
 // the bundled __commonJS require chain which deadlocks the process when a
@@ -37,7 +37,7 @@ if (typeof globalThis.File === 'undefined') {
   }
 }
 
-// OpenClaude: disable experimental API betas by default.
+// Tersa: disable experimental API betas by default.
 // Tool search (defer_loading), global cache scope, and context management
 // require internal API support not available to external accounts → 500.
 // Users can opt-in with CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=false.
@@ -84,7 +84,7 @@ async function main(): Promise<void> {
   if (args.length === 1 && (args[0] === '--version' || args[0] === '-v' || args[0] === '-V')) {
     // MACRO.VERSION is inlined at build time
     // biome-ignore lint/suspicious/noConsole:: intentional console output
-    console.log(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (Caveman)`);
+    console.log(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (Tersa)`);
     return;
   }
 
@@ -327,7 +327,7 @@ async function main(): Promise<void> {
   }
 
   // No special flags detected, load and run the full CLI
-  if (process.env.OPENCLAUDE_DISABLE_EARLY_INPUT !== '1') {
+  if (process.env.TERSA_DISABLE_EARLY_INPUT !== '1') {
     const {
       startCapturingEarlyInput
     } = await import('../utils/earlyInput.js');

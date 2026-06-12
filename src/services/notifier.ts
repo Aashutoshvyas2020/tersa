@@ -35,7 +35,7 @@ export async function sendNotification(
   })
 }
 
-const DEFAULT_TITLE = 'Caveman'
+const DEFAULT_TITLE = 'Tersa'
 
 async function sendToChannel(
   channel: string,
