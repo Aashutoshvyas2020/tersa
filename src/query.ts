@@ -491,9 +491,7 @@ async function* queryLoop(
     }
 
     let tracking = autoCompactTracking
-
     const caveQueryResult = await (async () => { const result = await (await import('./utils/caveMode/index.js')).applyCaveQueryOptimizations({ messages: messagesForQuery, model: toolUseContext.options.mainLoopModel, toolUseContext }); messagesForQuery = result.messages; if (result.metadata.changed) { logEvent('tengu_cave_mode_query_context', { softHistoryCompressed: result.metadata.softHistoryCompressed, repoMapInjected: result.metadata.repoMapInjected, memoryRecallInjected: result.metadata.memoryRecallInjected, baselineTokens: result.metadata.baselineTokens, postHistoryCompressionTokens: result.metadata.postHistoryCompressionTokens, finalEstimatedTokens: result.metadata.finalEstimatedTokens, repoMapTokens: result.metadata.repoMapTokens, memoryRecallTokens: result.metadata.memoryRecallTokens }) } return result })()
-
     // Enforce per-message budget on aggregate tool result size. Runs BEFORE
     // microcompact — cached MC operates purely by tool_use_id (never inspects
     // content), so content replacement is invisible to it and the two compose
@@ -599,7 +597,6 @@ async function* queryLoop(
       }
     }
     if (caveQueryResult.systemPromptAdditions.length > 0) promptWithArc = [...promptWithArc, ...caveQueryResult.systemPromptAdditions]
-
     const fullSystemPrompt = asSystemPrompt(
       appendSystemContext(asSystemPrompt(promptWithArc), systemContext),
     )
