@@ -215,6 +215,35 @@ export function hasCommandArgs(input: string): boolean {
   return true
 }
 
+export function findExactSlashCommandInput(
+  input: string,
+  commands: Command[],
+): Command | undefined {
+  const normalized = input.trimEnd()
+  if (!isCommandInput(normalized) || normalized.includes(' ')) return undefined
+
+  const commandName = normalized.slice(1)
+  if (!commandName) return undefined
+
+  return commands.find(
+    cmd =>
+      cmd.name === commandName ||
+      getCommandName(cmd) === commandName ||
+      cmd.aliases?.includes(commandName),
+  )
+}
+
+export function isExactNoArgSlashCommandInput(
+  input: string,
+  commands: Command[],
+): boolean {
+  const command = findExactSlashCommandInput(input, commands)
+  return (
+    command !== undefined &&
+    (command.type !== 'prompt' || (command.argNames ?? []).length === 0)
+  )
+}
+
 /**
  * Formats a command with proper notation
  */
