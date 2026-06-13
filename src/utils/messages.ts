@@ -22,7 +22,7 @@ import {
 } from 'src/services/analytics/index.js'
 import { sanitizeToolNameForAnalytics } from 'src/services/analytics/metadata.js'
 import type { AgentId } from 'src/types/ids.js'
-import { companionIntroText } from '../buddy/prompt.js'
+import { companionIntroText } from '../buddy/prompt.js'; import { getSessionCanaryState, getSessionCanaryStreamState, resetSessionCanaryStreamStateForSession } from '../bootstrap/state.js'
 import { NO_CONTENT_MESSAGE } from '../constants/messages.js'
 import { OUTPUT_STYLE_CONFIG } from '../constants/outputStyles.js'
 import { isAutoMemoryEnabled } from '../memdir/paths.js'
@@ -38,7 +38,7 @@ import {
   getRequestTooLargeErrorMessage,
 } from '../services/api/errors.js'
 import type { AnyObject, Progress } from '../Tool.js'
-import { isConnectorTextBlock } from '../types/connectorText.js'
+import { isConnectorTextBlock } from '../types/connectorText.js'; import { consumeSessionCanaryStreamText, finalizeSessionCanaryAssistantMessage, finishSessionCanaryStreamText } from './sessionCanary.js'
 import type {
   AssistantMessage,
   AttachmentMessage,
@@ -2958,6 +2958,8 @@ export function handleMessageFromStream(
   ) => void,
   onApiMetrics?: (metrics: { ttftMs: number }) => void,
   onStreamingText?: (f: (current: string | null) => string | null) => void,
+  onSessionCanaryAlert?: () => void,
+  shouldEvaluateSessionCanary = true,
 ): void {
   if (
     message.type !== 'stream_event' &&
@@ -2984,11 +2986,25 @@ export function handleMessageFromStream(
           streamingEndedAt: Date.now(),
         }))
       }
+      if (!shouldEvaluateSessionCanary) {
+        onStreamingText?.(() => null)
+        onMessage(message)
+        return
+      }
+      const canaryResult = finalizeSessionCanaryAssistantMessage(
+        message,
+        getSessionCanaryState(),
+      )
+      // Clear streaming text NOW so the render can switch displayedMessages
+      // from deferredMessages to messages in the same batch, making the
+      // transition from streaming text → final message atomic (no gap, no duplication).
+      onStreamingText?.(() => null)
+      if (canaryResult.alert) {
+        onSessionCanaryAlert?.()
+      }
+      onMessage(canaryResult.message)
+      return
     }
-    // Clear streaming text NOW so the render can switch displayedMessages
-    // from deferredMessages to messages in the same batch, making the
-    // transition from streaming text → final message atomic (no gap, no duplication).
-    onStreamingText?.(() => null)
     onMessage(message)
     return
   }
@@ -3001,6 +3017,9 @@ export function handleMessageFromStream(
   if (message.event.type === 'message_start') {
     if (message.ttftMs != null) {
       onApiMetrics?.({ ttftMs: message.ttftMs })
+    }
+    if (shouldEvaluateSessionCanary) {
+      resetSessionCanaryStreamStateForSession()
     }
   }
 
@@ -3062,7 +3081,17 @@ export function handleMessageFromStream(
         case 'text_delta': {
           const deltaText = message.event.delta.text
           onUpdateLength(deltaText)
-          onStreamingText?.(text => (text ?? '') + deltaText)
+          if (!shouldEvaluateSessionCanary) {
+            onStreamingText?.(text => (text ?? '') + deltaText)
+          } else {
+            const streamState = getSessionCanaryStreamState()
+            const visibleText = streamState.awaitingFirstVisibleTextBlock
+              ? consumeSessionCanaryStreamText(streamState, deltaText, getSessionCanaryState().marker)
+              : deltaText
+            if (visibleText !== null) {
+              onStreamingText?.(text => (text ?? '') + visibleText)
+            }
+          }
           return
         }
         case 'input_json_delta': {
@@ -3096,6 +3125,18 @@ export function handleMessageFromStream(
           return
       }
     case 'content_block_stop':
+      if (
+        shouldEvaluateSessionCanary &&
+        getSessionCanaryStreamState().awaitingFirstVisibleTextBlock
+      ) {
+        const visibleText = finishSessionCanaryStreamText(
+          getSessionCanaryStreamState(),
+          getSessionCanaryState().marker,
+        )
+        if (visibleText !== null) {
+          onStreamingText?.(text => (text ?? '') + visibleText)
+        }
+      }
       return
     case 'message_delta':
       onSetStreamMode('responding')

@@ -103,6 +103,77 @@ test('ignores tool-only assistant turns', () => {
   expect(state.consecutiveMisses).toBe(0)
 })
 
+test('stream handler strips the hidden canary marker from streaming text', () => {
+  const original = { ...getSessionCanaryState() }
+  const state = createSessionCanaryState(true, '<tersa-canary:7f2a>')
+  setSessionCanaryState(state)
+  let streamingText = ''
+
+  try {
+    handleMessageFromStream(
+      streamTextDelta('   <tersa-ca'),
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      undefined,
+      undefined,
+      undefined,
+      updater => {
+        streamingText = updater(streamingText) ?? ''
+      },
+    )
+    handleMessageFromStream(
+      streamTextDelta('nary:7f2a>Hello'),
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      undefined,
+      undefined,
+      undefined,
+      updater => {
+        streamingText = updater(streamingText) ?? ''
+      },
+    )
+
+    expect(streamingText).toBe('Hello')
+  } finally {
+    setSessionCanaryState(original)
+  }
+})
+
+test('stream handler alerts after three eligible canary misses', () => {
+  const original = { ...getSessionCanaryState() }
+  const state = createSessionCanaryState(true, '<tersa-canary:7f2a>')
+  setSessionCanaryState(state)
+  let alerts = 0
+
+  try {
+    for (const text of ['No marker', 'Still no marker', 'Still missing']) {
+      handleMessageFromStream(
+        assistantMessage(text),
+        () => {},
+        () => {},
+        () => {},
+        () => {},
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        () => {
+          alerts += 1
+        },
+      )
+    }
+
+    expect(alerts).toBe(1)
+    expect(state.consecutiveMisses).toBe(3)
+  } finally {
+    setSessionCanaryState(original)
+  }
+})
+
 test('internal assistant turns can bypass canary evaluation', () => {
   const original = { ...getSessionCanaryState() }
   const state = createSessionCanaryState(true, '<tersa-canary:7f2a>')
@@ -135,6 +206,19 @@ function assistantMessage(text: string): Record<string, unknown> {
     type: 'assistant',
     message: {
       content: [{ type: 'text', text }],
+    },
+  }
+}
+
+function streamTextDelta(text: string): Record<string, unknown> {
+  return {
+    type: 'stream_event',
+    event: {
+      type: 'content_block_delta',
+      delta: {
+        type: 'text_delta',
+        text,
+      },
     },
   }
 }
