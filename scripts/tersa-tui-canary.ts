@@ -218,6 +218,7 @@ async function runCanaryAtWidth(
       ] satisfies ExpectStep[]
     : [
         { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
+        { send: '', waitMs: 5000 },
         { send: '/model\\r', expect: 'Select' },
         { expect: 'gpt-5.4-mini' },
         { expect: 'High' },
