@@ -1370,7 +1370,7 @@ export function useTypeahead({
     // Handle selection and execution via return/enter
     // Shift+Enter and Meta+Enter insert newlines (handled by useTextInput),
     // so don't accept the suggestion for those.
-    if (e.key === 'return' && !e.shift && !e.meta) {
+    if ((e.key === 'return' || e.key === 'enter') && !e.shift && !e.meta) {
       e.preventDefault();
       handleEnter();
     }
