@@ -772,6 +772,16 @@ export function useTypeahead({
         // Note: argument hint is only shown when there's exactly one trailing space
         // (set above when hasExactlyOneTrailingSpace is true)
       }
+      if (isExactNoArgSlashCommandInput(value, commands)) {
+        setSuggestionsState(() => ({
+          commandArgumentHint: undefined,
+          suggestions: [],
+          selectedSuggestion: -1
+        }));
+        setSuggestionType('none');
+        setMaxColumnWidth(undefined);
+        return;
+      }
       const commandItems = generateCommandSuggestions(value, commands);
       setSuggestionsState(() => ({
         commandArgumentHint,

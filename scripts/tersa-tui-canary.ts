@@ -397,6 +397,18 @@ proc shutdown {pid} {
   catch { exec kill -KILL $pid }
   catch { wait -nowait }
 }
+proc expect_with_terminal_responses {text label} {
+  expect {
+    -ex $text {}
+    -ex "\033\[>0q" { exp_continue }
+    -ex "\033\[c" {
+      send "\033\[?1;0c"
+      exp_continue
+    }
+    timeout { puts stderr "timeout waiting for $label"; exit 2 }
+    eof { puts stderr "unexpected eof waiting for $label"; exit 3 }
+  }
+}
 spawn -noecho bash -lc "$env(TERSA_TUI_CANARY_COMMAND)"
 set child_pid [exp_pid]
 expect {
@@ -405,13 +417,11 @@ expect {
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }
 after 5000
-send "${expectLiteral(commandName)}\\r"
+send "${expectLiteral(commandName)}"
 after 1200
-expect {
-  "${expectLiteral(firstExpected)}" {}
-  timeout { puts stderr "timeout waiting for ${expectLiteral(commandName)}"; exit 2 }
-  eof { puts stderr "unexpected eof waiting for ${expectLiteral(commandName)}"; exit 3 }
-}
+send "\\r"
+after 1200
+expect_with_terminal_responses "${expectLiteral(firstExpected)}" "${expectLiteral(commandName)}"
 shutdown $child_pid
 exit 0
 `
@@ -440,9 +450,13 @@ exit 0
     if (result.status !== 0) {
       throw new Error(`PTY ${commandName} canary failed at width ${width}\n${output}`)
     }
-    assertScreen(output, width, `${commandName} ${width}`, expectedText, {
+    const finalResult = assertStableScreen(currentSnapshot(output), {
+      width,
       checkDuplicates: false,
     })
+    if (!finalResult.ok) {
+      throw new Error(finalResult.errors.join('\n'))
+    }
   } finally {
     rmSync(configDir, { recursive: true, force: true })
   }
