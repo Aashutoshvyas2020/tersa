@@ -406,6 +406,7 @@ expect {
 }
 after 5000
 send "${expectLiteral(commandName)}\\r"
+${commandName === '/help' ? 'after 300\nsend "\\r"\n' : ''}
 after 1200
 expect {
   "${expectLiteral(firstExpected)}" {}
