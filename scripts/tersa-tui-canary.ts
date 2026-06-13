@@ -404,6 +404,7 @@ expect {
   timeout { puts stderr "timeout waiting for startup"; exit 2 }
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }
+after 5000
 send "${expectLiteral(commandName)}\\r"
 after 1200
 expect {
