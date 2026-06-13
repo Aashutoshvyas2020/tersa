@@ -405,8 +405,7 @@ expect {
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }
 after 5000
-send "${expectLiteral(commandName)}\\r"
-${commandName === '/help' ? 'after 300\nsend "\\r"\nafter 600\nsend "\\r"\n' : ''}
+send "${expectLiteral(commandName === '/help' ? '/help ' : commandName)}\\r"
 after 1200
 expect {
   "${expectLiteral(firstExpected)}" {}
