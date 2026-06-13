@@ -22,7 +22,7 @@ import { generateProgressiveArgumentHint, parseArguments } from '../utils/argume
 import { getShellCompletions, type ShellCompletionType } from '../utils/bash/shellCompletion.js';
 import { formatLogMetadata } from '../utils/format.js';
 import { getSessionIdFromLog, searchSessionsByCustomTitle } from '../utils/sessionStorage.js';
-import { applyCommandSuggestion, findMidInputSlashCommand, generateCommandSuggestions, getBestCommandMatch, isCommandInput } from '../utils/suggestions/commandSuggestions.js';
+import { applyCommandSuggestion, findMidInputSlashCommand, generateCommandSuggestions, getBestCommandMatch, isCommandInput, isExactNoArgSlashCommandInput } from '../utils/suggestions/commandSuggestions.js';
 import { getDirectoryCompletions, getPathCompletions, isPathLikeToken } from '../utils/suggestions/directoryCompletion.js';
 import { getShellHistoryCompletion } from '../utils/suggestions/shellHistoryCompletion.js';
 import { getSlackChannelSuggestions, hasSlackMcpServer } from '../utils/suggestions/slackChannelSuggestions.js';
@@ -1135,6 +1135,13 @@ export function useTypeahead({
 
   // Handle enter key press - apply and execute suggestions
   const handleEnter = useCallback(() => {
+    if (suggestionType === 'command' && isExactNoArgSlashCommandInput(input, commands)) {
+      onSubmit(input, /* isSubmittingSlashCommand */ true);
+      debouncedFetchFileSuggestions.cancel();
+      clearSuggestions();
+      return;
+    }
+
     if (selectedSuggestion < 0 || suggestions.length === 0) return;
     const suggestion = suggestions[selectedSuggestion];
     if (suggestionType === 'command' && selectedSuggestion < suggestions.length) {
