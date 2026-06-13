@@ -18,6 +18,11 @@ describe('tersa token benchmarks', () => {
     expect(byName.get('bash-structured-json')?.savedTokens).toBeGreaterThan(0)
     expect(byName.get('bash-structured-json')?.detail).toBe('json')
     expect(byName.get('tool-history-compression')?.savedTokens).toBeGreaterThan(0)
+    expect(byName.get('skill-prompt-compression')?.detail).toBe(
+      'real internal prompt compression',
+    )
+    expect(byName.get('ml-sidecar-compression')?.savedTokens).toBeGreaterThan(0)
+    expect(byName.get('ml-sidecar-compression')?.detail).toContain('ml')
   })
 
   test('report formatter emits a markdown table', () => {
@@ -26,6 +31,7 @@ describe('tersa token benchmarks', () => {
     expect(report).toContain('name | before | after | saved | reduction')
     expect(report).toContain('bash-log-budget')
     expect(report).toContain('tool-history-compression')
+    expect(report).toContain('ml-sidecar-compression')
     expect(report).toContain('threshold')
     expect(report).toContain('pass')
   })

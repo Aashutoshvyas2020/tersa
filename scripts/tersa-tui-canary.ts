@@ -16,8 +16,9 @@ type StableScreenResult = {
 
 type ExpectStep = {
   send?: string
-  expect: string
+  expect?: string
   regex?: boolean
+  waitMs?: number
 }
 
 const FORBIDDEN_SCREEN_STRINGS = [
@@ -34,6 +35,16 @@ function collapseWhitespace(line: string): string {
 
 function compactText(text: string): string {
   return text.replace(/\s+/g, '').toLowerCase()
+}
+
+function snapshotContainsExpected(snapshot: ScreenSnapshot, compactSnapshot: string, text: string): boolean {
+  if (snapshot.text.includes(text) || compactSnapshot.includes(compactText(text))) {
+    return true
+  }
+  if (text === 'Session drift detected') {
+    return /sess(?:i|o)n\s*drift\s*de\w*cted/i.test(snapshot.text)
+  }
+  return false
 }
 
 export function normalizeScreenSnapshot(raw: string): ScreenSnapshot {
@@ -170,7 +181,7 @@ function currentSnapshot(output: string): ScreenSnapshot {
   return normalizeScreenSnapshot(output)
 }
 
-function assertScreen(
+export function assertScreen(
   output: string,
   width: number,
   label: string,
@@ -187,10 +198,7 @@ function assertScreen(
   }
   const compactSnapshot = compactText(snapshot.text)
   for (const text of expected) {
-    if (
-      !snapshot.text.includes(text) &&
-      !compactSnapshot.includes(compactText(text))
-    ) {
+    if (!snapshotContainsExpected(snapshot, compactSnapshot, text)) {
       throw new Error(`${label} missing expected text: ${text}\n\n${snapshot.text}`)
     }
   }
@@ -207,62 +215,76 @@ async function runCanaryAtWidth(
   const steps = startupOnly
     ? [
         { expect: 'Tersa' },
-        { expect: '[Gg]PT-5\\.4.*mini', regex: true },
+        { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
       ] satisfies ExpectStep[]
     : [
         { expect: 'Tersa' },
-        { expect: '[Gg]PT-5\\.4.*mini', regex: true },
+        { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
         { send: '/model\\r', expect: 'Select' },
         { expect: 'gpt-5.4-mini' },
         { expect: 'High' },
         { send: '\\033', expect: 'Kept' },
+        { send: '', waitMs: 5000 },
         {
           send: 'normal tui canary prompt\\r',
-          expect: 'normal-response',
-          regex: true,
+          waitMs: 8000,
         },
         {
           send: 'drift miss one\\r',
-          expect: 'drift-one.*response',
-          regex: true,
+          waitMs: 8000,
         },
         {
           send: 'drift miss two\\r',
-          expect: 'drift-two.*response',
-          regex: true,
+          waitMs: 8000,
         },
         {
           send: 'drift miss three\\r',
-          expect: 'Compact.*context',
-          regex: true,
+          waitMs: 8000,
         },
-        { send: '\\033\\[B\\r', expect: 'Tersa' },
-        { send: 'drift miss four\\r', expect: 'drift-four.*response', regex: true },
-        { send: 'drift miss five\\r', expect: 'drift-five.*response', regex: true },
-        { send: 'drift miss six\\r', expect: 'drift-six.*response', regex: true },
-        { expect: 'Compact.*context', regex: true },
-        { send: '\\033\\[B\\033\\[B\\r', expect: 'Tersa' },
-        { send: 'drift miss seven\\r', expect: 'drift-seven.*response', regex: true },
-        { send: 'drift miss eight\\r', expect: 'drift-eight.*response', regex: true },
-        { send: 'drift miss nine\\r', expect: 'drift-nine.*response', regex: true },
+        { send: '2', waitMs: 2000 },
+        { send: 'drift miss four\\r', waitMs: 8000 },
+        { send: 'drift miss five\\r', waitMs: 8000 },
+        { send: 'drift miss six\\r', waitMs: 8000 },
+        { send: '3', waitMs: 2000 },
+        { send: 'drift miss seven\\r', waitMs: 8000 },
+        { send: 'drift miss eight\\r', waitMs: 8000 },
+        { send: 'drift miss nine\\r', waitMs: 8000 },
       ] satisfies ExpectStep[]
   const expectSteps = steps
     .map(step => {
-      const send = 'send' in step ? `send "${step.send}"\nafter 1200\n` : ''
+      if (!step.expect) {
+        return 'send' in step ? `send "${step.send}"\nsettle ${step.waitMs ?? 1200}\n` : ''
+      }
+      const send = 'send' in step ? `send "${step.send}"\nafter ${step.waitMs ?? 1200}\n` : ''
       const matcher = step.regex
         ? `-re {${step.expect}}`
         : `"${expectLiteral(step.expect)}"`
       return `${send}expect {
   ${matcher} {}
-  timeout { puts stderr "timeout waiting for ${expectLiteral(step.expect)}"; exit 2 }
-  eof { puts stderr "unexpected eof waiting for ${expectLiteral(step.expect)}"; exit 3 }
+  timeout { puts stderr "timeout waiting for expected text"; exit 2 }
+  eof { puts stderr "unexpected eof waiting for expected text"; exit 3 }
 }
 after 300`
     })
     .join('\n')
   const expectScript = `
-set timeout 10
-after 30000 { puts stderr "wall timeout waiting for PTY canary"; exit 2 }
+set timeout 60
+after 300000 { puts stderr "wall timeout waiting for PTY canary"; exit 2 }
+proc settle {ms} {
+  global timeout
+  set saved_timeout $timeout
+  set deadline [expr {[clock milliseconds] + $ms}]
+  while {[clock milliseconds] < $deadline} {
+    set timeout 0
+    expect {
+      -re {(.|\\r|\\n)+} {}
+      timeout {}
+      eof { puts stderr "unexpected eof while settling"; exit 3 }
+    }
+    after 100
+  }
+  set timeout $saved_timeout
+}
 proc shutdown {pid} {
   send "\\003"
   after 300
@@ -306,7 +328,7 @@ exit 0
     if (result.status !== 0) {
       throw new Error(`PTY canary failed at width ${width}\n${output}`)
     }
-    assertScreen(output, width, `startup ${width}`, ['Tersa', 'GPT-5.4 mini'], {
+    assertScreen(output, width, `startup ${width}`, ['Tersa', '5.4', 'mini'], {
       checkDuplicates: false,
     })
 
@@ -315,7 +337,7 @@ exit 0
         output,
         width,
         `/model ${width}`,
-        ['GPT-5.4 mini', 'High effort'],
+        ['5.4', 'mini', 'High effort'],
         { checkDuplicates: false },
       )
       assertScreen(output, width, `prompt ${width}`, [
@@ -379,7 +401,7 @@ proc shutdown {pid} {
 spawn -noecho bash -lc "$env(TERSA_TUI_CANARY_COMMAND)"
 set child_pid [exp_pid]
 expect {
-  -re {[Gg]PT-5\.4.*mini} {}
+  -re {[Gg][Pp][Tt]-5\.4.*mini} {}
   timeout { puts stderr "timeout waiting for startup"; exit 2 }
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }

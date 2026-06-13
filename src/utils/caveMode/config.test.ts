@@ -4,11 +4,11 @@ import { SettingsSchema } from '../settings/types.js'
 
 describe('getCaveModeConfig', () => {
   afterEach(() => {
-    delete process.env.OPENCLAUDE_CAVE_MODE
+    delete process.env.TERSA_CAVE_MODE
   })
 
   test('env override disables cave mode', () => {
-    process.env.OPENCLAUDE_CAVE_MODE = '0'
+    process.env.TERSA_CAVE_MODE = '0'
     expect(getCaveModeConfig()).toMatchObject({ enabled: false })
   })
 
@@ -20,10 +20,26 @@ describe('getCaveModeConfig', () => {
         structuredCompression: true,
         readDeduplication: true,
         mlCompression: false,
+        softHistoryCompression: true,
+        rtkRewrite: true,
+        repoMapInjection: true,
+        memoryRecallInjection: true,
+        historyPreserveRecentCount: 8,
+        repoMapTokenBudget: 300,
+        memoryRecallTokenBudget: 600,
         intensity: 'full',
       },
     })
 
     expect(result.success).toBe(true)
+  })
+
+  test('defaults include query-stage cave mode features', () => {
+    expect(getCaveModeConfig()).toMatchObject({
+      softHistoryCompression: true,
+      rtkRewrite: true,
+      repoMapInjection: true,
+      memoryRecallInjection: true,
+    })
   })
 })

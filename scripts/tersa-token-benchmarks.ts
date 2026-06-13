@@ -2,11 +2,18 @@ import { createFileStateCacheWithSizeLimit } from '../src/utils/fileStateCache.j
 import type { ToolUseContext } from '../src/Tool.js'
 import {
   processCaveToolResult,
+  setMlCompressionSpawnSyncImplForTest,
 } from '../src/utils/caveMode/index.js'
+import { DEFAULT_CAVE_MODE_CONFIG } from '../src/utils/caveMode/config.js'
 import {
   compressToolHistory,
   setToolHistoryCompressionEnabledOverrideForTest,
 } from '../src/services/api/compressToolHistory.js'
+import { compressInternalPromptText } from '../src/utils/internalPromptCompression.js'
+import {
+  resetSettingsCache,
+  setSessionSettingsCache,
+} from '../src/utils/settings/settingsCache.js'
 import {
   roughTokenCountEstimation,
   roughTokenCountEstimationForMessages,
@@ -40,6 +47,7 @@ const TOKEN_BENCHMARK_THRESHOLDS: Record<string, TokenBenchmarkThreshold> = {
   'xml-structured-compression': { minReductionRatio: 0.05, requireChange: true },
   'skill-prompt-compression': { minReductionRatio: 0.05, requireChange: true },
   'live-transcript-composition': { minReductionRatio: 0.05, requireChange: true },
+  'ml-sidecar-compression': { minReductionRatio: 0.1, requireChange: true },
 }
 
 function countTokensForValue(value: unknown): number {
@@ -337,20 +345,71 @@ export function benchmarkStructuredXmlCompression(): TokenBenchmarkResult {
 
 export function benchmarkSkillPromptCompression(): TokenBenchmarkResult {
   const before = Array.from({ length: 180 }, (_, index) =>
-    `Skill instruction ${index + 1}: preserve exact tool names, paths, and policy hints.`,
+    `Skill instruction ${index + 1}: Do not verify implementation details before messages with context are checked.`,
   ).join('\n')
-  const after = before
-    .split('\n')
-    .filter((_, index) => index % 3 === 0)
-    .join('\n')
+  const after = compressInternalPromptText(before, 'full')
 
   return toBenchmarkResult(
     'skill-prompt-compression',
     countTokensForValue(before),
     countTokensForValue(after),
     before !== after,
-    'deduped repeated skill/internal prompt guidance',
+    'real internal prompt compression',
   )
+}
+
+export function benchmarkMlSidecarCompression(): TokenBenchmarkResult {
+  const output = {
+    stdout: makeLineBlock('ml sidecar candidate', 40),
+    stderr: '',
+    interrupted: false,
+  }
+
+  setSessionSettingsCache({
+    settings: {
+      caveMode: {
+        ...DEFAULT_CAVE_MODE_CONFIG,
+        mlCompression: true,
+        mlCompressionCommand: 'ml-sidecar-benchmark',
+        mlCompressionTimeoutMs: 1000,
+      },
+    },
+    errors: [],
+  })
+  setMlCompressionSpawnSyncImplForTest(
+    (() => ({
+      status: 0,
+      signal: null,
+      pid: 1234,
+      stdout: JSON.stringify({
+        text: 'ML sidecar summary: repeated log content compressed for model context.',
+      }),
+      stderr: '',
+      output: [null, '', ''],
+    })) as never,
+  )
+
+  try {
+    const result = processCaveToolResult({
+      toolName: 'Bash',
+      input: { command: 'cat ml-sidecar.log' },
+      output,
+      toolUseId: 'tool-ml-benchmark',
+      context: createContext(),
+      isError: false,
+    })
+
+    return toBenchmarkResult(
+      'ml-sidecar-compression',
+      countTokensForValue(output),
+      countTokensForValue(result.output),
+      result.changed,
+      result.metadata.strategy,
+    )
+  } finally {
+    setMlCompressionSpawnSyncImplForTest(undefined)
+    resetSettingsCache()
+  }
 }
 
 export function benchmarkLiveTranscriptComposition(): TokenBenchmarkResult {
@@ -389,6 +448,7 @@ export function runTokenBenchmarks(): TokenBenchmarkResult[] {
       benchmarkStructuredXmlCompression(),
       benchmarkSkillPromptCompression(),
       benchmarkLiveTranscriptComposition(),
+      benchmarkMlSidecarCompression(),
     ]
   } finally {
     if (originalEnv === undefined) {

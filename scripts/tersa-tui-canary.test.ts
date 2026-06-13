@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  assertScreen,
   assertStableScreen,
   normalizeScreenSnapshot,
 } from './tersa-tui-canary.ts'
@@ -37,5 +38,27 @@ describe('tersa tui canary helpers', () => {
 
     expect(result.ok).toBe(false)
     expect(result.errors).toContain('hidden session canary marker leaked to screen')
+  })
+
+  test('ignores wide decorative box borders during width checks', () => {
+    const result = assertStableScreen(
+      normalizeScreenSnapshot(
+        '╠════════════════════════════════════════════════════════════╣\nSession\n',
+      ),
+      { width: 60 },
+    )
+
+    expect(result.ok).toBe(true)
+  })
+
+  test('startup assertions accept lowercase dashed model rendering', () => {
+    expect(() =>
+      assertScreen(
+        'Tersa\nModel gpt-5.4-mini\n',
+        80,
+        'startup',
+        ['Tersa', '5.4', 'mini'],
+      ),
+    ).not.toThrow()
   })
 })

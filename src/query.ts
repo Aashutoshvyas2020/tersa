@@ -111,6 +111,7 @@ import {
   createToolFailureLoopGuardState,
   updateToolFailureLoopGuard,
 } from './query/toolFailureLoopGuard.js'
+import { applyCaveQueryOptimizations } from './utils/caveMode/index.js'
 import { buildQueryConfig } from './query/config.js'
 import { getGlobalConfig } from './utils/config.js'
 import { productionDeps, type QueryDeps } from './query/deps.js'
@@ -492,6 +493,30 @@ async function* queryLoop(
 
     let tracking = autoCompactTracking
 
+    const caveQueryResult = await applyCaveQueryOptimizations({
+      messages: messagesForQuery,
+      model: toolUseContext.options.mainLoopModel,
+      toolUseContext,
+    })
+    messagesForQuery = caveQueryResult.messages
+    if (caveQueryResult.metadata.changed) {
+      logEvent('tengu_cave_mode_query_context', {
+        softHistoryCompressed:
+          caveQueryResult.metadata.softHistoryCompressed,
+        repoMapInjected: caveQueryResult.metadata.repoMapInjected,
+        memoryRecallInjected:
+          caveQueryResult.metadata.memoryRecallInjected,
+        baselineTokens: caveQueryResult.metadata.baselineTokens,
+        postHistoryCompressionTokens:
+          caveQueryResult.metadata.postHistoryCompressionTokens,
+        finalEstimatedTokens:
+          caveQueryResult.metadata.finalEstimatedTokens,
+        repoMapTokens: caveQueryResult.metadata.repoMapTokens,
+        memoryRecallTokens:
+          caveQueryResult.metadata.memoryRecallTokens,
+      })
+    }
+
     // Enforce per-message budget on aggregate tool result size. Runs BEFORE
     // microcompact — cached MC operates purely by tool_use_id (never inspects
     // content), so content replacement is invisible to it and the two compose
@@ -595,6 +620,12 @@ async function* queryLoop(
           promptWithArc = [...systemPrompt, arcSummary]
         }
       }
+    }
+    if (caveQueryResult.systemPromptAdditions.length > 0) {
+      promptWithArc = [
+        ...promptWithArc,
+        ...caveQueryResult.systemPromptAdditions,
+      ]
     }
 
     const fullSystemPrompt = asSystemPrompt(

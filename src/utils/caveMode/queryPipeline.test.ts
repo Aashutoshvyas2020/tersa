@@ -146,6 +146,75 @@ describe('buildMemoryRecallSummary', () => {
 })
 
 describe('applyCaveQueryOptimizations', () => {
+  test('returns the original messages when cave mode is disabled', async () => {
+    const originalEnv = process.env.TERSA_CAVE_MODE
+    process.env.TERSA_CAVE_MODE = '0'
+    setSessionSettingsCache({
+      settings: {
+        caveMode: {
+          ...DEFAULT_CAVE_MODE_CONFIG,
+          enabled: false,
+        },
+      },
+      errors: [],
+    })
+    try {
+      const messages = buildConversation(4)
+      const result = await applyCaveQueryOptimizations({
+        messages,
+        model: 'gpt-4o',
+        toolUseContext: createToolUseContext(),
+      })
+
+      expect(result.messages).toBe(messages)
+      expect(result.systemPromptAdditions).toHaveLength(0)
+      expect(result.metadata.changed).toBe(false)
+      expect(result.metadata.caveModeEnabled).toBe(false)
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.TERSA_CAVE_MODE
+      } else {
+        process.env.TERSA_CAVE_MODE = originalEnv
+      }
+      resetSettingsCache()
+    }
+  })
+
+  test('light intensity skips repo and memory prompt injection', async () => {
+    setSessionSettingsCache({
+      settings: {
+        caveMode: {
+          ...DEFAULT_CAVE_MODE_CONFIG,
+          intensity: 'light',
+        },
+      },
+      errors: [],
+    })
+    const context = createToolUseContext()
+    context.readFileState.set('/repo/src/query.ts', {
+      content: '',
+      timestamp: Date.now(),
+      offset: undefined,
+      limit: undefined,
+    })
+
+    const result = await applyCaveQueryOptimizations({
+      messages: buildConversation(2),
+      model: 'gpt-4o',
+      toolUseContext: context,
+      deps: {
+        waitForSessionMemoryExtraction: async () => {},
+        getSessionMemoryContent: async () => '# Current State\nUseful memory.\n',
+        isSessionMemoryEmpty: async () => false,
+      },
+    })
+
+    expect(result.metadata.repoMapInjected).toBe(false)
+    expect(result.metadata.memoryRecallInjected).toBe(false)
+    expect(result.systemPromptAdditions).toHaveLength(0)
+    resetSettingsCache()
+  })
+
   test('compresses old tool history and injects repo/memory context', async () => {
     setSessionSettingsCache({
       settings: { caveMode: DEFAULT_CAVE_MODE_CONFIG },
