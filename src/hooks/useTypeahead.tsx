@@ -1371,6 +1371,14 @@ export function useTypeahead({
     // Shift+Enter and Meta+Enter insert newlines (handled by useTextInput),
     // so don't accept the suggestion for those.
     if ((e.key === 'return' || e.key === 'enter') && !e.shift && !e.meta) {
+      if (isExactNoArgSlashCommandInput(input, commands)) {
+        onSubmit(input, /* isSubmittingSlashCommand */ true);
+        debouncedFetchFileSuggestions.cancel();
+        clearSuggestions();
+        e.stopImmediatePropagation();
+        return;
+      }
+
       e.preventDefault();
       handleEnter();
     }
