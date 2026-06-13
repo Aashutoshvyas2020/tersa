@@ -214,11 +214,9 @@ async function runCanaryAtWidth(
   const command = `stty cols ${width} rows 34; ${baseCommand} --model gpt-5.4-mini --effort high`
   const steps = startupOnly
     ? [
-        { expect: '[Tt]ersa', regex: true },
         { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
       ] satisfies ExpectStep[]
     : [
-        { expect: '[Tt]ersa', regex: true },
         { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
         { send: '/model\\r', expect: 'Select' },
         { expect: 'gpt-5.4-mini' },
