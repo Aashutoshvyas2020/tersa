@@ -111,7 +111,6 @@ import {
   createToolFailureLoopGuardState,
   updateToolFailureLoopGuard,
 } from './query/toolFailureLoopGuard.js'
-import { applyCaveQueryOptimizations } from './utils/caveMode/index.js'
 import { buildQueryConfig } from './query/config.js'
 import { getGlobalConfig } from './utils/config.js'
 import { productionDeps, type QueryDeps } from './query/deps.js'
@@ -493,29 +492,7 @@ async function* queryLoop(
 
     let tracking = autoCompactTracking
 
-    const caveQueryResult = await applyCaveQueryOptimizations({
-      messages: messagesForQuery,
-      model: toolUseContext.options.mainLoopModel,
-      toolUseContext,
-    })
-    messagesForQuery = caveQueryResult.messages
-    if (caveQueryResult.metadata.changed) {
-      logEvent('tengu_cave_mode_query_context', {
-        softHistoryCompressed:
-          caveQueryResult.metadata.softHistoryCompressed,
-        repoMapInjected: caveQueryResult.metadata.repoMapInjected,
-        memoryRecallInjected:
-          caveQueryResult.metadata.memoryRecallInjected,
-        baselineTokens: caveQueryResult.metadata.baselineTokens,
-        postHistoryCompressionTokens:
-          caveQueryResult.metadata.postHistoryCompressionTokens,
-        finalEstimatedTokens:
-          caveQueryResult.metadata.finalEstimatedTokens,
-        repoMapTokens: caveQueryResult.metadata.repoMapTokens,
-        memoryRecallTokens:
-          caveQueryResult.metadata.memoryRecallTokens,
-      })
-    }
+    const caveQueryResult = await (async () => { const result = await (await import('./utils/caveMode/index.js')).applyCaveQueryOptimizations({ messages: messagesForQuery, model: toolUseContext.options.mainLoopModel, toolUseContext }); messagesForQuery = result.messages; if (result.metadata.changed) { logEvent('tengu_cave_mode_query_context', { softHistoryCompressed: result.metadata.softHistoryCompressed, repoMapInjected: result.metadata.repoMapInjected, memoryRecallInjected: result.metadata.memoryRecallInjected, baselineTokens: result.metadata.baselineTokens, postHistoryCompressionTokens: result.metadata.postHistoryCompressionTokens, finalEstimatedTokens: result.metadata.finalEstimatedTokens, repoMapTokens: result.metadata.repoMapTokens, memoryRecallTokens: result.metadata.memoryRecallTokens }) } return result })()
 
     // Enforce per-message budget on aggregate tool result size. Runs BEFORE
     // microcompact — cached MC operates purely by tool_use_id (never inspects
@@ -621,12 +598,7 @@ async function* queryLoop(
         }
       }
     }
-    if (caveQueryResult.systemPromptAdditions.length > 0) {
-      promptWithArc = [
-        ...promptWithArc,
-        ...caveQueryResult.systemPromptAdditions,
-      ]
-    }
+    if (caveQueryResult.systemPromptAdditions.length > 0) promptWithArc = [...promptWithArc, ...caveQueryResult.systemPromptAdditions]
 
     const fullSystemPrompt = asSystemPrompt(
       appendSystemContext(asSystemPrompt(promptWithArc), systemContext),

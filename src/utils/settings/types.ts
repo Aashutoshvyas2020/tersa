@@ -455,6 +455,19 @@ export const SettingsSchema = lazySchema(() =>
           structuredCompression: z.boolean().optional(),
           readDeduplication: z.boolean().optional(),
           mlCompression: z.boolean().optional(),
+          mlCompressionCommand: z.string().optional(),
+          mlCompressionTimeoutMs: z.number().int().positive().optional(),
+          skillPromptCompression: z.boolean().optional(),
+          skillPromptCompressionStyle: z
+            .enum(['lite', 'full', 'wenyan-lite', 'wenyan-full'])
+            .optional(),
+          softHistoryCompression: z.boolean().optional(),
+          rtkRewrite: z.boolean().optional(),
+          repoMapInjection: z.boolean().optional(),
+          memoryRecallInjection: z.boolean().optional(),
+          historyPreserveRecentCount: z.number().int().positive().optional(),
+          repoMapTokenBudget: z.number().int().positive().optional(),
+          memoryRecallTokenBudget: z.number().int().positive().optional(),
           intensity: z.enum(['off', 'light', 'full']).optional(),
         })
         .optional()
