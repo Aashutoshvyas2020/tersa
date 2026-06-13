@@ -2247,7 +2247,9 @@ function PromptInput({
   }
   const baseProps: BaseTextInputProps = {
     multiline: true,
-    onSubmit,
+    onSubmit: value => {
+      void onSubmit(value, isExactNoArgSlashCommandInput(value, commands));
+    },
     onChange,
     value: isSearchingHistory && historyMatch ? getValueFromInput(typeof historyMatch === 'string' ? historyMatch : historyMatch.display) : input,
     // History navigation is handled via TextInput props (onHistoryUp/onHistoryDown),
