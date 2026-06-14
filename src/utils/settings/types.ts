@@ -28,6 +28,11 @@ export {
 // Also import for use within this file
 import { type HookCommand, HooksSchema } from '../../schemas/hooks.js'
 import { AutoFixConfigSchema } from '../../services/autoFix/autoFixConfig.js'
+import {
+  BUILTIN_STATUS_LINE_COLOR_INTENSITIES,
+  BUILTIN_STATUS_LINE_ITEM_IDS,
+  BUILTIN_STATUS_LINE_TOKEN_DETAILS,
+} from '../../types/statusLine.js'
 import { count } from '../array.js'
 
 /**
@@ -587,13 +592,39 @@ export const SettingsSchema = lazySchema(() =>
         ),
       // Status line for custom status line display
       statusLine: z
-        .object({
-          type: z.literal('command'),
-          command: z.string(),
-          padding: z.number().optional(),
-        })
+        .union([
+          z.object({
+            type: z.literal('command'),
+            command: z.string(),
+            padding: z.number().optional(),
+          }),
+          z.object({
+            type: z.literal('builtin'),
+            enabled: z.boolean().optional(),
+            showProviderModelEffort: z.boolean().optional(),
+            showProjectDirectory: z.boolean().optional(),
+            showGit: z.boolean().optional(),
+            showPermissions: z.boolean().optional(),
+            showPlanGoalMode: z.boolean().optional(),
+            showMcp: z.boolean().optional(),
+            showBackgroundTasks: z.boolean().optional(),
+            showWarnings: z.boolean().optional(),
+            showIdeContext: z.boolean().optional(),
+            showTokenPercentage: z.boolean().optional(),
+            tokenDetail: z
+              .enum(BUILTIN_STATUS_LINE_TOKEN_DETAILS)
+              .optional(),
+            estimatedMarker: z.boolean().optional(),
+            colorIntensity: z
+              .enum(BUILTIN_STATUS_LINE_COLOR_INTENSITIES)
+              .optional(),
+            items: z.array(z.enum(BUILTIN_STATUS_LINE_ITEM_IDS)).optional(),
+            useThemeColors: z.boolean().optional(),
+            padding: z.number().optional(),
+          }),
+        ])
         .optional()
-        .describe('Custom status line display configuration'),
+        .describe('Status line display configuration'),
       // Enabled plugins using marketplace-first format
       enabledPlugins: z
         .record(

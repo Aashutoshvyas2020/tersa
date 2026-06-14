@@ -219,7 +219,7 @@ export function Doctor(t0) {
   let t7;
   if ($[11] !== onDone) {
     t7 = () => {
-      onDone("OpenClaude diagnostics dismissed", {
+      onDone("Diagnostics dismissed", {
         display: "system"
       });
     };
