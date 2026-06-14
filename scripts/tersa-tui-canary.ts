@@ -84,7 +84,6 @@ export function assertStableScreen(
       line.includes('?forshortcuts') ||
       line.includes('? for shortcuts') ||
       line.includes('/effort') ||
-      line.includes('Staticling') ||
       line.startsWith('esc to interrupt') ||
       line.startsWith('❯ ')
     const duplicateKey = decorativeOnly || redrawFooter ? undefined : line

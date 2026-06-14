@@ -247,8 +247,6 @@ import {
 import { isInProcessTeammate } from './teammateContext.js'
 import { removeTeammateFromTeamFile } from './swarm/teamHelpers.js'
 import { unassignTeammateTasks } from './tasks.js'
-import { getCompanionIntroAttachment } from '../buddy/prompt.js'
-import { isBuddyEnabled } from '../buddy/feature.js'
 
 export const TODO_REMINDER_CONFIG = {
   TURNS_SINCE_WRITE: 10,
@@ -704,11 +702,6 @@ export type Attachment =
       removedNames: string[]
     }
   | {
-      type: 'companion_intro'
-      name: string
-      species: string
-    }
-  | {
       type: 'bagel_console'
       errorCount: number
       warningCount: number
@@ -860,13 +853,6 @@ export async function getAttachments(
         ),
       ),
     ),
-    ...(isBuddyEnabled()
-        ? [
-            maybe('companion_intro', () =>
-              Promise.resolve(getCompanionIntroAttachment(messages)),
-          ),
-        ]
-      : []),
     maybe('changed_files', () => getChangedFiles(context)),
     maybe('nested_memory', () => getNestedMemoryAttachments(context)),
     // relevant_memories moved to async prefetch (startRelevantMemoryPrefetch)
