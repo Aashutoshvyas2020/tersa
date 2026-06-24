@@ -18,13 +18,13 @@ npm --version
 ## 2. Install Tersa
 
 ```bash
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
+tersa
 ```
-On Arch Linux, you can alternatively install Tersa via the community-maintained [AUR package](https://aur.archlinux.org/packages/tersa):
 
-```bash
-paru -S tersa
-```
+Tersa ships token optimization defaults, a bundled ripgrep fallback, and built-in
+RTK fallback rewrites. Use `/provider` in the TUI to save your provider/model.
+
 ## 3. Pick One Provider
 
 ### Option A: OpenAI
@@ -132,27 +132,14 @@ Check the basics:
 
 ## 6. Updating Tersa
 
-**Via npm:**
 ```bash
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
 ```
-
-**Via AUR:**
-```bash
-paru
-```
-*(Or use your preferred AUR helper like `yay -Syu`)*
 
 ## 7. Uninstalling Tersa
 
-**Via npm:**
 ```bash
 npm uninstall -g tersa
-```
-
-**Via AUR (Arch Linux):**
-```bash
-paru -Rns tersa
 ```
 
 ## Need Advanced Setup?

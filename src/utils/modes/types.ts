@@ -1,8 +1,14 @@
-export type TersaModeId = 'karpathy' | 'superpowers' | 'gsd' | 'designer'
+export type TersaModeId =
+  | 'karpathy'
+  | 'superpowers'
+  | 'gsd'
+  | 'designer'
+  | 'efficiency'
 
 export type TersaModeIntensity =
   | 'lite'
   | 'full'
+  | 'ultra'
   | 'wenyan-lite'
   | 'wenyan-full'
 export type TersaModeProfile = 'minimal' | 'standard' | 'full-auto'
@@ -18,6 +24,7 @@ export type TersaModesSettings = {
   superpowers?: TersaModeSettings
   gsd?: TersaModeSettings
   designer?: TersaModeSettings
+  efficiency?: TersaModeSettings
 }
 
 export type ResolvedTersaMode = {

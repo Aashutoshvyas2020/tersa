@@ -16,7 +16,7 @@ describe('builtin status line config', () => {
     expect(config.showPermissions).toBe(true)
     expect(config.showPlanGoalMode).toBe(true)
     expect(config.showMcp).toBe(false)
-    expect(config.showBackgroundTasks).toBe(false)
+    expect(config.showBackgroundTasks).toBe(true)
     expect(config.showWarnings).toBe(true)
     expect(config.showIdeContext).toBe(false)
     expect(config.showTokenPercentage).toBe(false)

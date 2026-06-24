@@ -5,6 +5,7 @@ import { Pane } from '../../components/design-system/Pane.js';
 import { ThemePicker } from '../../components/ThemePicker.js';
 import { useTheme } from '../../ink.js';
 import type { LocalJSXCommandCall } from '../../types/command.js';
+import { call as colorCall } from '../color/color.js';
 type Props = {
   onDone: (result?: string, options?: {
     display?: CommandResultDisplay;
@@ -51,6 +52,11 @@ function ThemePickerCommand(t0) {
   }
   return t3;
 }
-export const call: LocalJSXCommandCall = async (onDone, _context) => {
+export const call: LocalJSXCommandCall = async (onDone, context, args) => {
+  const trimmed = args.trim();
+  if (trimmed) {
+    const colorArgs = trimmed.startsWith('color ') ? trimmed.slice('color '.length) : trimmed;
+    return colorCall(onDone, context, colorArgs);
+  }
   return <ThemePickerCommand onDone={onDone} />;
 };

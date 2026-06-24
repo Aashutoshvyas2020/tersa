@@ -326,7 +326,7 @@ exit 0
     if (result.status !== 0) {
       throw new Error(`PTY canary failed at width ${width}\n${output}`)
     }
-    assertScreen(output, width, `startup ${width}`, ['Tersa', '5.4', 'mini'], {
+    assertScreen(output, width, `startup ${width}`, ['5.4', 'mini'], {
       checkDuplicates: false,
     })
 

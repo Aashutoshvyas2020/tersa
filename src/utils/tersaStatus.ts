@@ -1,5 +1,6 @@
 import { getCaveModeConfig } from './caveMode/config.js'
 import { getTersaModeStatusRows } from './modes/config.js'
+import type { TersaModesSettings } from './modes/types.js'
 import { getAPIProvider } from './model/providers.js'
 import { isLocalProviderUrl, resolveProviderRequest } from '../services/api/providerConfig.js'
 import { getRouteLabel, isMiniMaxBaseUrl, resolveRouteIdFromBaseUrl } from '../integrations/routeMetadata.js'
@@ -170,6 +171,8 @@ export function getTersaCaveStatusRows(): Array<[string, string]> {
   ]
 }
 
-export function getTersaOptimizationStatusRows(): Array<[string, string]> {
-  return [...getTersaCaveStatusRows(), ...getTersaModeStatusRows()]
+export function getTersaOptimizationStatusRows(
+  modeSettings?: TersaModesSettings,
+): Array<[string, string]> {
+  return [...getTersaCaveStatusRows(), ...getTersaModeStatusRows(modeSettings)]
 }

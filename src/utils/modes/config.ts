@@ -18,18 +18,21 @@ const DEFAULT_ENABLED: Record<TersaModeProfile, Record<TersaModeId, boolean>> = 
     superpowers: false,
     gsd: false,
     designer: false,
+    efficiency: false,
   },
   standard: {
     karpathy: true,
     superpowers: true,
     gsd: false,
     designer: false,
+    efficiency: false,
   },
   'full-auto': {
     karpathy: true,
     superpowers: true,
     gsd: true,
     designer: true,
+    efficiency: false,
   },
 }
 
@@ -62,6 +65,7 @@ export function getTersaModesConfig(
       superpowers: resolveMode(profile, settings, 'superpowers'),
       gsd: resolveMode(profile, settings, 'gsd'),
       designer: resolveMode(profile, settings, 'designer'),
+      efficiency: resolveMode(profile, settings, 'efficiency'),
     },
   }
 }
@@ -100,5 +104,6 @@ export function getTersaModeStatusRows(
     ['Super', config.modes.superpowers.enabled ? config.modes.superpowers.intensity : 'off'],
     ['GSD', config.modes.gsd.enabled ? config.modes.gsd.intensity : 'off'],
     ['Designer', config.modes.designer.enabled ? config.modes.designer.intensity : 'off'],
+    ['Efficiency', config.modes.efficiency.enabled ? config.modes.efficiency.intensity : 'off'],
   ]
 }

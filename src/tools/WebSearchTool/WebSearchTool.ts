@@ -366,10 +366,11 @@ function buildAdapterUnavailableError(
   provider: string,
   errMsg: string,
 ): string {
+  const detail = errMsg.trim() || 'adapter error'
   return (
-    `Web search is unavailable for provider "${provider}". ` +
-    `The search adapter failed (${errMsg}). ` +
-    `Try switching to a provider with built-in web search (e.g. Anthropic, Codex) or try again later.`
+    `Web search unavailable for ${provider}. ` +
+    `Cause: ${detail}. ` +
+    `Next: configure a search backend, switch to Anthropic/Codex, or continue with local checks.`
   )
 }
 

@@ -66,13 +66,13 @@ Tersa is also mirrored to GitLawb:
 ### Install
 
 ```bash
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
+tersa
 ```
 
-If you're on Arch Linux, you can install Tersa from the community-maintained [AUR package](https://aur.archlinux.org/packages/tersa):
-```bash
-paru -S tersa
-```
+That is the normal setup path: Tersa ships token optimization defaults, bundled
+ripgrep fallback, and built-in RTK fallback rewrites. Use `/provider` inside the
+TUI to save a model/provider profile.
 
 If the install later reports `ripgrep not found`, install ripgrep system-wide and confirm `rg --version` works in the same terminal before starting Tersa.
 
@@ -81,15 +81,14 @@ If the install later reports `ripgrep not found`, install ripgrep system-wide an
 ```bash
 tersa --version
 npm view tersa dist-tags
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
 ```
 
 **Install from a tester tarball:**
 
 ```bash
-npm install -g ./tersa-<version>.tgz
-tersa --version
-tersa --help
+npm install -g ./tersa-cli-<version>.tgz
+tersa
 ```
 
 ### Start

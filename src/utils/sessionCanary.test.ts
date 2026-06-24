@@ -16,6 +16,10 @@ test('generates a short hidden session canary marker', () => {
   expect(marker).toMatch(/^<tersa-canary:[0-9a-f]{4}>$/)
 })
 
+test('session canary defaults to disabled', () => {
+  expect(createSessionCanaryState().enabled).toBe(false)
+})
+
 test('strips a leading canary marker after insignificant whitespace', () => {
   const marker = '<tersa-canary:7f2a>'
 

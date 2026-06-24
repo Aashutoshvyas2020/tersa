@@ -848,7 +848,7 @@ export async function processPromptSlashCommand(commandName: string, args: strin
 export function attachmentScanInputForCommand(command: { loadedFrom?: string }, text: string): string | null {
   return command.loadedFrom === 'mcp' ? null : text;
 }
-async function getMessagesForPromptSlashCommand(command: CommandBase & PromptCommand, args: string, context: ToolUseContext, precedingInputBlocks: ContentBlockParam[] = [], imageContentBlocks: ContentBlockParam[] = [], uuid?: string): Promise<SlashCommandResult> {
+export async function getMessagesForPromptSlashCommand(command: CommandBase & PromptCommand, args: string, context: ToolUseContext, precedingInputBlocks: ContentBlockParam[] = [], imageContentBlocks: ContentBlockParam[] = [], uuid?: string): Promise<SlashCommandResult> {
   // In coordinator mode (main thread only), skip loading the full skill content
   // and permissions. The coordinator only has Agent + TaskStop tools, so the
   // skill content and allowedTools are useless. Instead, send a brief summary

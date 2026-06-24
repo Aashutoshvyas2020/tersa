@@ -1,6 +1,8 @@
 import { describe, expect, it, beforeEach } from 'bun:test'
 import {
   getTokenCountFromUsage,
+  getCurrentUsage,
+  tokenCountWithEstimation,
 } from './tokens.js'
 import { IncrementalTokenCounter } from './incrementalTokenCounter.js'
 
@@ -12,6 +14,94 @@ interface FakeUsage {
 }
 
 describe('tokens', () => {
+  it('ignores zero-usage assistant records when reporting current usage', () => {
+    const usage = getCurrentUsage([
+      {
+        type: 'assistant',
+        message: {
+          id: 'resp_zero',
+          model: 'gpt-5.4',
+          usage: {
+            input_tokens: 0,
+            output_tokens: 0,
+            cache_read_input_tokens: 0,
+            cache_creation_input_tokens: 0,
+          },
+          content: [{ type: 'text', text: 'hello from a completed response' }],
+        },
+      } as any,
+    ])
+
+    expect(usage).toBeNull()
+  })
+
+  it('falls back to message estimation when the latest assistant usage is zero', () => {
+    const tokens = tokenCountWithEstimation([
+      {
+        type: 'assistant',
+        message: {
+          id: 'resp_zero',
+          model: 'gpt-5.4',
+          usage: {
+            input_tokens: 0,
+            output_tokens: 0,
+            cache_read_input_tokens: 0,
+            cache_creation_input_tokens: 0,
+          },
+          content: [
+            {
+              type: 'text',
+              text: 'This response should still contribute estimated tokens.',
+            },
+          ],
+        },
+      } as any,
+    ])
+
+    expect(tokens).toBeGreaterThan(0)
+  })
+
+  it('uses the last non-zero API usage when later assistant records report zero usage', () => {
+    const earlierUsage = {
+      input_tokens: 100,
+      output_tokens: 20,
+      cache_read_input_tokens: 10,
+      cache_creation_input_tokens: 0,
+    }
+
+    const tokens = tokenCountWithEstimation([
+      {
+        type: 'assistant',
+        message: {
+          id: 'resp_real',
+          model: 'gpt-5.4',
+          usage: earlierUsage,
+          content: [{ type: 'text', text: 'Earlier counted response.' }],
+        },
+      } as any,
+      {
+        type: 'assistant',
+        message: {
+          id: 'resp_zero',
+          model: 'gpt-5.4',
+          usage: {
+            input_tokens: 0,
+            output_tokens: 0,
+            cache_read_input_tokens: 0,
+            cache_creation_input_tokens: 0,
+          },
+          content: [
+            {
+              type: 'text',
+              text: 'Later response still needs to be estimated on top.',
+            },
+          ],
+        },
+      } as any,
+    ])
+
+    expect(tokens).toBeGreaterThan(getTokenCountFromUsage(earlierUsage as any))
+  })
 })
 
 describe('IncrementalTokenCounter', () => {

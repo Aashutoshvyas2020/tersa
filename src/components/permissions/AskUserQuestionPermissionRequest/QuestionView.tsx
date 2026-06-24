@@ -16,6 +16,9 @@ import { PermissionRequestTitle } from '../PermissionRequestTitle.js';
 import { PreviewQuestionView } from './PreviewQuestionView.js';
 import { QuestionNavigationBar } from './QuestionNavigationBar.js';
 import type { QuestionState } from './use-multiple-choice-state.js';
+
+const CHAT_ABOUT_THIS_VALUE = "__chat_about_this__";
+const SKIP_INTERVIEW_VALUE = "__skip_interview__";
 type Props = {
   question: Question;
   questions: Question[];
@@ -40,7 +43,7 @@ type Props = {
   onRemoveImage?: (id: number) => void;
 };
 export function QuestionView(t0) {
-  const $ = _c(114);
+  const $ = _c(115);
   const {
     question,
     questions,
@@ -158,7 +161,7 @@ export function QuestionView(t0) {
   let handleOpenEditor;
   let questionText;
   let t7;
-  if ($[12] !== onUpdateQuestionState || $[13] !== question || $[14] !== questionStates) {
+  if ($[12] !== isInPlanMode || $[13] !== onUpdateQuestionState || $[14] !== question || $[15] !== questionStates) {
     const textOptions = question.options.map(_temp2);
     questionText = question.question;
     const questionState = questionStates[questionText];
@@ -215,17 +218,36 @@ export function QuestionView(t0) {
       t12 = $[29];
     }
     const otherOption = t12;
-    t7 = [...textOptions, otherOption];
-    $[12] = onUpdateQuestionState;
-    $[13] = question;
-    $[14] = questionStates;
-    $[15] = handleOpenEditor;
-    $[16] = questionText;
-    $[17] = t7;
+    const actionOptions = question.multiSelect
+      ? []
+      : [
+          {
+            type: "text" as const,
+            value: CHAT_ABOUT_THIS_VALUE,
+            label: "Chat about this"
+          },
+          ...(isInPlanMode
+            ? [
+                {
+                  type: "text" as const,
+                  value: SKIP_INTERVIEW_VALUE,
+                  label: "Skip interview and plan immediately"
+                },
+              ]
+            : []),
+        ];
+    t7 = [...textOptions, otherOption, ...actionOptions];
+    $[12] = isInPlanMode;
+    $[13] = onUpdateQuestionState;
+    $[14] = question;
+    $[15] = questionStates;
+    $[16] = handleOpenEditor;
+    $[17] = questionText;
+    $[18] = t7;
   } else {
-    handleOpenEditor = $[15];
-    questionText = $[16];
-    t7 = $[17];
+    handleOpenEditor = $[16];
+    questionText = $[17];
+    t7 = $[18];
   }
   const options = t7;
   const hasAnyPreview = !question.multiSelect && question.options.some(_temp3);
@@ -291,7 +313,7 @@ export function QuestionView(t0) {
     t11 = $[57];
   }
   let t12;
-  if ($[58] !== currentQuestionIndex || $[59] !== handleFocus || $[60] !== handleOpenEditor || $[61] !== isFooterFocused || $[62] !== onAnswer || $[63] !== onCancel || $[64] !== onImagePaste || $[65] !== onRemoveImage || $[66] !== onSubmit || $[67] !== onUpdateQuestionState || $[68] !== options || $[69] !== pastedContents || $[70] !== question.multiSelect || $[71] !== question.question || $[72] !== questionStates || $[73] !== questionText || $[74] !== questions.length) {
+  if ($[58] !== currentQuestionIndex || $[59] !== handleFocus || $[60] !== handleOpenEditor || $[61] !== isFooterFocused || $[62] !== onAnswer || $[63] !== onCancel || $[64] !== onFinishPlanInterview || $[65] !== onImagePaste || $[66] !== onRemoveImage || $[67] !== onRespondToClaude || $[68] !== onSubmit || $[69] !== onUpdateQuestionState || $[70] !== options || $[71] !== pastedContents || $[72] !== question.multiSelect || $[73] !== question.question || $[74] !== questionStates || $[75] !== questionText || $[76] !== questions.length) {
     t12 = <Box marginTop={1}>{question.multiSelect ? <SelectMulti key={question.question} options={options} defaultValue={questionStates[question.question]?.selectedValue as string[] | undefined} onChange={values => {
         onUpdateQuestionState(questionText, {
           selectedValue: values
@@ -300,32 +322,42 @@ export function QuestionView(t0) {
         const finalValues = values.filter(_temp4).concat(textInput ? [textInput] : []);
         onAnswer(questionText, finalValues, undefined, false);
       }} onFocus={handleFocus} onCancel={onCancel} submitButtonText={currentQuestionIndex === questions.length - 1 ? "Submit" : "Next"} onSubmit={onSubmit} onDownFromLastItem={handleDownFromLastItem} isDisabled={isFooterFocused} onOpenEditor={handleOpenEditor} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} /> : <Select key={question.question} options={options} defaultValue={questionStates[question.question]?.selectedValue as string | undefined} onChange={value_1 => {
+        if (value_1 === CHAT_ABOUT_THIS_VALUE) {
+          onRespondToClaude();
+          return;
+        }
+        if (value_1 === SKIP_INTERVIEW_VALUE) {
+          onFinishPlanInterview();
+          return;
+        }
         onUpdateQuestionState(questionText, {
           selectedValue: value_1
         }, false);
         const textInput_0 = value_1 === "__other__" ? questionStates[questionText]?.textInputValue : undefined;
         onAnswer(questionText, value_1, textInput_0);
-      }} onFocus={handleFocus} onCancel={onCancel} onDownFromLastItem={handleDownFromLastItem} isDisabled={isFooterFocused} layout="compact-vertical" onOpenEditor={handleOpenEditor} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} />}</Box>;
+      }} onFocus={handleFocus} onCancel={onCancel} layout="compact-vertical" onOpenEditor={handleOpenEditor} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} />}</Box>;
     $[58] = currentQuestionIndex;
     $[59] = handleFocus;
     $[60] = handleOpenEditor;
     $[61] = isFooterFocused;
     $[62] = onAnswer;
     $[63] = onCancel;
-    $[64] = onImagePaste;
-    $[65] = onRemoveImage;
-    $[66] = onSubmit;
-    $[67] = onUpdateQuestionState;
-    $[68] = options;
-    $[69] = pastedContents;
-    $[70] = question.multiSelect;
-    $[71] = question.question;
-    $[72] = questionStates;
-    $[73] = questionText;
-    $[74] = questions.length;
-    $[75] = t12;
+    $[64] = onFinishPlanInterview;
+    $[65] = onImagePaste;
+    $[66] = onRemoveImage;
+    $[67] = onRespondToClaude;
+    $[68] = onSubmit;
+    $[69] = onUpdateQuestionState;
+    $[70] = options;
+    $[71] = pastedContents;
+    $[72] = question.multiSelect;
+    $[73] = question.question;
+    $[74] = questionStates;
+    $[75] = questionText;
+    $[76] = questions.length;
+    $[77] = t12;
   } else {
-    t12 = $[75];
+    t12 = $[77];
   }
   let t13;
   if ($[76] === Symbol.for("react.memo_cache_sentinel")) {
@@ -335,108 +367,109 @@ export function QuestionView(t0) {
     t13 = $[76];
   }
   let t14;
-  if ($[77] !== footerIndex || $[78] !== isFooterFocused) {
+  if ($[78] !== footerIndex || $[79] !== isFooterFocused) {
     t14 = isFooterFocused && footerIndex === 0 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>;
-    $[77] = footerIndex;
-    $[78] = isFooterFocused;
-    $[79] = t14;
+    $[78] = footerIndex;
+    $[79] = isFooterFocused;
+    $[80] = t14;
   } else {
-    t14 = $[79];
+    t14 = $[80];
   }
   const t15 = isFooterFocused && footerIndex === 0 ? "suggestion" : undefined;
   const t16 = options.length + 1;
   let t17;
-  if ($[80] !== t15 || $[81] !== t16) {
+  if ($[81] !== t15 || $[82] !== t16) {
     t17 = <Text color={t15}>{t16}. Chat about this</Text>;
-    $[80] = t15;
-    $[81] = t16;
-    $[82] = t17;
+    $[81] = t15;
+    $[82] = t16;
+    $[83] = t17;
   } else {
-    t17 = $[82];
+    t17 = $[83];
   }
   let t18;
-  if ($[83] !== t14 || $[84] !== t17) {
+  if ($[84] !== t14 || $[85] !== t17) {
     t18 = <Box flexDirection="row" gap={1}>{t14}{t17}</Box>;
-    $[83] = t14;
-    $[84] = t17;
-    $[85] = t18;
+    $[84] = t14;
+    $[85] = t17;
+    $[86] = t18;
   } else {
-    t18 = $[85];
+    t18 = $[86];
   }
   let t19;
-  if ($[86] !== footerIndex || $[87] !== isFooterFocused || $[88] !== isInPlanMode || $[89] !== options.length) {
+  if ($[87] !== footerIndex || $[88] !== isFooterFocused || $[89] !== isInPlanMode || $[90] !== options.length) {
     t19 = isInPlanMode && <Box flexDirection="row" gap={1}>{isFooterFocused && footerIndex === 1 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}<Text color={isFooterFocused && footerIndex === 1 ? "suggestion" : undefined}>{options.length + 2}. Skip interview and plan immediately</Text></Box>;
-    $[86] = footerIndex;
-    $[87] = isFooterFocused;
-    $[88] = isInPlanMode;
-    $[89] = options.length;
-    $[90] = t19;
+    $[87] = footerIndex;
+    $[88] = isFooterFocused;
+    $[89] = isInPlanMode;
+    $[90] = options.length;
+    $[91] = t19;
   } else {
-    t19 = $[90];
+    t19 = $[91];
   }
   let t20;
-  if ($[91] !== t18 || $[92] !== t19) {
-    t20 = <Box flexDirection="column">{t13}{t18}{t19}</Box>;
-    $[91] = t18;
-    $[92] = t19;
-    $[93] = t20;
+  if ($[92] !== question.multiSelect || $[93] !== t18 || $[94] !== t19) {
+    t20 = question.multiSelect ? <Box flexDirection="column">{t13}{t18}{t19}</Box> : null;
+    $[92] = question.multiSelect;
+    $[93] = t18;
+    $[94] = t19;
+    $[95] = t20;
   } else {
-    t20 = $[93];
+    t20 = $[95];
   }
   let t21;
-  if ($[94] !== questions.length) {
+  if ($[96] !== questions.length) {
     t21 = questions.length === 1 ? <>{figures.arrowUp}/{figures.arrowDown} to navigate</> : "Tab/Arrow keys to navigate";
-    $[94] = questions.length;
-    $[95] = t21;
+    $[96] = questions.length;
+    $[97] = t21;
   } else {
-    t21 = $[95];
+    t21 = $[97];
   }
   let t22;
-  if ($[96] !== isOtherFocused) {
+  if ($[98] !== isOtherFocused) {
     t22 = isOtherFocused && editorName && <> · ctrl+g to edit in {editorName}</>;
-    $[96] = isOtherFocused;
-    $[97] = t22;
+    $[98] = isOtherFocused;
+    $[99] = t22;
   } else {
-    t22 = $[97];
+    t22 = $[99];
   }
   let t23;
-  if ($[98] !== t21 || $[99] !== t22) {
+  if ($[100] !== t21 || $[101] !== t22) {
     t23 = <Box marginTop={1}><Text color="inactive" dimColor={true}>Enter to select ·{" "}{t21}{t22}{" "}· Esc to cancel</Text></Box>;
-    $[98] = t21;
-    $[99] = t22;
-    $[100] = t23;
+    $[100] = t21;
+    $[101] = t22;
+    $[102] = t23;
   } else {
-    t23 = $[100];
+    t23 = $[102];
   }
   let t24;
-  if ($[101] !== minContentHeight || $[102] !== t12 || $[103] !== t20 || $[104] !== t23) {
+  if ($[103] !== minContentHeight || $[104] !== t12 || $[105] !== t20 || $[106] !== t23) {
     t24 = <Box flexDirection="column" minHeight={minContentHeight}>{t12}{t20}{t23}</Box>;
-    $[101] = minContentHeight;
-    $[102] = t12;
-    $[103] = t20;
-    $[104] = t23;
-    $[105] = t24;
+    $[103] = minContentHeight;
+    $[104] = t12;
+    $[105] = t20;
+    $[106] = t23;
+    $[107] = t24;
   } else {
-    t24 = $[105];
+    t24 = $[107];
   }
   let t25;
-  if ($[106] !== t10 || $[107] !== t11 || $[108] !== t24) {
+  if ($[108] !== t10 || $[109] !== t11 || $[110] !== t24) {
     t25 = <Box flexDirection="column" paddingTop={0}>{t10}{t11}{t24}</Box>;
-    $[106] = t10;
-    $[107] = t11;
-    $[108] = t24;
-    $[109] = t25;
+    $[108] = t10;
+    $[109] = t11;
+    $[110] = t24;
+    $[111] = t25;
   } else {
-    t25 = $[109];
+    t25 = $[111];
   }
   let t26;
-  if ($[111] !== t25 || $[112] !== t8) {
+  if ($[112] !== t25 || $[113] !== t8) {
     t26 = <Box flexDirection="column" marginTop={0} tabIndex={0} autoFocus={true}>{t8}{t9}{t25}</Box>;
-    $[111] = t25;
-    $[112] = t8;
-    $[113] = t26;
+    $[112] = t25;
+    $[113] = t8;
+    $[114] = t26;
   } else {
-    t26 = $[113];
+    t26 = $[114];
   }
   return t26;
 }

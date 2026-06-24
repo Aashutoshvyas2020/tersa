@@ -172,6 +172,7 @@ export function getUsageDescriptor(
 export default {
   type: 'local-jsx',
   name: 'usage',
-  description: 'Show plan usage limits',
+  description: 'Show usage, cost, and activity stats',
+  argumentHint: '[cost|stats]',
   load: () => import('./usage.js'),
 } satisfies Command

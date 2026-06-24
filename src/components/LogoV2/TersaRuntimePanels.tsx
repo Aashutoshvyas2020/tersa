@@ -55,7 +55,6 @@ export function TersaRuntimePanels({ compact = false, width = 64 }: Props) {
   const effortValue = useAppState(s => s.effortValue)
   const modeSettings = useAppState(s => s.settings.modes)
   const model = useMainLoopModel()
-  void modeSettings
   const provider = resolveTersaProviderStatus(model ?? undefined)
   const modelLabel = renderModelSetting(model)
   const displayedEffort =
@@ -71,8 +70,11 @@ export function TersaRuntimePanels({ compact = false, width = 64 }: Props) {
     ['Effort', displayedEffort],
     ['Endpoint', truncate(provider.baseUrl, innerWidth)],
   ] as const
-  const optimizationRows = getTersaOptimizationStatusRows()
-  const optimizationPairs = []
+  const optimizationRows = getTersaOptimizationStatusRows(modeSettings)
+  const optimizationPairs: Array<[
+    [string, string] | undefined,
+    [string, string] | undefined,
+  ]> = []
   const optimizationColumnWidth = Math.max(
     20,
     Math.floor((boxWidth - 6) / 2),

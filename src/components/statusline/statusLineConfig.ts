@@ -16,7 +16,7 @@ export const DEFAULT_BUILTIN_STATUSLINE_CONFIG: BuiltinStatusLineConfig = {
   showPermissions: true,
   showPlanGoalMode: true,
   showMcp: false,
-  showBackgroundTasks: false,
+  showBackgroundTasks: true,
   showWarnings: true,
   showIdeContext: false,
   showTokenPercentage: false,
@@ -132,16 +132,24 @@ export function cycleBuiltinStatusLineChoice(
   direction: -1 | 1,
 ): BuiltinStatusLineConfig {
   const normalized = normalizeBuiltinStatusLineConfig(config)
-  const options =
-    key === 'tokenDetail'
-      ? BUILTIN_STATUS_LINE_TOKEN_DETAILS
-      : BUILTIN_STATUS_LINE_COLOR_INTENSITIES
-  const current = normalized[key] ?? options[0]
-  const currentIndex = options.indexOf(current as (typeof options)[number])
+  if (key === 'tokenDetail') {
+    const options = BUILTIN_STATUS_LINE_TOKEN_DETAILS
+    const current = normalized.tokenDetail ?? options[0]
+    const currentIndex = options.indexOf(current)
+    const nextIndex =
+      (currentIndex + direction + options.length) % options.length
+    return {
+      ...normalized,
+      tokenDetail: options[nextIndex],
+    }
+  }
+  const options = BUILTIN_STATUS_LINE_COLOR_INTENSITIES
+  const current = normalized.colorIntensity ?? options[0]
+  const currentIndex = options.indexOf(current)
   const nextIndex =
     (currentIndex + direction + options.length) % options.length
   return {
     ...normalized,
-    [key]: options[nextIndex],
+    colorIntensity: options[nextIndex],
   }
 }

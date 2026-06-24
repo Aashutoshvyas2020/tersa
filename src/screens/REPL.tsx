@@ -47,7 +47,7 @@ import { isLocalAgentTask, queuePendingMessage, appendMessageToLocalAgent, type 
 import { registerLeaderToolUseConfirmQueue, unregisterLeaderToolUseConfirmQueue, registerLeaderSetToolPermissionContext, unregisterLeaderSetToolPermissionContext } from '../utils/swarm/leaderPermissionBridge.js';
 import { useLogMessages } from '../hooks/useLogMessages.js';
 import { useReplBridge } from '../hooks/useReplBridge.js';
-import { type Command, type CommandResultDisplay, type ResumeEntrypoint, getCommandName, isCommandEnabled } from '../commands.js';
+import { type Command, type CommandResultDisplay, type ResumeEntrypoint, getCommandName, isCommandEnabled, isDollarInvocableCommand, isSlashVisibleCommand } from '../commands.js';
 import type { PromptInputMode, QueuedCommand, VimMode } from '../types/textInputTypes.js';
 import { MessageSelector } from '../components/MessageSelector.js';
 import { selectableUserMessagesFilter, messagesAfterAreOnlySynthetic } from '../utils/messageFilters.js';
@@ -966,8 +966,9 @@ export function REPL({
   // SkillTool's `skill` payload without needing plugin command objects here.
   const renderMergedCommands = useMergedCommands(localCommands, mcp.commands as Command[]);
   // Filter out all commands if disableSlashCommands is true
-  const commands = useMemo(() => disableSlashCommands ? [] : mergedCommands, [disableSlashCommands, mergedCommands]);
-  const renderCommands = useMemo(() => disableSlashCommands ? [] : renderMergedCommands, [disableSlashCommands, renderMergedCommands]);
+  const commands = useMemo(() => disableSlashCommands ? [] : mergedCommands.filter(isSlashVisibleCommand), [disableSlashCommands, mergedCommands]);
+  const renderCommands = useMemo(() => disableSlashCommands ? [] : renderMergedCommands.filter(isSlashVisibleCommand), [disableSlashCommands, renderMergedCommands]);
+  const invocableCommands = useMemo(() => mergedCommands.filter(isDollarInvocableCommand), [mergedCommands]);
   useIdeLogging(isRemoteSession ? EMPTY_MCP_CLIENTS : mcp.clients);
   useIdeSelection(isRemoteSession ? EMPTY_MCP_CLIENTS : mcp.clients, setIDESelection);
   const [streamMode, setStreamMode] = useState<SpinnerMode>('responding');
@@ -2575,6 +2576,7 @@ export function REPL({
       abortController,
       options: {
         commands,
+        invocableCommands,
         tools: computeTools(),
         debug,
         verbose: s.verbose,
@@ -2709,7 +2711,7 @@ export function REPL({
       contentReplacementState: contentReplacementStateRef.current,
       syncToolResultReplacements
     };
-  }, [commands, combinedInitialTools, mainThreadAgentDefinition, debug, initialMcpClients, ideInstallationStatus, dynamicMcpConfig, theme, allowedAgentTypes, store, setAppState, reverify, addNotification, setMessages, onChangeDynamicMcpConfig, resume, requestPrompt, disabled, customSystemPrompt, appendSystemPrompt, setConversationId, syncToolResultReplacements]);
+  }, [commands, invocableCommands, combinedInitialTools, mainThreadAgentDefinition, debug, initialMcpClients, ideInstallationStatus, dynamicMcpConfig, theme, allowedAgentTypes, store, setAppState, reverify, addNotification, setMessages, onChangeDynamicMcpConfig, resume, requestPrompt, disabled, customSystemPrompt, appendSystemPrompt, setConversationId, syncToolResultReplacements]);
 
   // Session backgrounding (Ctrl+B to background/foreground)
   const handleBackgroundQuery = useCallback(() => {
@@ -5110,7 +5112,7 @@ export function REPL({
             {process.env.USER_TYPE === 'ant' && skillImprovementSurvey.suggestion && <SkillImprovementSurvey isOpen={skillImprovementSurvey.isOpen} skillName={skillImprovementSurvey.suggestion.skillName} updates={skillImprovementSurvey.suggestion.updates} handleSelect={skillImprovementSurvey.handleSelect} inputValue={inputValue} setInputValue={setInputValue} />}
             {showIssueFlagBanner && <IssueFlagBanner />}
             { }
-            <PromptInput debug={debug} ideSelection={ideSelection} isLocalJSXCommandActive={isShowingLocalJSXCommand} getToolUseContext={getToolUseContext} toolPermissionContext={toolPermissionContext} setToolPermissionContext={setToolPermissionContext} apiKeyStatus={apiKeyStatus} commands={renderCommands} agents={agentDefinitions.activeAgents} isLoading={isLoading} onExit={handleExit} verbose={verbose} messages={messages} onAutoUpdaterResult={setAutoUpdaterResult} autoUpdaterResult={autoUpdaterResult} input={inputValue} onInputChange={setInputValue} mode={inputMode} onModeChange={setInputMode} stashedPrompt={stashedPrompt} setStashedPrompt={setStashedPrompt} submitCount={submitCount} onShowMessageSelector={handleShowMessageSelector} onMessageActionsEnter={
+            <PromptInput debug={debug} ideSelection={ideSelection} isLocalJSXCommandActive={isShowingLocalJSXCommand} getToolUseContext={getToolUseContext} toolPermissionContext={toolPermissionContext} setToolPermissionContext={setToolPermissionContext} apiKeyStatus={apiKeyStatus} commands={renderCommands} invocableCommands={invocableCommands} agents={agentDefinitions.activeAgents} isLoading={isLoading} onExit={handleExit} verbose={verbose} messages={messages} onAutoUpdaterResult={setAutoUpdaterResult} autoUpdaterResult={autoUpdaterResult} input={inputValue} onInputChange={setInputValue} mode={inputMode} onModeChange={setInputMode} stashedPrompt={stashedPrompt} setStashedPrompt={setStashedPrompt} submitCount={submitCount} onShowMessageSelector={handleShowMessageSelector} onMessageActionsEnter={
               // Works during isLoading — edit cancels first; uuid selection survives appends.
               feature('MESSAGE_ACTIONS') && isFullscreenEnvEnabled() && !disableMessageActions ? enterMessageActions : undefined} mcpClients={mcpClients} pastedContents={pastedContents} setPastedContents={setPastedContents} vimMode={vimMode} setVimMode={setVimMode} showBashesDialog={showBashesDialog} setShowBashesDialog={setShowBashesDialog} onSubmit={onSubmit} onAgentSubmit={onAgentSubmit} isSearchingHistory={isSearchingHistory} setIsSearchingHistory={setIsSearchingHistory} helpOpen={isHelpOpen} setHelpOpen={setIsHelpOpen} insertTextRef={feature('VOICE_MODE') ? insertTextRef : undefined} voiceInterimRange={voice.interimRange} />
             <SessionBackgroundHint onBackgroundSession={handleBackgroundSession} isLoading={isLoading} />

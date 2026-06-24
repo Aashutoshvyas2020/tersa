@@ -8,6 +8,7 @@ import type {
 type PromptSpec = {
   lite: string
   full: string
+  ultra?: string
   'wenyan-lite': string
   'wenyan-full': string
 }
@@ -80,6 +81,24 @@ const MODE_DEFINITIONS: Record<TersaModeId, ModeDefinition> = {
         '作界面，先立結構與層次，後置字體、間距、色。尚簡明，毋濫飾，毋從俗套。使控件自明，狀態自見，辭約而確，變化有據。凡增第三方庫，先驗其在不在。',
     },
   },
+  efficiency: {
+    id: 'efficiency',
+    label: 'Efficiency Mode',
+    description:
+      'Prefer the smallest correct implementation. Avoid unnecessary code, abstractions, dependencies, and architecture.',
+    prompt: {
+      lite:
+        'Prefer the smallest correct implementation. Before writing code, ask if it needs to exist, then reuse existing code, stdlib, native platform, or installed deps before custom code. Mention the simpler path when useful.',
+      full:
+        'Efficiency Mode active. Stop at the first rung that works: skip unnecessary work; reuse existing code; use stdlib; use native platform; use installed deps; use one line if enough; only then write minimum custom code. Bias toward fewer files, fewer abstractions, fewer dependencies, smaller patches, and clear verification. Do not cut security, validation, data-loss handling, accessibility, required migrations, or tests needed for correctness.',
+      ultra:
+        'Efficiency Mode ultra. Delete before adding. No speculative helpers, wrappers, factories, dependencies, or future-proofing. Smallest correct patch only. Still keep security, validation, data-loss handling, accessibility, required migrations, and necessary tests.',
+      'wenyan-lite':
+        '務求至簡。先問其事可省否；次用既有碼、標準庫、平台、既有依賴；然後始作最小新碼。',
+      'wenyan-full':
+        '尚簡。可省則省；可用既有則用；標準庫、平台、既有依賴先於新作。毋妄抽象，毋增依賴。然安全、驗證、防失據、可及性、必要遷移與測試，不得省。',
+    },
+  },
 }
 
 export function getModeDefinition(id: TersaModeId): ModeDefinition {
@@ -92,7 +111,10 @@ export function listModeDefinitions(): ModeDefinition[] {
 
 export function renderModePrompt(mode: ResolvedTersaMode): string {
   const definition = MODE_DEFINITIONS[mode.id]
-  return compileModePrompt(definition.prompt[mode.intensity], mode.intensity)
+  return compileModePrompt(
+    definition.prompt[mode.intensity] ?? definition.prompt.full,
+    mode.intensity,
+  )
 }
 
 export function getModePromptRows(

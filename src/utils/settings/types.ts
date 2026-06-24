@@ -479,6 +479,52 @@ export const SettingsSchema = lazySchema(() =>
         .describe(
           'Cave Mode compression for tool outputs before they enter model-facing context.',
         ),
+      modes: z
+        .object({
+          profile: z.enum(['minimal', 'standard', 'full-auto']).optional(),
+          karpathy: z
+            .object({
+              enabled: z.boolean().optional(),
+              intensity: z
+                .enum(['lite', 'full', 'ultra', 'wenyan-lite', 'wenyan-full'])
+                .optional(),
+            })
+            .optional(),
+          superpowers: z
+            .object({
+              enabled: z.boolean().optional(),
+              intensity: z
+                .enum(['lite', 'full', 'ultra', 'wenyan-lite', 'wenyan-full'])
+                .optional(),
+            })
+            .optional(),
+          gsd: z
+            .object({
+              enabled: z.boolean().optional(),
+              intensity: z
+                .enum(['lite', 'full', 'ultra', 'wenyan-lite', 'wenyan-full'])
+                .optional(),
+            })
+            .optional(),
+          designer: z
+            .object({
+              enabled: z.boolean().optional(),
+              intensity: z
+                .enum(['lite', 'full', 'ultra', 'wenyan-lite', 'wenyan-full'])
+                .optional(),
+            })
+            .optional(),
+          efficiency: z
+            .object({
+              enabled: z.boolean().optional(),
+              intensity: z
+                .enum(['lite', 'full', 'ultra', 'wenyan-lite', 'wenyan-full'])
+                .optional(),
+            })
+            .optional(),
+        })
+        .optional()
+        .describe('Built-in agent behavior modes shown in /modes and /config.'),
       worktree: z
         .object({
           symlinkDirectories: z

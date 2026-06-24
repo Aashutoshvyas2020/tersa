@@ -31,7 +31,6 @@ import {
   type PromptInputMode,
 } from '../../types/textInputTypes.js'
 import {
-  type AgentMentionAttachment,
   createAttachmentMessage,
   getAttachmentMessages,
 } from '../attachments.js'
@@ -54,6 +53,10 @@ import {
 } from '../messages.js'
 import { queryCheckpoint } from '../queryProfiler.js'
 import { parseSlashCommand } from '../slashCommandParsing.js'
+import {
+  findDollarInvocations,
+  getDollarInvocationAliases,
+} from '../suggestions/dollarInvocationSuggestions.js'
 import {
   hasUltraplanKeyword,
   replaceUltraplanKeyword,
@@ -535,6 +538,29 @@ async function processUserInputBase(
     !effectiveSkipSlash &&
     inputString.startsWith('/')
   ) {
+    const parsed = parseSlashCommand(inputString)
+    const invocableCommands = context.options.invocableCommands ?? []
+    const oldSkillMatches = parsed
+      ? invocableCommands.filter(cmd =>
+          getCommandName(cmd) === parsed.commandName ||
+          getDollarInvocationAliases(cmd, invocableCommands).includes(parsed.commandName),
+        )
+      : []
+    if (oldSkillMatches.length > 0) {
+      const suggestions = oldSkillMatches
+        .map(cmd => `$${getDollarInvocationAliases(cmd, invocableCommands)[0]}`)
+        .join(', ')
+      return {
+        messages: [
+          createUserMessage({ content: inputString, uuid }),
+          createCommandInputMessage(
+            `<local-command-stdout>Skills, plugins, and MCP prompts use $ now. Use ${suggestions}.</local-command-stdout>`,
+          ),
+        ],
+        shouldQuery: false,
+        resultText: `Use ${suggestions}.`,
+      }
+    }
     const { processSlashCommand } = await import('./processSlashCommand.js')
     const slashResult = await processSlashCommand(
       inputString,
@@ -550,13 +576,54 @@ async function processUserInputBase(
     return addImageMetadataMessage(slashResult, imageMetadataTexts)
   }
 
+  if (inputString !== null && mode === 'prompt') {
+    const invocations = findDollarInvocations(
+      inputString,
+      context.options.invocableCommands ?? [],
+    )
+    if (invocations.length > 0) {
+      const { getMessagesForPromptSlashCommand } = await import(
+        './processSlashCommand.js'
+      )
+      const compiled = await Promise.all(
+        invocations.map(({ command }) => {
+          if (command.type !== 'prompt') throw new Error('Invalid $ invocation')
+          return getMessagesForPromptSlashCommand(command, '', context, [], [], uuid)
+        }),
+      )
+      const promptResult = processTextPrompt(
+        normalizedInput,
+        imageContentBlocks,
+        imagePasteIds,
+        attachmentMessages,
+        uuid,
+        permissionMode,
+        isMeta,
+      )
+      const nonEmptyAllowedTools = compiled
+        .map(result => result.allowedTools ?? [])
+        .filter(tools => tools.length > 0)
+      return addImageMetadataMessage(
+        {
+          messages: [
+            ...compiled.flatMap(result => result.messages),
+            ...promptResult.messages,
+          ],
+          shouldQuery: promptResult.shouldQuery,
+          allowedTools:
+            nonEmptyAllowedTools.length === 1 ? nonEmptyAllowedTools[0] : [],
+        },
+        imageMetadataTexts,
+      )
+    }
+  }
+
   // Log agent mention queries for analysis
   if (inputString !== null && mode === 'prompt') {
     const trimmedInput = inputString.trim()
 
     const agentMention = attachmentMessages.find(
-      (m): m is AttachmentMessage<AgentMentionAttachment> =>
-        m.attachment.type === 'agent_mention',
+      m => m.attachment.type === 'agent_mention',
     )
 
     if (agentMention) {

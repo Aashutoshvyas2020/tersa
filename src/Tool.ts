@@ -158,6 +158,7 @@ export type CompactProgressEvent =
 export type ToolUseContext = {
   options: {
     commands: Command[]
+    invocableCommands?: Command[]
     debug: boolean
     mainLoopModel: string
     tools: Tools

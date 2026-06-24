@@ -64,12 +64,33 @@ describe('maybeRewriteBashInputWithRtk', () => {
     })
 
     const result = await mod.maybeRewriteBashInputWithRtk({
-      command: 'npm ls --json',
+      command: 'cat huge.log',
     })
 
-    expect(result.input.command).toBe('npm ls --json')
+    expect(result.input.command).toBe('cat huge.log')
     expect(result.metadata.available).toBe(false)
     expect(result.metadata.attempted).toBe(false)
     expect(result.metadata.changed).toBe(false)
+  })
+
+  test('uses built-in rewrite when rtk is unavailable', async () => {
+    setSessionSettingsCache({
+      settings: { caveMode: DEFAULT_CAVE_MODE_CONFIG },
+      errors: [],
+    })
+    const mod = await import('./rtkRewrite.js')
+    mod.resetRtkStatusForTest()
+    mod.setRtkExecFileImplForTest(async () => {
+      throw new Error('rtk not found')
+    })
+
+    const result = await mod.maybeRewriteBashInputWithRtk({
+      command: 'npm ls',
+    })
+
+    expect(result.input.command).toBe('npm ls --json')
+    expect(result.metadata.available).toBe(true)
+    expect(result.metadata.attempted).toBe(true)
+    expect(result.metadata.changed).toBe(true)
   })
 })

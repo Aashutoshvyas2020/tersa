@@ -5,5 +5,6 @@ export function compileModePrompt(
   text: string,
   intensity: TersaModeIntensity,
 ): string {
+  if (intensity === 'ultra') return compressInternalPromptText(text, 'full')
   return compressInternalPromptText(text, intensity)
 }

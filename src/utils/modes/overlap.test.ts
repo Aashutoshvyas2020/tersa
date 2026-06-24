@@ -10,7 +10,7 @@ function promptCommand(name: string, description = ''): Command {
     hasUserSpecifiedDescription: true,
     contentLength: 0,
     progressMessage: 'running',
-    source: 'skills',
+    source: 'builtin',
     loadedFrom: 'skills',
     getPromptForCommand: async () => [{ type: 'text', text: '' }],
   }

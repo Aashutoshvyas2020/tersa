@@ -13,6 +13,7 @@ describe('tersa modes config', () => {
     expect(config.modes.superpowers.enabled).toBe(false)
     expect(config.modes.gsd.enabled).toBe(false)
     expect(config.modes.designer.enabled).toBe(false)
+    expect(config.modes.efficiency.enabled).toBe(false)
   })
 
   test('respects explicit settings overrides', () => {
@@ -43,6 +44,7 @@ describe('tersa modes config', () => {
     expect(prompt).not.toContain('Superpowers Mode:')
     expect(prompt).not.toContain('GSD Mode:')
     expect(prompt).not.toContain('Designer Mode:')
+    expect(prompt).not.toContain('Efficiency Mode:')
   })
 
   test('mode prompt supports wenyan intensities', () => {
@@ -62,5 +64,18 @@ describe('tersa modes config', () => {
 
     expect(config.modes.designer.label).toContain('Designer')
     expect(config.modes.designer.enabled).toBe(false)
+  })
+
+  test('efficiency mode is present, off by default, and promptable', () => {
+    const config = getTersaModesConfig({})
+    expect(config.modes.efficiency.label).toBe('Efficiency Mode')
+    expect(config.modes.efficiency.enabled).toBe(false)
+
+    const prompt = getTersaModePromptSection({
+      efficiency: { enabled: true, intensity: 'ultra' },
+      karpathy: { enabled: false },
+    })
+    expect(prompt).toContain('Efficiency Mode:')
+    expect(prompt).toContain('Smallest correct patch')
   })
 })

@@ -80,6 +80,7 @@ import { editPromptInEditor } from '../../utils/promptEditor.js';
 import { hasAutoModeOptIn } from '../../utils/settings/settings.js';
 import { findBtwTriggerPositions } from '../../utils/sideQuestion.js';
 import { findSlashCommandPositions, isExactNoArgSlashCommandInput } from '../../utils/suggestions/commandSuggestions.js';
+import { findDollarInvocationPositions } from '../../utils/suggestions/dollarInvocationSuggestions.js';
 import { findSlackChannelPositions, getKnownChannelsVersion, hasSlackMcpServer, subscribeKnownChannels } from '../../utils/suggestions/slackChannelSuggestions.js';
 import { isInProcessEnabled } from '../../utils/swarm/backends/registry.js';
 import { syncTeammateMode } from '../../utils/swarm/teamHelpers.js';
@@ -128,6 +129,7 @@ type Props = {
   setToolPermissionContext: (ctx: ToolPermissionContext) => void;
   apiKeyStatus: VerificationStatus;
   commands: Command[];
+  invocableCommands?: Command[];
   agents: AgentDefinition[];
   isLoading: boolean;
   verbose: boolean;
@@ -190,6 +192,7 @@ type Props = {
 // Bottom slot has maxHeight="50%"; reserve lines for footer, border, status.
 const PROMPT_FOOTER_LINES = 5;
 const MIN_INPUT_VIEWPORT_LINES = 3;
+const IS_ANT_USER = process.env.USER_TYPE === 'ant';
 function PromptInput({
   debug,
   ideSelection,
@@ -197,6 +200,7 @@ function PromptInput({
   setToolPermissionContext,
   apiKeyStatus,
   commands,
+  invocableCommands = [],
   agents,
   isLoading,
   verbose,
@@ -302,8 +306,8 @@ function PromptInput({
   // otherwise bridge becomes an invisible selection stop.
   const bridgeFooterVisible = replBridgeConnected && (replBridgeExplicit || replBridgeReconnecting);
   // Tmux pill (internal-only) — visible when there's an active tungsten session
-  const hasTungstenSession = useAppState(s => "external" === 'ant' && s.tungstenActiveSession !== undefined);
-  const tmuxFooterVisible = "external" === 'ant' && hasTungstenSession;
+  const hasTungstenSession = useAppState(s => IS_ANT_USER && s.tungstenActiveSession !== undefined);
+  const tmuxFooterVisible = IS_ANT_USER && hasTungstenSession;
   // WebBrowser pill — visible when a browser is open
   const bagelFooterVisible = useAppState(s => false);
   const teamContext = useAppState(s => s.teamContext);
@@ -391,7 +395,7 @@ function PromptInput({
   // exist. When only local_agent tasks are running (coordinator/fork mode), the
   // pill is absent, so the -1 sentinel would leave nothing visually selected.
   // In that case, skip -1 and treat 0 as the minimum selectable index.
-  const hasBgTaskPill = useMemo(() => Object.values(tasks).some(t => isBackgroundTask(t) && !("external" === 'ant' && isPanelAgentTask(t))), [tasks]);
+  const hasBgTaskPill = useMemo(() => Object.values(tasks).some(t => isBackgroundTask(t) && !(IS_ANT_USER && isPanelAgentTask(t))), [tasks]);
   const minCoordinatorIndex = hasBgTaskPill ? -1 : 0;
   // Clamp index when tasks complete and the list shrinks beneath the cursor
   useEffect(() => {
@@ -443,7 +447,7 @@ function PromptInput({
     if (!teamContext) {
       return [];
     }
-    const teammateCount = count(Object.values(teamContext.teammates), t => t.name !== 'team-lead');
+    const teammateCount = count(Object.values(teamContext.teammates) as Array<{ name: string }>, t => t.name !== 'team-lead');
     return [{
       name: teamContext.teamName,
       memberCount: teammateCount,
@@ -456,11 +460,11 @@ function PromptInput({
   // Which pills render below the input box. Order here IS the nav order
   // (down/right = forward, up/left = back). Selection lives in AppState so
   // footer components can read focus.
-  const runningTaskCount = useMemo(() => count(Object.values(tasks), t => t.status === 'running'), [tasks]);
+  const runningTaskCount = useMemo(() => count(Object.values(tasks) as Array<{ status?: string }>, t => t.status === 'running'), [tasks]);
   // Panel shows retained-completed agents too (getVisibleAgentTasks), so the
   // pill must stay navigable whenever the panel has rows — not just when
   // something is running.
-  const tasksFooterVisible = (runningTaskCount > 0 || "external" === 'ant' && coordinatorTaskCount > 0) && !shouldHideTasksFooter(tasks, showSpinnerTree);
+  const tasksFooterVisible = (runningTaskCount > 0 || IS_ANT_USER && coordinatorTaskCount > 0) && !shouldHideTasksFooter(tasks, showSpinnerTree);
   const teamsFooterVisible = cachedTeams.length > 0;
   const footerItems = useMemo(() => [tasksFooterVisible && 'tasks', tmuxFooterVisible && 'tmux', bagelFooterVisible && 'bagel', teamsFooterVisible && 'teams', bridgeFooterVisible && 'bridge'].filter(Boolean) as FooterItem[], [tasksFooterVisible, tmuxFooterVisible, bagelFooterVisible, teamsFooterVisible, bridgeFooterVisible]);
 
@@ -535,6 +539,7 @@ function PromptInput({
       return hasCommand(commandName, commands);
     });
   }, [displayedValue, commands]);
+  const dollarInvocationTriggers = useMemo(() => findDollarInvocationPositions(displayedValue, invocableCommands), [displayedValue, invocableCommands]);
   const tokenBudgetTriggers = useMemo(() => feature('TOKEN_BUDGET') ? findTokenBudgetPositions(displayedValue) : [], [displayedValue]);
   const knownChannelsVersion = useSyncExternalStore(subscribeKnownChannels, getKnownChannelsVersion);
   const slackChannelTriggers = useMemo(() => hasSlackMcpServer(store.getState().mcp.clients) ? findSlackChannelPositions(displayedValue) : [],
@@ -568,7 +573,7 @@ function PromptInput({
       const name = match[2];
 
       // Check if this name matches a team member
-      const member = memberValues.find(t => t.name === name);
+      const member = (memberValues as Array<{ name: string; color?: string }>).find(t => t.name === name);
       if (member?.color) {
         const themeColor = AGENT_COLOR_TO_THEME_COLOR[member.color as AgentColorName];
         if (themeColor) {
@@ -639,6 +644,14 @@ function PromptInput({
 
     // Add /command highlighting (blue)
     for (const trigger of slashCommandTriggers) {
+      highlights.push({
+        start: trigger.start,
+        end: trigger.end,
+        color: 'suggestion',
+        priority: 5
+      });
+    }
+    for (const trigger of dollarInvocationTriggers) {
       highlights.push({
         start: trigger.start,
         end: trigger.end,
@@ -730,7 +743,7 @@ function PromptInput({
     }
 
     return highlights;
-  }, [isSearchingHistory, historyQuery, historyMatch, historyFailedMatch, cursorOffset, btwTriggers, imageRefPositions, memberMentionHighlights, slashCommandTriggers, tokenBudgetTriggers, slackChannelTriggers, displayedValue, voiceInterimRange, thinkTriggers, ultraplanTriggers, ultrareviewTriggers]);
+  }, [isSearchingHistory, historyQuery, historyMatch, historyFailedMatch, cursorOffset, btwTriggers, imageRefPositions, memberMentionHighlights, slashCommandTriggers, dollarInvocationTriggers, tokenBudgetTriggers, slackChannelTriggers, displayedValue, voiceInterimRange, thinkTriggers, ultraplanTriggers, ultrareviewTriggers]);
   const {
     addNotification,
     removeNotification
@@ -1101,6 +1114,7 @@ function PromptInput({
     maxColumnWidth
   } = useTypeahead({
     commands,
+    invocableCommands,
     onInputChange: trackAndSetInput,
     onSubmit,
     setCursorOffset,
@@ -1792,7 +1806,7 @@ function PromptInput({
   useKeybindings({
     'footer:up': () => {
       // ↑ scrolls within the coordinator task list before leaving the pill
-      if (tasksSelected && "external" === 'ant' && coordinatorTaskCount > 0 && coordinatorTaskIndex > minCoordinatorIndex) {
+      if (tasksSelected && IS_ANT_USER && coordinatorTaskCount > 0 && coordinatorTaskIndex > minCoordinatorIndex) {
         setCoordinatorTaskIndex(prev => prev - 1);
         return;
       }
@@ -1800,7 +1814,7 @@ function PromptInput({
     },
     'footer:down': () => {
       // ↓ scrolls within the coordinator task list, never leaves the pill
-      if (tasksSelected && "external" === 'ant' && coordinatorTaskCount > 0) {
+      if (tasksSelected && IS_ANT_USER && coordinatorTaskCount > 0) {
         if (coordinatorTaskIndex < coordinatorTaskCount - 1) {
           setCoordinatorTaskIndex(prev => prev + 1);
         }
@@ -1857,7 +1871,7 @@ function PromptInput({
           }
           break;
         case 'tmux':
-          if ("external" === 'ant') {
+          if (IS_ANT_USER) {
             setAppState(prev => prev.tungstenPanelAutoHidden ? {
               ...prev,
               tungstenPanelAutoHidden: false

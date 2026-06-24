@@ -55,6 +55,7 @@ import { createBaseHookInput, executeStatusLineCommand } from '../utils/hooks.js
 import { getLastAssistantMessage } from '../utils/messages.js'
 import { getTersaModesConfig } from '../utils/modes/config.js'
 import { getAPIProvider } from '../utils/model/providers.js'
+import { resolveCodexApiCredentials } from '../services/api/providerConfig.js'
 import {
   getRuntimeMainLoopModel,
   type ModelName,
@@ -115,17 +116,17 @@ function buildStatusLineCommandInput(
   const sessionId = getSessionId()
   const sessionName = getCurrentSessionTitle(sessionId)
   const rawUtil = getRawUtilization()
-  const rateLimits: StatusLineCommandInput['rate_limits'] = {
+  const rateLimits: NonNullable<StatusLineCommandInput['rate_limits']> = {
     ...(rawUtil.five_hour && {
       five_hour: {
         used_percentage: rawUtil.five_hour.utilization * 100,
-        resets_at: rawUtil.five_hour.resets_at,
+        resets_at: String(rawUtil.five_hour.resets_at),
       },
     }),
     ...(rawUtil.seven_day && {
       seven_day: {
         used_percentage: rawUtil.seven_day.utilization * 100,
-        resets_at: rawUtil.seven_day.resets_at,
+        resets_at: String(rawUtil.seven_day.resets_at),
       },
     }),
   }
@@ -179,16 +180,16 @@ function buildStatusLineCommandInput(
     }),
     ...(getIsRemoteMode() && {
       remote: {
-        session_id: getSessionId(),
+        session_id: String(getSessionId()),
       },
     }),
     ...(worktreeSession && {
       worktree: {
         name: worktreeSession.worktreeName,
         path: worktreeSession.worktreePath,
-        branch: worktreeSession.worktreeBranch,
+        branch: worktreeSession.worktreeBranch ?? '',
         original_cwd: worktreeSession.originalCwd,
-        original_branch: worktreeSession.originalBranch,
+        original_branch: worktreeSession.originalBranch ?? '',
       },
     }),
   }
@@ -245,13 +246,41 @@ function providerLabelForStatus(provider: string): string {
   return provider
 }
 
+function getUsageTotal(usage: {
+  input_tokens: number
+  output_tokens: number
+  cache_creation_input_tokens: number
+  cache_read_input_tokens: number
+}): number {
+  return (
+    usage.input_tokens +
+    usage.output_tokens +
+    usage.cache_creation_input_tokens +
+    usage.cache_read_input_tokens
+  )
+}
+
+function getStableProjectDir(input: StatusLineCommandInput): string {
+  return input.worktree?.original_cwd ?? input.workspace.project_dir
+}
+
+function getDisplayedWorkspaceDir(input: StatusLineCommandInput): string {
+  return input.worktree?.original_cwd ?? input.workspace.current_dir
+}
+
 function getProjectLabel(input: StatusLineCommandInput): string {
-  const projectName = basename(input.workspace.project_dir)
-  const homeBase = basename(homedir())
+  const stableProjectDir = getStableProjectDir(input)
+  const projectName = basename(stableProjectDir)
+  const homeDir = homedir()
+  const homeBase = basename(homeDir)
   if (projectName && projectName !== homeBase) {
     return projectName
   }
-  return getDisplayPath(input.workspace.current_dir)
+  const displayedDir = getDisplayedWorkspaceDir(input)
+  if (displayedDir === homeDir) {
+    return '~'
+  }
+  return getDisplayPath(displayedDir)
 }
 
 function getPermissionLabel(permissionMode: PermissionMode): string {
@@ -276,14 +305,38 @@ function getPlanGoalLabel(permissionMode: PermissionMode, modeSummary: string | 
   return null
 }
 
-function getBackgroundTaskCount(tasks: Record<string, unknown>, remoteCount: number): number {
-  let count = remoteCount
+function getRuntimeActivityLabel(
+  tasks: Record<string, unknown>,
+  remoteCount: number,
+): string | null {
+  let subagentCount = remoteCount
+  let shellCount = 0
+  let backgroundCount = remoteCount
   for (const task of Object.values(tasks)) {
-    if (task && typeof task === 'object' && isBackgroundTask(task as never)) {
-      count++
+    if (!task || typeof task !== 'object') continue
+    const state = task as { type?: string; status?: string }
+    if (state.status !== 'running' && state.status !== 'pending') continue
+    if (state.type === 'local_agent' || state.type === 'remote_agent') {
+      subagentCount++
+    } else if (state.type === 'local_bash') {
+      shellCount++
+    }
+    if (isBackgroundTask(task as never)) {
+      backgroundCount++
     }
   }
-  return count
+  if (subagentCount > 0) {
+    return `${subagentCount} subagent${subagentCount === 1 ? '' : 's'} deployed`
+  }
+  if (shellCount > 0) {
+    return shellCount === 1
+      ? 'waiting for long command output'
+      : `${shellCount} commands running`
+  }
+  if (backgroundCount > 0) {
+    return `${backgroundCount} task${backgroundCount === 1 ? '' : 's'}`
+  }
+  return null
 }
 
 function getMcpStatusLabel(mcpClients: Array<{ type?: string }>): string | null {
@@ -299,12 +352,13 @@ function getMcpStatusLabel(mcpClients: Array<{ type?: string }>): string | null 
 }
 
 function getAuthWarningLabel(provider: string): string | null {
-  if (provider !== 'firstParty' && provider !== 'codex') {
-    return null
+  if (provider === 'codex') {
+    const credentials = resolveCodexApiCredentials(process.env)
+    return credentials.apiKey && credentials.accountId ? null : 'auth !'
   }
+  if (provider !== 'firstParty') return null
   const auth = getAuthTokenSource()
-  if (auth.hasToken) return null
-  return 'auth !'
+  return auth.hasToken ? null : 'auth !'
 }
 
 function getContextUsageLabel(
@@ -359,7 +413,7 @@ function getTokenDisplayText(args: {
   if (args.showTokenPercentage && args.usedPercentage !== null) {
     parts.push(`${args.estimated ? '~' : ''}${Math.max(0, Math.round(args.usedPercentage))}%`)
   }
-  if (args.tokenDetail === 'detailed' && args.currentUsage) {
+  if (args.tokenDetail === 'detailed' && args.currentUsage && !args.estimated) {
     const totalCache =
       args.currentUsage.cache_creation_input_tokens +
       args.currentUsage.cache_read_input_tokens
@@ -403,14 +457,26 @@ export function buildCuratedStatusLineSegments(args: {
   usedTokens: number
 } {
   const provider = getAPIProvider()
-  const currentUsage = args.input.context_window.current_usage
+  const rawCurrentUsage = args.input.context_window.current_usage
+  const estimatedUsageTokens = tokenCountWithEstimation(args.messages)
+  const hasUsableCurrentUsage =
+    rawCurrentUsage !== null && getUsageTotal(rawCurrentUsage) > 0
+  const currentUsage = hasUsableCurrentUsage ? rawCurrentUsage : null
   const estimated = currentUsage === null
   const usedTokens = currentUsage
-    ? currentUsage.input_tokens
-    : tokenCountWithEstimation(args.messages)
+    ? getUsageTotal(currentUsage)
+    : estimatedUsageTokens
   const contextWindowSize = args.input.context_window.context_window_size
+  const usedPercentage =
+    contextWindowSize && contextWindowSize > 0
+      ? (usedTokens / contextWindowSize) * 100
+      : args.input.context_window.used_percentage
 
-  const config = normalizeBuiltinStatusLineConfig(args.settings.statusLine)
+  const config = normalizeBuiltinStatusLineConfig(
+    args.settings.statusLine?.type === 'builtin'
+      ? (args.settings.statusLine as BuiltinStatusLineConfig)
+      : undefined,
+  )
   const maxWidth = args.maxWidth
 
   const productSegment: CuratedStatusSegment = {
@@ -433,11 +499,11 @@ export function buildCuratedStatusLineSegments(args: {
     usedTokens,
     contextWindowSize,
     estimated,
-    showTokenPercentage: config.showTokenPercentage && args.showTokenPercentage,
-    usedPercentage: args.input.context_window.used_percentage,
+    showTokenPercentage: Boolean(config.showTokenPercentage && args.showTokenPercentage),
+    usedPercentage,
     tokenDetail: config.tokenDetail ?? args.tokenDetail,
     currentUsage,
-    estimatedMarker: config.estimatedMarker !== false && args.estimatedMarker,
+    estimatedMarker: Boolean(config.estimatedMarker !== false && args.estimatedMarker),
   })
 
   const segments: CuratedStatusSegment[] = [
@@ -506,14 +572,14 @@ export function buildCuratedStatusLineSegments(args: {
     }
   }
   if (config.showBackgroundTasks) {
-    const backgroundCount = getBackgroundTaskCount(
+    const runtimeActivity = getRuntimeActivityLabel(
       args.tasks,
       args.remoteBackgroundTaskCount,
     )
-    if (backgroundCount > 0) {
+    if (runtimeActivity) {
       segments.push({
         id: 'tasks',
-        text: `${backgroundCount} task${backgroundCount === 1 ? '' : 's'}`,
+        text: runtimeActivity,
         kind: 'optional',
         priority: 9,
       })
@@ -863,7 +929,7 @@ function buildBuiltinItemValue(
     case 'model-with-reasoning':
       return `${args.input.model.display_name} (${args.effort})`
     case 'current-dir':
-      return args.input.workspace.current_dir
+      return getDisplayPath(getDisplayedWorkspaceDir(args.input))
     case 'context-used':
       return formatPercent(args.input.context_window.used_percentage)
     case 'five-hour-limit':
@@ -881,7 +947,7 @@ function buildBuiltinItemValue(
     case 'reasoning':
       return args.effort
     case 'project-name':
-      return basename(args.input.workspace.project_dir)
+      return basename(getStableProjectDir(args.input))
     case 'git-branch':
       return args.repo.branch
     case 'pull-request-number':
@@ -945,7 +1011,7 @@ function buildBuiltinStatusLineText(
     : (t: string) => t
   const separator = subtle(' · ')
 
-  const parts = config.items.flatMap(item => {
+  const parts = (config.items ?? []).flatMap(item => {
     const value = buildBuiltinItemValue(item, args)
     if (!value) return []
     const label =
@@ -1000,10 +1066,10 @@ function StatusLineInner({
   const builtinConfig =
     settings.statusLine?.type === 'builtin' ? settings.statusLine : undefined
   const normalizedBuiltinConfig = builtinConfig
-    ? normalizeBuiltinStatusLineConfig(builtinConfig)
+    ? normalizeBuiltinStatusLineConfig(builtinConfig as BuiltinStatusLineConfig)
     : undefined
   const repoData = useRepoStatusLineData(
-    normalizedBuiltinConfig?.showGit ?? false,
+    normalizedBuiltinConfig?.showGit === true,
   )
 
   const settingsRef = useRef(settings)
@@ -1199,20 +1265,25 @@ function StatusLineInner({
     })
     const sessionId = getSessionId()
     const sessionName = getCurrentSessionTitle(sessionId)
-    const taskProgress =
-      Object.values(tasks).find(
-        task => task.status === 'running' || task.status === 'pending',
-      )?.description ?? null
+    const activeTask = Object.values(tasks).find(
+      (task): task is { status: string; description?: string } =>
+        Boolean(
+          task &&
+            typeof task === 'object' &&
+            'status' in task &&
+            ((task as { status?: unknown }).status === 'running' ||
+              (task as { status?: unknown }).status === 'pending'),
+        ),
+    )
+    const taskProgress = activeTask?.description ?? null
     const curated = buildCuratedStatusLineSegments({
       messages: msgs,
       input,
       permissionMode,
       effort: getDisplayedEffortLevel(runtimeModel, effortValue),
-      isLoading,
-      fastMode: isFastModeEnabled() ? fastMode : false,
       repo: repoData,
       prNumber: null,
-      sessionName,
+      sessionName: sessionName ?? null,
       sessionId,
       taskProgress,
       modeSummary: summarizeModes(),

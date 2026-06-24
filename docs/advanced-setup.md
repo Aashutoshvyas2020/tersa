@@ -2,15 +2,23 @@
 
 This guide is for users who want source builds, Bun workflows, provider profiles, diagnostics, or more control over runtime behavior.
 
-## Install Options
+## Install
 
-### Option A: npm
+### Public npm
 
 ```bash
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
+tersa
 ```
 
-### Option B: From source with Bun
+### Tester tarball
+
+```bash
+npm install -g ./tersa-cli-<version>.tgz
+tersa
+```
+
+## Develop From Source
 
 Use Bun `1.3.13` or newer for source builds on Windows. Older Bun versions can fail during `bun run build`.
 
@@ -20,16 +28,9 @@ cd tersa
 
 bun install
 bun run build
-npm link
 ```
 
-### Option C: Run directly with Bun
-
 ```bash
-git clone https://github.com/Gitlawb/tersa.git
-cd tersa
-
-bun install
 bun run dev
 ```
 

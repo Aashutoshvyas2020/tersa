@@ -739,7 +739,7 @@ export function renderGroupedAgentToolUse(toolUses: Array<{
         <ToolUseLoader shouldAnimate={shouldAnimate && anyUnresolved} isUnresolved={anyUnresolved} isError={anyError} />
         <Text>
           {allComplete ? allAsync ? <>
-                <Text bold>{toolUses.length}</Text> background agents launched{' '}
+                <Text bold>{toolUses.length}</Text> background tasks launched{' '}
                 <Text dimColor>
                   <KeyboardShortcutHint shortcut="↓" action="manage" parens />
                 </Text>

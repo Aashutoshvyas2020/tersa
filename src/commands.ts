@@ -39,6 +39,7 @@ import cacheProbe from './commands/cache-probe/index.js'
 import cacheStats from './commands/cacheStats/index.js'
 import mcp from './commands/mcp/index.js'
 import mobile from './commands/mobile/index.js'
+import modes from './commands/modes/index.js'
 import onboarding from './commands/onboarding/index.js'
 import pr_comments from './commands/pr_comments/index.js'
 import releaseNotes from './commands/release-notes/index.js'
@@ -211,6 +212,25 @@ export type {
 } from './types/command.js'
 export { getCommandName, isCommandEnabled } from './types/command.js'
 
+export function isDollarInvocableCommand(cmd: Command): boolean {
+  if (cmd.type !== 'prompt') return false
+  if (cmd.userInvocable === false || cmd.isHidden) return false
+  return (
+    cmd.source === 'plugin' ||
+    cmd.source === 'mcp' ||
+    cmd.isMcp === true ||
+    cmd.loadedFrom === 'plugin' ||
+    cmd.loadedFrom === 'mcp' ||
+    cmd.loadedFrom === 'skills' ||
+    cmd.loadedFrom === 'managed' ||
+    cmd.loadedFrom === 'bundled'
+  )
+}
+
+export function isSlashVisibleCommand(cmd: Command): boolean {
+  return !isDollarInvocableCommand(cmd)
+}
+
 // Commands that get eliminated from the external build
 export const INTERNAL_ONLY_COMMANDS = [
   backfillSessions,
@@ -283,6 +303,7 @@ const COMMANDS = memoize((): Command[] => [
   mcp,
   memory,
   mobile,
+  modes,
   model,
   onboardGithub,
   outputStyle,

@@ -23,6 +23,7 @@ import { getShellCompletions, type ShellCompletionType } from '../utils/bash/she
 import { formatLogMetadata } from '../utils/format.js';
 import { getSessionIdFromLog, searchSessionsByCustomTitle } from '../utils/sessionStorage.js';
 import { applyCommandSuggestion, findMidInputSlashCommand, generateCommandSuggestions, getBestCommandMatch, isCommandInput, isExactNoArgSlashCommandInput } from '../utils/suggestions/commandSuggestions.js';
+import { applyDollarInvocationSuggestion, generateDollarInvocationSuggestions } from '../utils/suggestions/dollarInvocationSuggestions.js';
 import { getDirectoryCompletions, getPathCompletions, isPathLikeToken } from '../utils/suggestions/directoryCompletion.js';
 import { getShellHistoryCompletion } from '../utils/suggestions/shellHistoryCompletion.js';
 import { getSlackChannelSuggestions, hasSlackMcpServer } from '../utils/suggestions/slackChannelSuggestions.js';
@@ -85,6 +86,7 @@ type Props = {
   input: string;
   cursorOffset: number;
   commands: Command[];
+  invocableCommands?: Command[];
   mode: string;
   agents: AgentDefinition[];
   setSuggestionsState: (f: (previousSuggestionsState: {
@@ -352,6 +354,7 @@ function hasCommandWithArguments(isAtEndWithWhitespace: boolean, value: string) 
  */
 export function useTypeahead({
   commands,
+  invocableCommands = [],
   onInputChange,
   onSubmit,
   setCursorOffset,
@@ -383,6 +386,12 @@ export function useTypeahead({
     const maxLen = Math.max(...visibleCommands.map(cmd => getCommandName(cmd).length));
     return maxLen + 6; // +1 for "/" prefix, +5 for padding
   }, [commands]);
+  const dollarInvocationsMaxWidth = useMemo(() => {
+    const visibleCommands = invocableCommands.filter(cmd => !cmd.isHidden);
+    if (visibleCommands.length === 0) return undefined;
+    const maxLen = Math.max(...visibleCommands.map(cmd => getCommandName(cmd).length));
+    return maxLen + 6;
+  }, [invocableCommands]);
   const [maxColumnWidth, setMaxColumnWidth] = useState<number | undefined>(undefined);
   const mcpResources = useAppState(s => s.mcp.resources);
   const store = useAppStateStore();
@@ -492,7 +501,7 @@ export function useTypeahead({
   // subsequent tests in the shard. The subscriber still registers so
   // fileSuggestions tests that trigger a refresh directly work correctly.
   useEffect(() => {
-    if ("production" !== 'test') {
+    if (process.env.NODE_ENV !== 'test') {
       startBackgroundCacheRefresh();
     }
     return onIndexBuildComplete(() => {
@@ -544,6 +553,22 @@ export function useTypeahead({
     // Note: ghost text for prompt mode is computed synchronously via syncPromptGhostText useMemo.
     // We only need to clear dropdown suggestions here when ghost text is active.
     if (mode === 'prompt') {
+      const dollarItems = generateDollarInvocationSuggestions(value, effectiveCursorOffset, invocableCommands);
+      if (dollarItems.length > 0) {
+        debouncedFetchFileSuggestions.cancel();
+        debouncedFetchSlackChannels.cancel();
+        setSuggestionsState(prev => ({
+          commandArgumentHint: undefined,
+          suggestions: dollarItems,
+          selectedSuggestion: getPreservedSelection(prev.suggestions, prev.selectedSuggestion, dollarItems)
+        }));
+        setSuggestionType('dollar-invocation');
+        setMaxColumnWidth(dollarInvocationsMaxWidth);
+        return;
+      } else if (suggestionType === 'dollar-invocation') {
+        clearSuggestions();
+      }
+
       const midInputCommand = findMidInputSlashCommand(value, effectiveCursorOffset);
       if (midInputCommand) {
         const match = getBestCommandMatch(midInputCommand.partialCommand, commands);
@@ -891,10 +916,10 @@ export function useTypeahead({
         clearSuggestions();
       }
     }
-  }, [suggestionType, commands, setSuggestionsState, clearSuggestions, debouncedFetchFileSuggestions, debouncedFetchSlackChannels, mode, suppressSuggestions,
+  }, [suggestionType, commands, invocableCommands, setSuggestionsState, clearSuggestions, debouncedFetchFileSuggestions, debouncedFetchSlackChannels, mode, suppressSuggestions,
   // Note: using suggestionsRef instead of suggestions to avoid recreating
   // this callback when only selectedSuggestion changes (not the suggestions list)
-  allCommandsMaxWidth]);
+  allCommandsMaxWidth, dollarInvocationsMaxWidth]);
 
   // Update suggestions when input changes
   // Note: We intentionally don't depend on cursorOffset here - cursor movement alone
@@ -958,6 +983,9 @@ export function useTypeahead({
           commands, onInputChange, setCursorOffset, onSubmit);
           clearSuggestions();
         }
+      } else if (suggestionType === 'dollar-invocation' && suggestion) {
+        applyDollarInvocationSuggestion(suggestion, input, cursorOffset, onInputChange, setCursorOffset);
+        clearSuggestions();
       } else if (suggestionType === 'custom-title' && suggestions.length > 0) {
         // Apply custom title to /resume command with sessionId
         if (suggestion) {
@@ -1159,6 +1187,12 @@ export function useTypeahead({
         applyCommandSuggestion(suggestion, true,
         // execute on return
         commands, onInputChange, setCursorOffset, onSubmit);
+        debouncedFetchFileSuggestions.cancel();
+        clearSuggestions();
+      }
+    } else if (suggestionType === 'dollar-invocation' && selectedSuggestion < suggestions.length) {
+      if (suggestion) {
+        applyDollarInvocationSuggestion(suggestion, input, cursorOffset, onInputChange, setCursorOffset);
         debouncedFetchFileSuggestions.cancel();
         clearSuggestions();
       }

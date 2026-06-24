@@ -38,6 +38,17 @@ async function getRtkStatus(): Promise<RtkStatus> {
   return cachedStatusPromise
 }
 
+function rewriteWithBuiltInRtk(command: string): string | null {
+  const trimmed = command.trim()
+  if (/^(npm|pnpm)\s+(ls|list)\s*$/.test(trimmed)) {
+    return `${trimmed} --json`
+  }
+  if (/^yarn\s+list\s*$/.test(trimmed)) {
+    return `${trimmed} --json`
+  }
+  return null
+}
+
 export function resetRtkStatusForTest(): void {
   cachedStatusPromise = undefined
   execFileImpl = execFileAsync
@@ -79,6 +90,21 @@ export async function maybeRewriteBashInputWithRtk<T extends BashLikeInput>(
 
   const status = await getRtkStatus()
   if (!status.available) {
+    const rewritten = rewriteWithBuiltInRtk(input.command)
+    if (rewritten) {
+      return {
+        input: {
+          ...input,
+          command: rewritten,
+        },
+        metadata: {
+          available: true,
+          attempted: true,
+          changed: true,
+        },
+      }
+    }
+
     return {
       input,
       metadata: {

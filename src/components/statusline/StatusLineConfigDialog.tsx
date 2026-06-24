@@ -144,7 +144,7 @@ export function StatusLineConfigDialog({
   )
 
   useInput(
-    (_input, key) => {
+    (input, key) => {
       if (key.escape) {
         onCancel()
         return
@@ -184,12 +184,12 @@ export function StatusLineConfigDialog({
         return
       }
 
-      if (key.name?.toLowerCase() === 'r') {
+      if (input.toLowerCase() === 'r') {
         resetToDefaults()
         return
       }
 
-      if (key.space || _input === ' ' || key.name === 'space') {
+      if (input === ' ') {
         if (row.kind === 'boolean') {
           mutateBoolean(row.key)
           return

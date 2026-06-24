@@ -32,7 +32,7 @@ export function generateSessionCanaryMarker(): string {
 }
 
 export function createSessionCanaryState(
-  enabled = true,
+  enabled = false,
   marker = generateSessionCanaryMarker(),
 ): SessionCanaryState {
   return {

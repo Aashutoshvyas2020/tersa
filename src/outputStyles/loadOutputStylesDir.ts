@@ -78,10 +78,10 @@ export const getOutputStyleDirStyles = memoize(
             }
           } catch (error) {
             logError(error)
-            return null
+            return undefined
           }
         })
-        .filter(style => style !== null)
+        .filter(style => style !== undefined)
 
       return styles
     } catch (error) {

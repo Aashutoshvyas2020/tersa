@@ -103,4 +103,10 @@ describe('buildAdapterUnavailableError', () => {
     expect(msg).toMatch(/Anthropic/)
     expect(msg).toMatch(/Codex/)
   })
+
+  test('keeps next step concise and user-facing', () => {
+    const msg = buildAdapterUnavailableError('codex', 'duckduckgo: 429 Too Many Requests')
+    expect(msg).toContain('Next: configure a search backend')
+    expect(msg).not.toContain('FIRECRAWL_API_KEY')
+  })
 })

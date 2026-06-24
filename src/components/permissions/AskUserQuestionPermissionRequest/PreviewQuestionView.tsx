@@ -57,8 +57,6 @@ export function PreviewQuestionView({
   onFinishPlanInterview
 }: Props): React.ReactNode {
   const isInPlanMode = useAppState(s => s.toolPermissionContext.mode) === 'plan';
-  const [isFooterFocused, setIsFooterFocused] = useState(false);
-  const [footerIndex, setFooterIndex] = useState(0);
   const [isInNotesInput, setIsInNotesInput] = useState(false);
   const [cursorOffset, setCursorOffset] = useState(0);
   const editor = getExternalEditor();
@@ -68,6 +66,25 @@ export function PreviewQuestionView({
 
   // Only real options — no "Other" for preview questions
   const allOptions = question.options;
+  const displayOptions = [
+    ...allOptions.map(option => ({
+      kind: 'option' as const,
+      label: option.label,
+      option
+    })),
+    {
+      kind: 'action' as const,
+      label: 'Chat about this',
+      action: 'chat' as const
+    },
+    ...(isInPlanMode
+      ? [{
+          kind: 'action' as const,
+          label: 'Skip interview and plan immediately',
+          action: 'skip' as const
+        }]
+      : [])
+  ];
 
   // Track which option is focused (for preview display)
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -77,21 +94,29 @@ export function PreviewQuestionView({
   if (prevQuestionText.current !== questionText) {
     prevQuestionText.current = questionText;
     const selected = questionState?.selectedValue as string | undefined;
-    const idx = selected ? allOptions.findIndex(opt => opt.label === selected) : -1;
+    const idx = selected ? displayOptions.findIndex(item => item.kind === 'option' && item.option.label === selected) : -1;
     setFocusedIndex(idx >= 0 ? idx : 0);
   }
-  const focusedOption = allOptions[focusedIndex];
+  const focusedEntry = displayOptions[focusedIndex];
   const selectedValue = questionState?.selectedValue as string | undefined;
   const notesValue = questionState?.textInputValue || '';
   const handleSelectOption = useCallback((index: number) => {
-    const option = allOptions[index];
-    if (!option) return;
+    const item = displayOptions[index];
+    if (!item) return;
     setFocusedIndex(index);
+    if (item.kind === 'action') {
+      if (item.action === 'chat') {
+        onRespondToClaude();
+      } else {
+        onFinishPlanInterview();
+      }
+      return;
+    }
     onUpdateQuestionState(questionText, {
-      selectedValue: option.label
+      selectedValue: item.option.label
     }, false);
-    onAnswer(questionText, option.label);
-  }, [allOptions, questionText, onUpdateQuestionState, onAnswer]);
+    onAnswer(questionText, item.option.label);
+  }, [displayOptions, onAnswer, onFinishPlanInterview, onRespondToClaude, onUpdateQuestionState, questionText]);
   const handleNavigate = useCallback((direction: 'up' | 'down' | number) => {
     if (isInNotesInput) return;
     let newIndex: number;
@@ -100,12 +125,12 @@ export function PreviewQuestionView({
     } else if (direction === 'up') {
       newIndex = focusedIndex > 0 ? focusedIndex - 1 : focusedIndex;
     } else {
-      newIndex = focusedIndex < allOptions.length - 1 ? focusedIndex + 1 : focusedIndex;
+      newIndex = focusedIndex < displayOptions.length - 1 ? focusedIndex + 1 : focusedIndex;
     }
-    if (newIndex >= 0 && newIndex < allOptions.length) {
+    if (newIndex >= 0 && newIndex < displayOptions.length) {
       setFocusedIndex(newIndex);
     }
-  }, [focusedIndex, allOptions.length, isInNotesInput]);
+  }, [displayOptions.length, focusedIndex, isInNotesInput]);
 
   // Handle ctrl+g to open external editor for notes
   useKeybinding('chat:externalEditor', async () => {
@@ -131,7 +156,7 @@ export function PreviewQuestionView({
     'tabs:next': () => onTabNext?.()
   }, {
     context: 'Tabs',
-    isActive: !isInNotesInput && !isFooterFocused
+    isActive: !isInNotesInput
   });
 
   // Re-submit the answer (plain label) when exiting notes input.
@@ -143,48 +168,10 @@ export function PreviewQuestionView({
       onAnswer(questionText, selectedValue);
     }
   }, [selectedValue, questionText, onAnswer, onTextInputFocus]);
-  const handleDownFromPreview = useCallback(() => {
-    setIsFooterFocused(true);
-  }, []);
-  const handleUpFromFooter = useCallback(() => {
-    setIsFooterFocused(false);
-  }, []);
 
   // Handle keyboard input for option/footer/notes navigation.
   // Always active — the handler routes internally based on isFooterFocused/isInNotesInput.
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (isFooterFocused) {
-      if (e.key === 'up' || e.ctrl && e.key === 'p') {
-        e.preventDefault();
-        if (footerIndex === 0) {
-          handleUpFromFooter();
-        } else {
-          setFooterIndex(0);
-        }
-        return;
-      }
-      if (e.key === 'down' || e.ctrl && e.key === 'n') {
-        e.preventDefault();
-        if (isInPlanMode && footerIndex === 0) {
-          setFooterIndex(1);
-        }
-        return;
-      }
-      if (e.key === 'return') {
-        e.preventDefault();
-        if (footerIndex === 0) {
-          onRespondToClaude();
-        } else {
-          onFinishPlanInterview();
-        }
-        return;
-      }
-      if (e.key === 'escape') {
-        e.preventDefault();
-        onCancel();
-      }
-      return;
-    }
     if (isInNotesInput) {
       // In notes input mode, handle escape to exit back to option navigation
       if (e.key === 'escape') {
@@ -202,10 +189,7 @@ export function PreviewQuestionView({
       }
     } else if (e.key === 'down' || e.ctrl && e.key === 'n') {
       e.preventDefault();
-      if (focusedIndex === allOptions.length - 1) {
-        // At bottom of options, go to footer
-        handleDownFromPreview();
-      } else {
+      if (focusedIndex < displayOptions.length - 1) {
         handleNavigate('down');
       }
     } else if (e.key === 'return') {
@@ -222,12 +206,15 @@ export function PreviewQuestionView({
     } else if (e.key.length === 1 && e.key >= '1' && e.key <= '9') {
       e.preventDefault();
       const idx_0 = parseInt(e.key, 10) - 1;
-      if (idx_0 < allOptions.length) {
+      if (idx_0 < displayOptions.length) {
         handleNavigate(idx_0);
       }
     }
-  }, [isFooterFocused, footerIndex, isInPlanMode, isInNotesInput, focusedIndex, allOptions.length, handleUpFromFooter, handleDownFromPreview, handleNavigate, handleSelectOption, handleNotesExit, onRespondToClaude, onFinishPlanInterview, onCancel, onTextInputFocus]);
-  const previewContent = focusedOption?.preview || null;
+  }, [displayOptions.length, focusedIndex, handleNavigate, handleNotesExit, handleSelectOption, isInNotesInput, onCancel, onTextInputFocus]);
+  const previewOption = focusedEntry?.kind === 'option'
+    ? focusedEntry.option
+    : allOptions.find(option => option.label === selectedValue) ?? null;
+  const previewContent = previewOption?.preview || null;
 
   // The right panel's available width is terminal minus the left panel and gap.
   const LEFT_PANEL_WIDTH = 30;
@@ -237,15 +224,7 @@ export function PreviewQuestionView({
   } = useTerminalSize();
   const previewMaxWidth = columns - LEFT_PANEL_WIDTH - GAP;
 
-  // Lines used within the content area that aren't preview content:
-  // 1: marginTop on side-by-side box
-  // 2: PreviewBox borders (top + bottom)
-  // 2: notes section (marginTop=1 + text)
-  // 2: footer section (marginTop=1 + divider)
-  // 1: "Chat about this" line
-  // 1: plan mode line (may or may not show)
-  // 2: help text (marginTop=1 + text)
-  const PREVIEW_OVERHEAD = 11;
+  const PREVIEW_OVERHEAD = 7;
 
   // Compute the max lines available for preview content from the parent's
   // height budget to prevent terminal overflow. We do NOT pad shorter options
@@ -265,15 +244,15 @@ export function PreviewQuestionView({
           <Box marginTop={1} flexDirection="row" gap={4}>
             {/* Left panel: vertical option list */}
             <Box flexDirection="column" width={30}>
-              {allOptions.map((option_0, index_0) => {
+              {displayOptions.map((item, index_0) => {
               const isFocused = focusedIndex === index_0;
-              const isSelected = selectedValue === option_0.label;
-              return <Box key={option_0.label} flexDirection="row">
+              const isSelected = item.kind === 'option' && selectedValue === item.option.label;
+              return <Box key={`${item.kind}:${item.label}`} flexDirection="row">
                     {isFocused ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}
                     <Text dimColor> {index_0 + 1}.</Text>
                     <Text color={isSelected ? 'success' : isFocused ? 'suggestion' : undefined} bold={isFocused}>
                       {' '}
-                      {option_0.label}
+                      {item.label}
                     </Text>
                     {isSelected && <Text color="success"> {figures.tick}</Text>}
                   </Box>;
@@ -294,23 +273,6 @@ export function PreviewQuestionView({
                   </Text>}
               </Box>
             </Box>
-          </Box>
-
-          {/* Footer section */}
-          <Box flexDirection="column" marginTop={1}>
-            <Divider color="inactive" />
-            <Box flexDirection="row" gap={1}>
-              {isFooterFocused && footerIndex === 0 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}
-              <Text color={isFooterFocused && footerIndex === 0 ? 'suggestion' : undefined}>
-                Chat about this
-              </Text>
-            </Box>
-            {isInPlanMode && <Box flexDirection="row" gap={1}>
-                {isFooterFocused && footerIndex === 1 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}
-                <Text color={isFooterFocused && footerIndex === 1 ? 'suggestion' : undefined}>
-                  Skip interview and plan immediately
-                </Text>
-              </Box>}
           </Box>
           <Box marginTop={1}>
             <Text color="inactive" dimColor>

@@ -18,8 +18,12 @@ npm --version
 ## 2. Install Tersa
 
 ```powershell
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
+tersa
 ```
+
+Tersa ships token optimization defaults, a bundled ripgrep fallback, and built-in
+RTK fallback rewrites. Use `/provider` in the TUI to save your provider/model.
 
 ## 3. Pick One Provider
 
@@ -146,7 +150,7 @@ Check the basics:
 ## 6. Updating Tersa
 
 ```powershell
-npm install -g tersa@latest
+npm install -g tersa-cli@latest
 ```
 
 ## 7. Uninstalling Tersa
