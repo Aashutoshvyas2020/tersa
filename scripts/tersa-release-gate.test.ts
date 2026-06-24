@@ -22,12 +22,13 @@ describe('tersa release gate', () => {
   })
 
   test('detects forbidden legacy strings in user-facing text', () => {
+    const legacyOpenProduct = ['Open', 'Claude'].join('')
     const result = validateReleaseSurfaceText(
-      'Welcome to OpenClaude.\nUse the browser connector to continue.',
+      `Welcome to ${legacyOpenProduct}.\nUse the browser connector to continue.`,
     )
 
     expect(result.ok).toBe(false)
-    expect(result.violations).toContain('openclaude')
+    expect(result.violations).toContain(legacyOpenProduct.toLowerCase())
     expect(result.violations).toContain('browser connector')
   })
 })

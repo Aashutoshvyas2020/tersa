@@ -53,8 +53,8 @@ function setupConsumerProject(name: string): string {
     ),
   )
 
-  // Simulate node_modules/@gitlawb/openclaude structure
-  const pkgDir = join(tmpDir, 'node_modules', '@gitlawb', 'openclaude')
+  // Simulate node_modules/tersa-cli structure
+  const pkgDir = join(tmpDir, 'node_modules', 'tersa-cli')
   mkdirSync(pkgDir, { recursive: true })
   mkdirSync(join(pkgDir, 'src', 'entrypoints', 'sdk'), { recursive: true })
   mkdirSync(join(pkgDir, 'dist'), { recursive: true })
@@ -64,7 +64,7 @@ function setupConsumerProject(name: string): string {
     join(pkgDir, 'package.json'),
     JSON.stringify(
       {
-        name: '@gitlawb/openclaude',
+        name: 'tersa-cli',
         version: '0.0.0-test',
         type: 'module',
         exports: {
@@ -138,7 +138,7 @@ describe('package consumer types', () => {
         `  SDKRateLimitError,`,
         `  QueryOptions,`,
         `  SDKSession,`,
-        `} from '@gitlawb/openclaude/sdk'`,
+        `} from 'tersa-cli/sdk'`,
         ``,
         `// Use the types so they're not unused-imports-eliminated`,
         `type _Msg = SDKMessage`,
@@ -165,7 +165,7 @@ describe('package consumer types', () => {
     writeFileSync(
       join(tmpDir, 'consumer.ts'),
       [
-        `import type { SDKMessage, SDKUserMessage, SDKResultMessage } from '@gitlawb/openclaude/sdk'`,
+        `import type { SDKMessage, SDKUserMessage, SDKResultMessage } from 'tersa-cli/sdk'`,
         ``,
         `// Discriminated union check — if types are broken, this won't compile`,
         `function handle(msg: SDKMessage) {`,
@@ -190,7 +190,7 @@ describe('package consumer types', () => {
     writeFileSync(
       join(tmpDir, 'consumer.ts'),
       [
-        `import { SDKRateLimitError } from '@gitlawb/openclaude/sdk'`,
+        `import { SDKRateLimitError } from 'tersa-cli/sdk'`,
         ``,
         `// Constructor should accept (message?, resetsAt?, rateLimitType?)`,
         `const err = new SDKRateLimitError('rate limited', 12345, 'requests')`,

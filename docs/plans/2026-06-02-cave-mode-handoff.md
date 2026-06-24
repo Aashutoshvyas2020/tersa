@@ -8,7 +8,7 @@
 - Reused existing `Read` unchanged-file path instead of adding a second dedup cache.
 - Reworked REPL/header/startup branding toward Caveman style.
 - Switched Caveman palette to blue/cyan theme to match requested reference.
-- Rebuilt and reinstalled local `openclaude` command from this checkout.
+- Rebuilt and reinstalled local `tersa` command from this checkout.
 
 ## Key files
 

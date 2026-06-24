@@ -114,7 +114,7 @@ export function migrateLegacyTersaConfigHome(options?: {
   }
 
   const homeDir = options?.homeDir ?? homedir()
-  const openClaudeDir = join(homeDir, '.tersa')
+  const tersaDir = join(homeDir, '.tersa')
   const legacyClaudeDir = join(homeDir, '.claude')
 
   try {
@@ -126,14 +126,14 @@ export function migrateLegacyTersaConfigHome(options?: {
     }
 
     if (legacyDirExists) {
-      copyMissingPathSync(legacyClaudeDir, openClaudeDir)
+      copyMissingPathSync(legacyClaudeDir, tersaDir)
     }
 
     for (const legacyFile of legacyGlobalConfigFiles) {
-      const openClaudeFile = legacyFile.replace(/^\.claude/, '.tersa')
+      const tersaFile = legacyFile.replace(/^\.claude/, '.tersa')
       copyMissingPathSync(
         join(homeDir, legacyFile),
-        join(homeDir, openClaudeFile),
+        join(homeDir, tersaFile),
       )
     }
     return true
@@ -151,9 +151,9 @@ export function resolveTersaConfigHomeDir(options?: {
   }
 
   const homeDir = options?.homeDir ?? homedir()
-  const openClaudeDir = join(homeDir, '.tersa')
+  const tersaDir = join(homeDir, '.tersa')
 
-  return openClaudeDir.normalize('NFC')
+  return tersaDir.normalize('NFC')
 }
 
 let claudeConfigHomeDirOverride: string | undefined
@@ -178,13 +178,13 @@ export const getTersaConfigHomeDir = memoize(
       configDirEnv,
       homeDir,
     })
-    const openClaudeDir = join(homeDir, '.tersa')
+    const tersaDir = join(homeDir, '.tersa')
     const legacyClaudeDir = join(homeDir, '.claude')
 
     if (
       !configDirEnv &&
       !migrationSucceeded &&
-      !pathIsDirectory(openClaudeDir) &&
+      !pathIsDirectory(tersaDir) &&
       pathExists(legacyClaudeDir)
     ) {
       return legacyClaudeDir.normalize('NFC')

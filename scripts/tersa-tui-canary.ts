@@ -21,8 +21,10 @@ type ExpectStep = {
   waitMs?: number
 }
 
+const LEGACY_OPEN_PRODUCT = ['open', 'claude'].join('')
 const FORBIDDEN_SCREEN_STRINGS = [
-  'openclaude',
+  LEGACY_OPEN_PRODUCT,
+  ['open', 'claude'].join(' '),
   'browser connector',
   'codexplan',
   'gpt-5.5',

@@ -7,7 +7,7 @@ import {
 
 // Finding #42-2: process.env.USER_TYPE === 'ant' is checked directly in multiple
 // places, allowing any external user to activate Anthropic-internal code paths.
-// In OpenClaude, this must always be false regardless of env var.
+// In Tersa, this must always be false regardless of env var.
 
 let originalUserType: string | undefined
 
@@ -28,7 +28,7 @@ afterEach(() => {
   }
 })
 
-test('isAntEmployee always returns false in OpenClaude regardless of USER_TYPE env var', () => {
+test('isAntEmployee always returns false in Tersa regardless of USER_TYPE env var', () => {
   process.env.USER_TYPE = 'ant'
   expect(isAntEmployee()).toBe(false)
 })

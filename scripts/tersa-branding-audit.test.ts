@@ -12,14 +12,17 @@ function makeTempFixture(): string {
   return mkdtempSync(join(tmpdir(), 'tersa-brand-audit-'))
 }
 
+const legacyOpenProduct = ['open', 'claude'].join('')
+const legacyAssetPath = join('assets', `${legacyOpenProduct}-icons`, 'logo.txt')
+
 describe('tersa branding audit', () => {
   test('flags forbidden branding in file paths and content', () => {
     const root = makeTempFixture()
-    mkdirSync(join(root, 'assets', 'openclaude-icons'), { recursive: true })
+    mkdirSync(join(root, 'assets', `${legacyOpenProduct}-icons`), { recursive: true })
     mkdirSync(join(root, 'src'), { recursive: true })
 
     writeFileSync(
-      join(root, 'assets', 'openclaude-icons', 'logo.txt'),
+      join(root, legacyAssetPath),
       'brand asset placeholder',
     )
     writeFileSync(
@@ -35,8 +38,8 @@ describe('tersa branding audit', () => {
       expect.arrayContaining([
         {
           kind: 'path',
-          path: 'assets/openclaude-icons/logo.txt',
-          pattern: 'openclaude',
+          path: legacyAssetPath.replaceAll('\\', '/'),
+          pattern: legacyOpenProduct,
         },
         {
           kind: 'content',
@@ -63,7 +66,7 @@ describe('tersa branding audit', () => {
     )
 
     expect(formatBrandingFindings(findings)).toContain(
-      'FAIL path assets/openclaude-icons/logo.txt [openclaude]',
+      `FAIL path ${legacyAssetPath.replaceAll('\\', '/')} [${legacyOpenProduct}]`,
     )
   })
 

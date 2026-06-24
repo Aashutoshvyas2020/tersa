@@ -5,6 +5,10 @@ import {
   setSessionSettingsCache,
 } from '../settings/settingsCache.js'
 
+const savedEnv = {
+  TERSA_ML_COMPRESSION_MIN_CHARS: process.env.TERSA_ML_COMPRESSION_MIN_CHARS,
+}
+
 function makeLargeText(lines: number): string {
   return Array.from({ length: lines }, (_, i) => `line ${i + 1} `.repeat(12)).join('\n')
 }
@@ -73,6 +77,7 @@ async function runBashCompression(stdout: string) {
 beforeEach(() => {
   mock.restore()
   resetSettingsCache()
+  process.env.TERSA_ML_COMPRESSION_MIN_CHARS = '1'
   setSessionSettingsCache({
     settings: {
       caveMode: {
@@ -103,6 +108,12 @@ afterEach(() => {
   mock.restore()
   setMlCompressionSpawnSyncImplForTest(undefined)
   resetSettingsCache()
+  if (savedEnv.TERSA_ML_COMPRESSION_MIN_CHARS === undefined) {
+    delete process.env.TERSA_ML_COMPRESSION_MIN_CHARS
+  } else {
+    process.env.TERSA_ML_COMPRESSION_MIN_CHARS =
+      savedEnv.TERSA_ML_COMPRESSION_MIN_CHARS
+  }
 })
 
 test('processCaveToolResult uses the ML sidecar when configured', async () => {

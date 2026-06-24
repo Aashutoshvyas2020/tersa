@@ -19,14 +19,14 @@ describe('tersa tui canary helpers', () => {
   test('flags duplicate rows and forbidden legacy branding', () => {
     const result = assertStableScreen(
       normalizeScreenSnapshot(
-        'OpenClaude\nsame row\nsame row\nbrowser connector\n',
+        'Tersa\nsame row\nsame row\nbrowser connector\n',
       ),
       { width: 80 },
     )
 
     expect(result.ok).toBe(false)
     expect(result.errors.some(error => error.includes('duplicate row'))).toBe(true)
-    expect(result.errors.some(error => error.includes('openclaude'))).toBe(true)
+    expect(result.errors.some(error => error.includes('tersa'))).toBe(false)
     expect(result.errors.some(error => error.includes('browser connector'))).toBe(true)
   })
 

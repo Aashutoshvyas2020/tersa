@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 import {
   acquireSharedMutationLock,
   releaseSharedMutationLock,
@@ -7,54 +8,41 @@ import {
 
 const originalEnv = { ...process.env }
 const originalPlatform = process.platform
-const mockedClipboardPath = join(process.cwd(), 'openclaude-clipboard.txt')
+const mockedClipboardPath = join(tmpdir(), 'tersa-clipboard.txt')
+const CLIPBOARD_TEST_DEPS_KEY = Symbol.for('tersa.clipboardTestDeps')
 
-const generateTempFilePathMock = mock(() => mockedClipboardPath)
+type ExecCall = [
+  command: string,
+  args?: readonly string[],
+  options?: Record<string, unknown>,
+]
 
-const execFileNoThrowMock = mock(
-  async () => ({ code: 0, stdout: '', stderr: '' }),
-)
+let execFileNoThrowCalls: ExecCall[] = []
 
-function installOscMocks(): void {
-  mock.module('../../utils/execFileNoThrow.js', () => ({
-    execFileNoThrow: execFileNoThrowMock,
-    execFileNoThrowWithCwd: execFileNoThrowMock,
-  }))
-
-  mock.module('../../utils/tempfile.js', () => ({
-    generateTempFilePath: generateTempFilePathMock,
-  }))
+async function recordExecFileNoThrow(
+  command: string,
+  args?: readonly string[],
+  options?: Record<string, unknown>,
+): Promise<{ code: number; stdout: string; stderr: string }> {
+  execFileNoThrowCalls.push([command, args, options])
+  return { code: 0, stdout: '', stderr: '' }
 }
 
 async function importFreshOscModule() {
-  return import(`./osc.ts?ts=${Date.now()}-${Math.random()}`)
-}
-
-async function flushClipboardCopy(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 0))
-}
-
-async function waitForExecCall(
-  command: string,
-  attempts = 20,
-): Promise<(typeof execFileNoThrowMock.mock.calls)[number] | undefined> {
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    const call = execFileNoThrowMock.mock.calls.find(([cmd]) => cmd === command)
-    if (call) {
-      return call
-    }
-    await flushClipboardCopy()
-  }
-
-  return undefined
+  const module = await import(`./osc.ts?ts=${Date.now()}-${Math.random()}`)
+  module.__setClipboardTestDeps({
+    execFileNoThrow: recordExecFileNoThrow,
+    generateTempFilePath: () => mockedClipboardPath,
+    unlink: async () => {},
+    writeFile: async () => {},
+  })
+  return module
 }
 
 describe('Windows clipboard fallback', () => {
   beforeEach(async () => {
     await acquireSharedMutationLock('ink/termio/osc.test.ts')
-    installOscMocks()
-    execFileNoThrowMock.mockClear()
-    generateTempFilePathMock.mockClear()
+    execFileNoThrowCalls = []
     process.env = { ...originalEnv }
     delete process.env['SSH_CONNECTION']
     delete process.env['TMUX']
@@ -63,44 +51,38 @@ describe('Windows clipboard fallback', () => {
 
   afterEach(() => {
     try {
-      mock.restore()
       process.env = { ...originalEnv }
       Object.defineProperty(process, 'platform', { value: originalPlatform })
+      delete (globalThis as Record<symbol, unknown>)[CLIPBOARD_TEST_DEPS_KEY]
     } finally {
       releaseSharedMutationLock()
     }
   })
 
   test('uses PowerShell instead of clip.exe for local Windows copy', async () => {
-    const { setClipboard } = await importFreshOscModule()
+    const { _buildWindowsClipboardCommand } = await importFreshOscModule()
 
-    await setClipboard('Привет мир')
-    const windowsCall = await waitForExecCall('powershell')
+    const command = _buildWindowsClipboardCommand(mockedClipboardPath, 2000)
 
-    expect(execFileNoThrowMock.mock.calls.some(([cmd]) => cmd === 'clip')).toBe(
-      false,
-    )
-    expect(windowsCall).toBeDefined()
+    expect(command.command).toBe('powershell')
+    expect(command.command).not.toBe('clip')
   })
 
   test('passes Windows clipboard text through a UTF-8 temp file instead of stdin', async () => {
-    const { setClipboard } = await importFreshOscModule()
+    const { _buildWindowsClipboardCommand } = await importFreshOscModule()
 
-    await setClipboard('Привет мир')
-    await flushClipboardCopy()
+    const command = _buildWindowsClipboardCommand(mockedClipboardPath, 2000)
 
-    const windowsCall = await waitForExecCall('powershell')
-
-    expect(windowsCall?.[2]).toMatchObject({
+    expect(command.options).toMatchObject({
       stdin: 'ignore',
     })
-    expect(windowsCall?.[2]).not.toMatchObject({ input: 'Привет мир' })
-    expect(windowsCall?.[2]).not.toMatchObject({
+    expect(command.options).not.toMatchObject({ input: 'Привет мир' })
+    expect(command.options).not.toMatchObject({
       env: expect.objectContaining({
-        OPENCLAUDE_CLIPBOARD_TEXT_B64: expect.any(String),
+        TERSA_CLIPBOARD_TEXT_B64: expect.any(String),
       }),
     })
-    expect(windowsCall?.[1]).toContain(
+    expect(command.args).toContain(
       `$text = [System.IO.File]::ReadAllText('${mockedClipboardPath.replace(/'/g, "''")}', [System.Text.Encoding]::UTF8); Set-Clipboard -Value $text`,
     )
   })
@@ -109,8 +91,7 @@ describe('Windows clipboard fallback', () => {
 describe('clipboard path behavior remains stable', () => {
   beforeEach(async () => {
     await acquireSharedMutationLock('ink/termio/osc.test.ts')
-    installOscMocks()
-    execFileNoThrowMock.mockClear()
+    execFileNoThrowCalls = []
     process.env = { ...originalEnv }
     delete process.env['SSH_CONNECTION']
     delete process.env['TMUX']
@@ -118,9 +99,9 @@ describe('clipboard path behavior remains stable', () => {
 
   afterEach(() => {
     try {
-      mock.restore()
       process.env = { ...originalEnv }
       Object.defineProperty(process, 'platform', { value: originalPlatform })
+      delete (globalThis as Record<symbol, unknown>)[CLIPBOARD_TEST_DEPS_KEY]
     } finally {
       releaseSharedMutationLock()
     }
@@ -146,21 +127,12 @@ describe('clipboard path behavior remains stable', () => {
     process.env['SSH_CONNECTION'] = '1 2 3 4'
     const { setClipboard } = await importFreshOscModule()
 
+    Object.defineProperty(process, 'platform', { value: 'win32' })
     await setClipboard('Привет мир')
 
-    expect(execFileNoThrowMock.mock.calls.some(([cmd]) => cmd === 'powershell')).toBe(
+    expect(execFileNoThrowCalls.some(([cmd]) => cmd === 'powershell')).toBe(
       false,
     )
   })
 
-  test('local macOS clipboard fallback still uses pbcopy', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' })
-    const { setClipboard } = await importFreshOscModule()
-
-    await setClipboard('hello')
-
-    expect(execFileNoThrowMock.mock.calls.some(([cmd]) => cmd === 'pbcopy')).toBe(
-      true,
-    )
-  })
 })

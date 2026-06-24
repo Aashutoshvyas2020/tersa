@@ -31,9 +31,9 @@ import { getInitialSettings } from 'src/utils/settings/settings.js'
 export async function update() {
   // Block updates for third-party providers using upstream Anthropic builds.
   // The update mechanism downloads from the first-party distribution bucket,
-  // which would silently replace the OpenClaude build with the upstream
+  // which would silently replace the Tersa build with the upstream
   // Claude Code binary. However, builds with a custom PACKAGE_URL (like
-  // OpenClaude's @gitlawb/openclaude) are safe to self-update.
+  // Tersa's tersa-cli package is safe to self-update.
   if (
     getAPIProvider() !== 'firstParty' &&
     MACRO.PACKAGE_URL === '@anthropic-ai/claude-code'
@@ -266,7 +266,7 @@ export async function update() {
 
       if (result.latestVersion === MACRO.DISPLAY_VERSION) {
         writeToStdout(
-          chalk.green(`OpenClaude is up to date (${MACRO.DISPLAY_VERSION})`) + '\n',
+          chalk.green(`Tersa is up to date (${MACRO.DISPLAY_VERSION})`) + '\n',
         )
       } else {
         writeToStdout(
@@ -280,7 +280,7 @@ export async function update() {
     } catch (error) {
       process.stderr.write('Error: Failed to install native update\n')
       process.stderr.write(String(error) + '\n')
-      process.stderr.write('Try running "openclaude doctor" for diagnostics\n')
+      process.stderr.write('Try running "tersa doctor" for diagnostics\n')
       await gracefulShutdown(1)
     }
   }
@@ -336,7 +336,7 @@ export async function update() {
   // Check if versions match exactly, including any build metadata (like SHA)
   if (latestVersion === MACRO.DISPLAY_VERSION) {
     writeToStdout(
-      chalk.green(`OpenClaude is up to date (${MACRO.DISPLAY_VERSION})`) + '\n',
+      chalk.green(`Tersa is up to date (${MACRO.DISPLAY_VERSION})`) + '\n',
     )
     await gracefulShutdown(0)
   }
@@ -414,12 +414,12 @@ export async function update() {
       if (useLocalUpdate) {
         process.stderr.write('Try manually updating with:\n')
         process.stderr.write(
-          `  cd ~/.openclaude/local && npm update ${MACRO.PACKAGE_URL}\n`,
+          `  cd ~/.tersa/local && npm update ${MACRO.PACKAGE_URL}\n`,
         )
       } else {
         process.stderr.write('Try running with sudo or fix npm permissions\n')
         process.stderr.write(
-          'Or consider using native installation with: openclaude install\n',
+          'Or consider using native installation with: tersa install\n',
         )
       }
       await gracefulShutdown(1)
@@ -429,11 +429,11 @@ export async function update() {
       if (useLocalUpdate) {
         process.stderr.write('Try manually updating with:\n')
         process.stderr.write(
-          `  cd ~/.openclaude/local && npm update ${MACRO.PACKAGE_URL}\n`,
+          `  cd ~/.tersa/local && npm update ${MACRO.PACKAGE_URL}\n`,
         )
       } else {
         process.stderr.write(
-          'Or consider using native installation with: openclaude install\n',
+          'Or consider using native installation with: tersa install\n',
         )
       }
       await gracefulShutdown(1)

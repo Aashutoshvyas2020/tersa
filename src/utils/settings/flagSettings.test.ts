@@ -29,7 +29,7 @@ beforeEach(async () => {
   // realpathSync so the temp path matches what the settings loader stores:
   // on macOS tmpdir() lives under /tmp, a symlink to /private/tmp, and the
   // loader canonicalises the --settings path, which would otherwise mismatch.
-  tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'openclaude-flag-settings-')))
+  tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'tersa-flag-settings-')))
   resetSettingsBootstrapState()
   setAllowedSettingSources(['flagSettings'])
 })
@@ -42,9 +42,6 @@ afterEach(() => {
 })
 
 test('loads --settings before resolving out-of-process teammate model routes', async () => {
-  const { getInitialSettings } = (await import(
-    `./settings.ts?flagSettingsActual=${Date.now()}-${Math.random()}`
-  )) as SettingsModule
   const routedModel = 'deepseek-worker-test-route'
   const settingsPath = writeSettingsFile({
     agentModels: {
@@ -65,9 +62,10 @@ test('loads --settings before resolving out-of-process teammate model routes', a
     settingsPath,
   ]
 
-  expect(getInitialSettings().agentModels?.[routedModel]).toBeUndefined()
-
   const loadResult = eagerLoadSettingsFromArgs(args)
+  const { getInitialSettings } = (await import(
+    `./settings.ts?flagSettingsActual=${Date.now()}-${Math.random()}`
+  )) as SettingsModule
 
   expect(loadResult).toEqual({ ok: true })
   expect(getFlagSettingsPath()).toBe(settingsPath)

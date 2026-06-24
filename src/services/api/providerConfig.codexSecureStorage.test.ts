@@ -23,7 +23,7 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     }
   })
 
-  test('loads Codex credentials from OpenClaude secure storage', async () => {
+  test('loads Codex credentials from Tersa secure storage', async () => {
     await acquireEnvMutex()
     mock.module('../../utils/codexCredentials.js', () => ({
       ...realCodexCredentials,
@@ -105,7 +105,7 @@ describe('resolveCodexApiCredentials with secure storage', () => {
       readCodexCredentials: () => undefined,
     }))
 
-    const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-codex-auth-'))
+    const tempDir = mkdtempSync(join(tmpdir(), 'tersa-codex-auth-'))
     const authPath = join(tempDir, 'auth.json')
 
     writeFileSync(
@@ -162,7 +162,7 @@ describe('resolveCodexApiCredentials with secure storage', () => {
 
   test('falls back to the default auth.json when stored Codex refresh is cooling down', async () => {
     await acquireEnvMutex()
-    const tempHomeDir = mkdtempSync(join(tmpdir(), 'openclaude-codex-home-'))
+    const tempHomeDir = mkdtempSync(join(tmpdir(), 'tersa-codex-home-'))
     const authJson = JSON.stringify({
       openai_api_key: makeJwt({
         'https://api.openai.com/auth': {
@@ -206,7 +206,7 @@ describe('resolveCodexApiCredentials with secure storage', () => {
 
   test('preserves the stored account id when auth.json fallback lacks one', async () => {
     await acquireEnvMutex()
-    const tempHomeDir = mkdtempSync(join(tmpdir(), 'openclaude-codex-home-'))
+    const tempHomeDir = mkdtempSync(join(tmpdir(), 'tersa-codex-home-'))
     const authJson = JSON.stringify({
       openai_api_key: 'auth-json-access-token',
     })

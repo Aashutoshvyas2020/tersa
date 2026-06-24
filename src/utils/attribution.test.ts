@@ -60,8 +60,8 @@ const originalEnv = {
   VENICE_API_KEY: process.env.VENICE_API_KEY,
   MIMO_API_KEY: process.env.MIMO_API_KEY,
   BNKR_API_KEY: process.env.BNKR_API_KEY,
-  OPENCLAUDE_DISABLE_CO_AUTHORED_BY:
-    process.env.OPENCLAUDE_DISABLE_CO_AUTHORED_BY,
+  TERSA_DISABLE_CO_AUTHORED_BY:
+    process.env.TERSA_DISABLE_CO_AUTHORED_BY,
   CLAUDE_CODE_REMOTE_SESSION_ID: process.env.CLAUDE_CODE_REMOTE_SESSION_ID,
   SESSION_INGRESS_URL: process.env.SESSION_INGRESS_URL,
   USER_TYPE: process.env.USER_TYPE,
@@ -70,7 +70,7 @@ const originalClientType = getClientType()
 const originalMainLoopModelOverride = getMainLoopModelOverride()
 
 const defaultPrAttribution =
-  '🤖 Generated with [OpenClaude](https://github.com/Gitlawb/openclaude)'
+  '🤖 Generated with [Tersa](https://github.com/Gitlawb/tersa)'
 
 function useSettings(settings: SettingsJson): void {
   testSettings = settings
@@ -122,7 +122,7 @@ beforeEach(async () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.OPENAI_MODEL = 'gpt-5.5'
   setMainLoopModelOverride('gpt-5.5')
-  delete process.env.OPENCLAUDE_DISABLE_CO_AUTHORED_BY
+  delete process.env.TERSA_DISABLE_CO_AUTHORED_BY
   delete process.env.CLAUDE_CODE_REMOTE_SESSION_ID
   delete process.env.SESSION_INGRESS_URL
   delete process.env.USER_TYPE
@@ -170,7 +170,7 @@ describe('getDefaultCommitCoAuthorName', () => {
         apiProvider: 'openai',
         isInternalRepo: false,
       }),
-    ).toBe('OpenClaude (gpt-5.5)')
+    ).toBe('Tersa (gpt-5.5)')
   })
 
   it('does not apply internal Claude formatting to non-Claude providers', () => {
@@ -180,7 +180,7 @@ describe('getDefaultCommitCoAuthorName', () => {
         apiProvider: 'openai',
         isInternalRepo: true,
       }),
-    ).toBe('OpenClaude (gpt-5.5)')
+    ).toBe('Tersa (gpt-5.5)')
   })
 
   it('keeps the codename-safe fallback for unknown first-party models', () => {
@@ -213,12 +213,12 @@ describe('getDefaultCommitCoAuthorName', () => {
     ).toBe('Claude Opus 4.6')
   })
 
-  it('uses the OpenClaude email for commit attribution across providers', () => {
+  it('uses the Tersa email for commit attribution across providers', () => {
     expect(getDefaultCommitCoAuthorEmail('openai')).toBe(
-      'openclaude@gitlawb.com',
+      'tersa@gitlawb.com',
     )
     expect(getDefaultCommitCoAuthorEmail('firstParty')).toBe(
-      'openclaude@gitlawb.com',
+      'tersa@gitlawb.com',
     )
   })
 })
@@ -266,7 +266,7 @@ describe('getAttributionTexts', () => {
     useSettings({ includeCoAuthoredBy: true })
 
     expect(getAttributionTexts()).toEqual({
-      commit: 'Co-Authored-By: OpenClaude (gpt-5.5) <openclaude@gitlawb.com>',
+      commit: 'Co-Authored-By: Tersa (gpt-5.5) <tersa@gitlawb.com>',
       pr: defaultPrAttribution,
     })
   })
@@ -277,8 +277,8 @@ describe('getAttributionTexts', () => {
     expect(getAttributionTexts()).toEqual({ commit: '', pr: '' })
   })
 
-  it('uses OPENCLAUDE_DISABLE_CO_AUTHORED_BY to disable the old default co-author trailer', () => {
-    process.env.OPENCLAUDE_DISABLE_CO_AUTHORED_BY = '1'
+  it('uses TERSA_DISABLE_CO_AUTHORED_BY to disable the old default co-author trailer', () => {
+    process.env.TERSA_DISABLE_CO_AUTHORED_BY = '1'
     useSettings({ includeCoAuthoredBy: true })
 
     expect(getAttributionTexts()).toEqual({
@@ -287,8 +287,8 @@ describe('getAttributionTexts', () => {
     })
   })
 
-  it('does not let OPENCLAUDE_DISABLE_CO_AUTHORED_BY override explicit commit attribution', () => {
-    process.env.OPENCLAUDE_DISABLE_CO_AUTHORED_BY = '1'
+  it('does not let TERSA_DISABLE_CO_AUTHORED_BY override explicit commit attribution', () => {
+    process.env.TERSA_DISABLE_CO_AUTHORED_BY = '1'
     useSettings({
       attribution: { commit: 'Reviewed-by: Human <h@example.com>' },
     })

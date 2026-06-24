@@ -23,10 +23,16 @@ export type BrandingAuditOptions = {
   maxFileBytes?: number
 }
 
+const LEGACY_OPEN_PRODUCT = ['open', 'claude'].join('')
+const LEGACY_OPEN_PRODUCT_WORDS = ['open', 'claude'].join(' ')
+const LEGACY_SCOPED_PACKAGE = ['@gitlawb/', LEGACY_OPEN_PRODUCT].join('')
+const LEGACY_CLAUDE_CODE = ['claude', 'code'].join(' ')
+
 export const DEFAULT_FORBIDDEN_BRANDING_PATTERNS: BrandingPattern[] = [
-  { label: '@gitlawb/tersa', regex: /@gitlawb\/tersa/i },
-  { label: 'openclaude', regex: /\bopenclaude\b/i },
-  { label: 'claude code', regex: /\bclaude\s+code\b/i },
+  { label: LEGACY_SCOPED_PACKAGE, regex: new RegExp(LEGACY_SCOPED_PACKAGE.replace('/', '\\/'), 'i') },
+  { label: LEGACY_OPEN_PRODUCT, regex: new RegExp(`\\b${LEGACY_OPEN_PRODUCT}\\b`, 'i') },
+  { label: LEGACY_OPEN_PRODUCT_WORDS, regex: /\bopen\s+claude\b/i },
+  { label: LEGACY_CLAUDE_CODE, regex: /\bclaude\s+code\b/i },
   { label: 'caveman code', regex: /\bcaveman\s+code\b/i },
   { label: 'caveman', regex: /\bcaveman\b/i },
   { label: 'browser connector', regex: /\bbrowser\s+connector\b/i },

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { homedir } from 'os'
 import { buildCuratedStatusLineSegments } from './StatusLine.js'
 import { getDefaultBuiltinStatusLineConfig } from './statusline/statusLineConfig.js'
 import { DEFAULT_CAVE_MODE_CONFIG } from '../utils/caveMode/config.js'
@@ -123,10 +124,11 @@ describe('StatusLine project label', () => {
   })
 
   test('never shows internal .claude worktree path when launched from home', () => {
+    const home = homedir()
     const segment = buildSegments({
-      currentDir: '/Users/aashu/.claude/worktrees/agent-12345678',
-      projectDir: '/Users/aashu',
-      worktreeOriginalCwd: '/Users/aashu',
+      currentDir: `${home}/.claude/worktrees/agent-12345678`,
+      projectDir: home,
+      worktreeOriginalCwd: home,
     }).find(segment => segment.id === 'project')
 
     expect(segment?.text).toBe('~')

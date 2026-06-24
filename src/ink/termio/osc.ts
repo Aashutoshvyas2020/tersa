@@ -12,6 +12,51 @@ import type { Action, Color, TabStatusAction } from './types.js'
 
 export const OSC_PREFIX = ESC + String.fromCharCode(ESC_TYPE.OSC)
 
+type ClipboardDeps = {
+  execFileNoThrow: typeof execFileNoThrow
+  generateTempFilePath: typeof generateTempFilePath
+  unlink: typeof unlink
+  writeFile: typeof writeFile
+}
+
+const CLIPBOARD_TEST_DEPS_KEY = Symbol.for('tersa.clipboardTestDeps')
+
+let clipboardDeps: ClipboardDeps = {
+  execFileNoThrow,
+  generateTempFilePath,
+  unlink,
+  writeFile,
+}
+
+function getClipboardDeps(): ClipboardDeps {
+  return (
+    (globalThis as typeof globalThis & {
+      [CLIPBOARD_TEST_DEPS_KEY]?: ClipboardDeps
+    })[CLIPBOARD_TEST_DEPS_KEY] ?? clipboardDeps
+  )
+}
+
+export function __setClipboardTestDeps(
+  deps: Partial<ClipboardDeps> | null,
+): void {
+  const globalWithClipboardDeps = globalThis as typeof globalThis & {
+    [CLIPBOARD_TEST_DEPS_KEY]?: ClipboardDeps
+  }
+  if (deps === null) {
+    delete globalWithClipboardDeps[CLIPBOARD_TEST_DEPS_KEY]
+  }
+  clipboardDeps = {
+    execFileNoThrow,
+    generateTempFilePath,
+    unlink,
+    writeFile,
+    ...(deps ?? {}),
+  }
+  if (deps !== null) {
+    globalWithClipboardDeps[CLIPBOARD_TEST_DEPS_KEY] = clipboardDeps
+  }
+}
+
 /** String Terminator (ESC \) - alternative to BEL for terminating OSC */
 export const ST = ESC + '\\'
 
@@ -65,7 +110,8 @@ export type ClipboardPath = 'native' | 'tmux-buffer' | 'osc52'
 
 export function getClipboardPath(): ClipboardPath {
   const nativeAvailable =
-    process.platform === 'darwin' && !process.env['SSH_CONNECTION']
+    (process.platform === 'darwin' || process.platform === 'win32') &&
+    !process.env['SSH_CONNECTION']
   if (nativeAvailable) return 'native'
   if (process.env['TMUX']) return 'tmux-buffer'
   return 'osc52'
@@ -149,9 +195,12 @@ export async function setClipboard(text: string): Promise<string> {
   // Gated on SSH_CONNECTION (not SSH_TTY) since tmux panes inherit SSH_TTY
   // forever but SSH_CONNECTION is in tmux's default update-environment and
   // clears on local attach. Fire-and-forget.
-  if (!process.env['SSH_CONNECTION']) copyNative(text)
+  const nativeCopy = !process.env['SSH_CONNECTION']
+    ? copyNative(text)
+    : undefined
 
   const tmuxBufferLoaded = await tmuxLoadBuffer(text)
+  await nativeCopy?.catch(() => {})
 
   // Inner OSC uses BEL directly (not osc()) — ST's ESC would need doubling
   // too, and BEL works everywhere for OSC 52.
@@ -164,45 +213,71 @@ export async function setClipboard(text: string): Promise<string> {
 // Cached after first attempt so repeated mouse-ups skip the probe chain.
 let linuxCopy: 'wl-copy' | 'xclip' | 'xsel' | null | undefined
 
+/** @internal test-only */
+export function _buildWindowsClipboardCommand(
+  tempPath: string,
+  timeout: number,
+): {
+  command: 'powershell'
+  args: string[]
+  options: { useCwd: false; timeout: number; stdin: 'ignore' }
+} {
+  const escapedTempPath = tempPath.replace(/'/g, "''")
+  return {
+    command: 'powershell',
+    args: [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      `$text = [System.IO.File]::ReadAllText('${escapedTempPath}', [System.Text.Encoding]::UTF8); Set-Clipboard -Value $text`,
+    ],
+    options: {
+      useCwd: false,
+      timeout,
+      stdin: 'ignore',
+    },
+  }
+}
+
 /**
  * Shell out to a native clipboard utility as a safety net for OSC 52.
  * Only called when not in an SSH session (over SSH, these would write to
  * the remote machine's clipboard — OSC 52 is the right path there).
  * Fire-and-forget: failures are silent since OSC 52 may have succeeded.
  */
-function copyNative(text: string): void {
+function copyNative(text: string): Promise<unknown> | void {
   const opts = { input: text, useCwd: false, timeout: 2000 }
+  const deps = getClipboardDeps()
   switch (process.platform) {
     case 'darwin':
-      void execFileNoThrow('pbcopy', [], opts)
-      return
+      return deps.execFileNoThrow('pbcopy', [], opts)
     case 'linux': {
       if (linuxCopy === null) return
       if (linuxCopy === 'wl-copy') {
-        void execFileNoThrow('wl-copy', [], opts)
+        void deps.execFileNoThrow('wl-copy', [], opts)
         return
       }
       if (linuxCopy === 'xclip') {
-        void execFileNoThrow('xclip', ['-selection', 'clipboard'], opts)
+        void deps.execFileNoThrow('xclip', ['-selection', 'clipboard'], opts)
         return
       }
       if (linuxCopy === 'xsel') {
-        void execFileNoThrow('xsel', ['--clipboard', '--input'], opts)
+        void deps.execFileNoThrow('xsel', ['--clipboard', '--input'], opts)
         return
       }
       // First call: probe wl-copy (Wayland) then xclip/xsel (X11), cache winner.
-      void execFileNoThrow('wl-copy', [], opts).then(r => {
+      void deps.execFileNoThrow('wl-copy', [], opts).then(r => {
         if (r.code === 0) {
           linuxCopy = 'wl-copy'
           return
         }
-        void execFileNoThrow('xclip', ['-selection', 'clipboard'], opts).then(
+        void deps.execFileNoThrow('xclip', ['-selection', 'clipboard'], opts).then(
           r2 => {
             if (r2.code === 0) {
               linuxCopy = 'xclip'
               return
             }
-            void execFileNoThrow('xsel', ['--clipboard', '--input'], opts).then(
+            void deps.execFileNoThrow('xsel', ['--clipboard', '--input'], opts).then(
               r3 => {
                 linuxCopy = r3.code === 0 ? 'xsel' : null
               },
@@ -216,30 +291,20 @@ function copyNative(text: string): void {
       // Avoid piping non-ASCII text through the Windows stdin/codepage
       // boundary. Write UTF-8 text to a temp file and let PowerShell read it
       // directly as UTF-8 before calling Set-Clipboard.
-      void (async () => {
-        const tempPath = generateTempFilePath('openclaude-clipboard', '.txt')
-        const escapedTempPath = tempPath.replace(/'/g, "''")
+      return (async () => {
+        const tempPath = deps.generateTempFilePath('tersa-clipboard', '.txt')
+        const command = _buildWindowsClipboardCommand(tempPath, opts.timeout)
         try {
-          await writeFile(tempPath, text, { encoding: 'utf8' })
-          await execFileNoThrow(
-            'powershell',
-            [
-              '-NoProfile',
-              '-NonInteractive',
-              '-Command',
-              `$text = [System.IO.File]::ReadAllText('${escapedTempPath}', [System.Text.Encoding]::UTF8); Set-Clipboard -Value $text`,
-            ],
-            {
-              useCwd: false,
-              timeout: opts.timeout,
-              stdin: 'ignore',
-            },
+          await deps.writeFile(tempPath, text, { encoding: 'utf8' })
+          await deps.execFileNoThrow(
+            command.command,
+            command.args,
+            command.options,
           )
         } finally {
-          await unlink(tempPath).catch(() => {})
+          await deps.unlink(tempPath).catch(() => {})
         }
-      })().catch(() => {})
-      return
+      })()
   }
 }
 

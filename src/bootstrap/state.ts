@@ -440,6 +440,26 @@ function getSdkContext(): SdkContext | undefined {
   return sdkContextStorage.getStore()
 }
 
+function getMutableSessionCanaryState(
+  ctx: SdkContext | undefined,
+): SessionCanaryState {
+  if (!ctx) {
+    return STATE.sessionCanary
+  }
+  ctx.sessionCanary ??= createSessionCanaryState()
+  return ctx.sessionCanary
+}
+
+function getMutableSessionCanaryStreamState(
+  ctx: SdkContext | undefined,
+): SessionCanaryStreamState {
+  if (!ctx) {
+    return STATE.sessionCanaryStream
+  }
+  ctx.sessionCanaryStream ??= createSessionCanaryStreamState()
+  return ctx.sessionCanaryStream
+}
+
 export function getSessionId(): SessionId {
   const ctx = getSdkContext()
   return ctx?.sessionId ?? STATE.sessionId
@@ -471,12 +491,8 @@ export function regenerateSessionId(
     STATE.sessionId = newId
     STATE.sessionProjectDir = null
   }
-  resetSessionCanaryState(
-    ctx ? ctx.sessionCanary : STATE.sessionCanary,
-  )
-  resetSessionCanaryStreamState(
-    ctx ? ctx.sessionCanaryStream : STATE.sessionCanaryStream,
-  )
+  resetSessionCanaryState(getMutableSessionCanaryState(ctx))
+  resetSessionCanaryStreamState(getMutableSessionCanaryStreamState(ctx))
   return newId
 }
 
@@ -517,12 +533,8 @@ export function switchSession(
     STATE.sessionId = sessionId
     STATE.sessionProjectDir = projectDir
   }
-  resetSessionCanaryState(
-    ctx ? ctx.sessionCanary : STATE.sessionCanary,
-  )
-  resetSessionCanaryStreamState(
-    ctx ? ctx.sessionCanaryStream : STATE.sessionCanaryStream,
-  )
+  resetSessionCanaryState(getMutableSessionCanaryState(ctx))
+  resetSessionCanaryStreamState(getMutableSessionCanaryStreamState(ctx))
   sessionSwitched.emit(sessionId)
 }
 
@@ -1576,7 +1588,7 @@ export function clearSystemPromptSectionState(): void {
 
 export function getSessionCanaryState(): SessionCanaryState {
   const ctx = getSdkContext()
-  return ctx?.sessionCanary ?? STATE.sessionCanary
+  return getMutableSessionCanaryState(ctx)
 }
 
 export function setSessionCanaryState(state: SessionCanaryState): void {
@@ -1602,7 +1614,7 @@ export function resetSessionCanaryStateForSession(
 
 export function getSessionCanaryStreamState(): SessionCanaryStreamState {
   const ctx = getSdkContext()
-  return ctx?.sessionCanaryStream ?? STATE.sessionCanaryStream
+  return getMutableSessionCanaryStreamState(ctx)
 }
 
 export function setSessionCanaryStreamState(

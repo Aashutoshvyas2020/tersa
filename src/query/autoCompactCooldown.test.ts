@@ -58,7 +58,6 @@ function toolUseContext() {
       thinkingConfig: undefined,
       tools: [],
     },
-    readFileState: {},
     getAppState: () => ({
       fastMode: false,
       effortValue: undefined,
@@ -69,6 +68,16 @@ function toolUseContext() {
       toolPermissionContext: { mode: 'default' },
     }),
     setInProgressToolUseIDs: () => {},
+    readFileState: {
+      get: () => undefined,
+      set: () => {},
+      delete: () => {},
+      clear: () => {},
+      entries: () => [],
+      keys: () => [],
+      values: () => [],
+      has: () => false,
+    },
   } as never
 }
 

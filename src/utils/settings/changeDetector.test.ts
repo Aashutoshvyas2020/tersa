@@ -13,11 +13,11 @@ type SettingsChangeDetectorModule = typeof import('./changeDetector.js') & {
 }
 
 const pathsBySource: Record<SettingSource, string | null> = {
-  userSettings: normalize('/tmp/openclaude/user/settings.json'),
-  projectSettings: normalize('/tmp/openclaude/project/.claude/settings.json'),
-  localSettings: normalize('/tmp/openclaude/project/.claude/settings.local.json'),
+  userSettings: normalize('/tmp/tersa/user/settings.json'),
+  projectSettings: normalize('/tmp/tersa/project/.claude/settings.json'),
+  localSettings: normalize('/tmp/tersa/project/.claude/settings.local.json'),
   flagSettings: null,
-  policySettings: normalize('/tmp/openclaude/managed/managed-settings.json'),
+  policySettings: normalize('/tmp/tersa/managed/managed-settings.json'),
 }
 
 let resetSettingsCache = mock(() => {})
@@ -44,7 +44,7 @@ async function importFreshModule(): Promise<SettingsChangeDetectorModule> {
     consumeInternalWrite,
     executeConfigChangeHooks,
     getManagedSettingsDropInDir: () =>
-      normalize('/tmp/openclaude/managed/managed-settings.d'),
+      normalize('/tmp/tersa/managed/managed-settings.d'),
     getSettingsFilePathForSource: (source: SettingSource) =>
       pathsBySource[source],
     hasBlockingResult: (results: { blocked: boolean }[]) =>

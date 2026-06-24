@@ -9,7 +9,7 @@ import { AppState } from '../state/AppState.js'
 import { FileStateCache, READ_FILE_STATE_CACHE_SIZE } from '../utils/fileStateCache.js'
 import { getBuiltInAgents } from '../tools/AgentTool/builtInAgents.js'
 
-const PROTO_PATH = path.resolve(import.meta.dirname, '../proto/openclaude.proto')
+const PROTO_PATH = path.resolve(import.meta.dirname, '../proto/tersa.proto')
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -20,7 +20,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 })
 
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
-const openclaudeProto = protoDescriptor.openclaude.v1
+const tersaProto = protoDescriptor.tersa.v1
 
 const MAX_SESSIONS = 1000
 
@@ -30,7 +30,7 @@ export class GrpcServer {
 
   constructor() {
     this.server = new grpc.Server()
-    this.server.addService(openclaudeProto.AgentService.service, {
+    this.server.addService(tersaProto.AgentService.service, {
       Chat: this.handleChat.bind(this),
     })
   }
@@ -91,7 +91,7 @@ export class GrpcServer {
             tools: getTools(appState.toolPermissionContext), // Gets all available tools
             commands: [], // Slash commands
             mcpClients: [],
-            // Register OpenClaude's built-in agents (general-purpose,
+            // Register Tersa's built-in agents (general-purpose,
             // statusline-setup, optional code-guide). Without this the Agent
             // tool throws "Agent type 'general-purpose' not found" the moment
             // the model tries to spawn a subagent for investigation.

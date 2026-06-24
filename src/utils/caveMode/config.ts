@@ -1,4 +1,5 @@
 import { getInitialSettings } from '../settings/settings.js'
+import { getSessionSettingsCache } from '../settings/settingsCache.js'
 import { isEnvTruthy } from '../envUtils.js'
 import type { CaveModeConfig } from './types.js'
 
@@ -21,7 +22,10 @@ export const DEFAULT_CAVE_MODE_CONFIG: CaveModeConfig = {
 }
 
 export function getCaveModeConfig(): CaveModeConfig {
-  const settings = getInitialSettings().caveMode ?? {}
+  const settings =
+    getSessionSettingsCache()?.settings.caveMode ??
+    getInitialSettings().caveMode ??
+    {}
   const merged: CaveModeConfig = {
     ...DEFAULT_CAVE_MODE_CONFIG,
     ...settings,

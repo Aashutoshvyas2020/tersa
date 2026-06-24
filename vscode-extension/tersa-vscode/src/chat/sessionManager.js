@@ -35,12 +35,12 @@ function resolveConfigDir() {
   const envDir = process.env.CLAUDE_CONFIG_DIR;
   if (envDir) return envDir;
   const home = os.homedir();
-  const tersaDir = path.join(home, '.tersa');
+  const openClaudeDir = path.join(home, '.tersa');
   const legacyDir = path.join(home, '.claude');
-  if (!fs.existsSync(tersaDir) && fs.existsSync(legacyDir)) {
+  if (!fs.existsSync(openClaudeDir) && fs.existsSync(legacyDir)) {
     return legacyDir;
   }
-  return tersaDir;
+  return openClaudeDir;
 }
 
 function getProjectsDir() {

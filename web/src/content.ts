@@ -11,7 +11,7 @@ export const features = [
   },
   {
     title: 'profiles per repo',
-    body: 'save model, base url, auth, and runtime defaults to .openclaude-profile.json so every clone boots the same way.',
+    body: 'save model, base url, auth, and runtime defaults to .tersa-profile.json so every clone boots the same way.',
   },
   {
     title: 'streaming, not batch',
@@ -30,6 +30,6 @@ export const features = [
 export const navLinks = [
   { href: '#features', label: 'features' },
   { href: '#install', label: 'install' },
-  { href: 'https://github.com/Gitlawb/openclaude', label: 'github' },
-  { href: 'https://gitlawb.com/node/repos/z6MkqDnb/openclaude', label: 'gitlawb' },
+  { href: 'https://github.com/Gitlawb/tersa', label: 'github' },
+  { href: 'https://gitlawb.com/node/repos/z6MkqDnb/tersa', label: 'gitlawb' },
 ] as const

@@ -24,11 +24,15 @@ const INTERACTIVE_GATE_STEPS = [
   'bun run test:tersa:interactive',
 ] as const
 
+const LEGACY_OPEN_PRODUCT = ['open', 'claude'].join('')
+const LEGACY_SCOPED_PACKAGE = ['@gitlawb/', LEGACY_OPEN_PRODUCT].join('')
+
 const RELEASE_SURFACE_FORBIDDEN = [
-  'openclaude',
+  LEGACY_OPEN_PRODUCT,
+  ['open', 'claude'].join(' '),
   'browser connector',
   'chrome connector',
-  '@gitlawb/tersa',
+  LEGACY_SCOPED_PACKAGE,
 ] as const
 
 const DEFAULT_RELEASE_SURFACE_FILES = [
