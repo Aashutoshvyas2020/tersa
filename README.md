@@ -13,7 +13,7 @@ Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, A
 Tersa is also mirrored to GitLawb:
 [gitlawb.com/node/repos/z6MkqDnb/tersa](https://gitlawb.com/node/repos/z6MkqDnb/tersa)
 
-[Quick Start](#quick-start) | [Setup Guides](#setup-guides) | [Providers](#supported-providers) | [Tester Builds](docs/tester-builds.md) | [Comparison](docs/comparison.md) | [Source Build](#source-build-and-local-development) | [VS Code Extension](#vs-code-extension) | [Sponsors](#sponsors) | [Community](#community)
+[Quick Start](#quick-start) | [Setup Guides](#setup-guides) | [Providers](#supported-providers) | [Tester Builds](docs/tester-builds.md) | [Comparison](docs/comparison.md) | [Source Build](#source-build-and-local-development) | [Sponsors](#sponsors) | [Community](#community)
 
 ## Sponsors
 
@@ -58,7 +58,6 @@ Tersa is also mirrored to GitLawb:
 - Save provider profiles inside the app with `/provider`
 - Run with OpenAI-compatible services, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat, and other supported providers
 - Keep coding-agent workflows in one place: bash, file tools, grep, glob, agents, tasks, MCP, and web tools
-- Use the bundled VS Code extension for launch integration and theme support
 - Measure Tersa vs Codex CLI with a reproducible local benchmark harness under [`research/`](research/README.md)
 
 ## Quick Start
@@ -261,39 +260,6 @@ Free tier at [firecrawl.dev](https://firecrawl.dev) includes 500 credits. The ke
 
 ---
 
-## Headless gRPC Server
-
-Tersa can be run as a headless gRPC service, allowing you to integrate its agentic capabilities (tools, bash, file editing) into other applications, CI/CD pipelines, or custom user interfaces. The server uses bidirectional streaming to send real-time text chunks, tool calls, and request permissions for sensitive commands.
-
-### 1. Start the gRPC Server
-
-Start the core engine as a gRPC service on `localhost:50051`:
-
-```bash
-npm run dev:grpc
-```
-
-#### Configuration
-
-| Variable | Default | Description |
-|-----------|-------------|------------------------------------------------|
-| `GRPC_PORT` | `50051` | Port the gRPC server listens on |
-| `GRPC_HOST` | `localhost` | Bind address. Use `0.0.0.0` to expose on all interfaces (not recommended without authentication) |
-
-### 2. Run the Test CLI Client
-
-We provide a lightweight CLI client that communicates exclusively over gRPC. It acts just like the main interactive CLI, rendering colors, streaming tokens, and prompting you for tool permissions (y/n) via the gRPC `action_required` event.
-
-In a separate terminal, run:
-
-```bash
-npm run dev:grpc:cli
-```
-
-*Note: The gRPC definitions are located in `src/proto/tersa.proto`. You can use this file to generate clients in Python, Go, Rust, or any other language.*
-
----
-
 ## Source Build And Local Development
 
 ```bash
@@ -360,14 +326,8 @@ Coverage output is written to `coverage/lcov.info`, and Tersa also generates a g
 - `src/` - core CLI/runtime
 - `scripts/` - build, verification, and maintenance scripts
 - `docs/` - setup, contributor, and project documentation
-- `python/` - standalone Python helpers and their tests
-- `vscode-extension/tersa-vscode/` - VS Code extension
 - `.github/` - repo automation, templates, and CI configuration
 - `bin/` - CLI launcher entrypoints
-
-## VS Code Extension
-
-The repo includes a VS Code extension in [`vscode-extension/tersa-vscode`](vscode-extension/tersa-vscode) for Tersa launch integration, provider-aware control-center UI, and theme support.
 
 ## Security
 

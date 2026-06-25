@@ -21,7 +21,7 @@ Every PR needs a reason. Your PR description must include:
 - the user or developer impact
 - the exact checks you ran
 - a linked issue when one exists, using `Fixes #123`, `Closes #123`, or another clear link
-- screenshots when the PR touches UI, terminal presentation, or the VS Code extension
+- screenshots when the PR touches UI or terminal presentation
 - which provider path was tested when the PR changes provider behavior
 
 The PR author is responsible for ensuring their PR is merge-ready. PRs with merge conflicts will not be reviewed or approved until the conflicts are resolved.
@@ -159,23 +159,10 @@ Provider recommendation tests:
 bun run test:provider-recommendation
 ```
 
-Python tests:
-
-```bash
-python -m pytest -q python/tests
-```
-
 PR intent scan:
 
 ```bash
 bun run security:pr-scan
-```
-
-Web (if touching `web/`):
-
-```bash
-bun run web:typecheck
-bun run web:build
 ```
 
 PRs that fail CI checks will not be merged.
