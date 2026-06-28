@@ -16,14 +16,6 @@ import type { ModelStrings } from 'src/utils/model/modelStrings.js'
 import type { SettingSource } from 'src/utils/settings/constants.js'
 import { resetSettingsCache } from 'src/utils/settings/settingsCache.js'
 import type { PluginHookMatcher } from 'src/utils/settings/types.js'
-import {
-  createSessionCanaryState,
-  createSessionCanaryStreamState,
-  resetSessionCanaryState,
-  resetSessionCanaryStreamState,
-  type SessionCanaryState,
-  type SessionCanaryStreamState,
-} from 'src/utils/sessionCanary.js'
 import { createSignal } from 'src/utils/signal.js'
 
 // Union type for registered hooks - can be SDK callbacks or native plugin hooks
@@ -175,9 +167,6 @@ type State = {
     durationMs: number
     timestamp: number
   }>
-  // Session-drift canary state
-  sessionCanary: SessionCanaryState
-  sessionCanaryStream: SessionCanaryStreamState
   // SDK-provided betas (e.g., context-1m-2025-08-07)
   sdkBetas: string[] | undefined
   // Main thread agent type (from --agent flag or settings)
@@ -352,9 +341,6 @@ function getInitialState(): State {
     invokedSkills: new Map(),
     // Track slow operations for dev bar display
     slowOperations: [],
-    // Session-drift canary state
-    sessionCanary: createSessionCanaryState(),
-    sessionCanaryStream: createSessionCanaryStreamState(),
     // SDK-provided betas
     sdkBetas: undefined,
     // Main thread agent type
@@ -415,8 +401,6 @@ type SdkContext = {
   cwd: string
   originalCwd: string
   parentSessionId?: SessionId
-  sessionCanary?: SessionCanaryState
-  sessionCanaryStream?: SessionCanaryStreamState
 }
 
 import { AsyncLocalStorage } from 'async_hooks'
@@ -438,26 +422,6 @@ export function runWithSdkContext<T>(context: SdkContext, fn: () => T): T {
 
 function getSdkContext(): SdkContext | undefined {
   return sdkContextStorage.getStore()
-}
-
-function getMutableSessionCanaryState(
-  ctx: SdkContext | undefined,
-): SessionCanaryState {
-  if (!ctx) {
-    return STATE.sessionCanary
-  }
-  ctx.sessionCanary ??= createSessionCanaryState()
-  return ctx.sessionCanary
-}
-
-function getMutableSessionCanaryStreamState(
-  ctx: SdkContext | undefined,
-): SessionCanaryStreamState {
-  if (!ctx) {
-    return STATE.sessionCanaryStream
-  }
-  ctx.sessionCanaryStream ??= createSessionCanaryStreamState()
-  return ctx.sessionCanaryStream
 }
 
 export function getSessionId(): SessionId {
@@ -491,8 +455,6 @@ export function regenerateSessionId(
     STATE.sessionId = newId
     STATE.sessionProjectDir = null
   }
-  resetSessionCanaryState(getMutableSessionCanaryState(ctx))
-  resetSessionCanaryStreamState(getMutableSessionCanaryStreamState(ctx))
   return newId
 }
 
@@ -533,8 +495,6 @@ export function switchSession(
     STATE.sessionId = sessionId
     STATE.sessionProjectDir = projectDir
   }
-  resetSessionCanaryState(getMutableSessionCanaryState(ctx))
-  resetSessionCanaryStreamState(getMutableSessionCanaryStreamState(ctx))
   sessionSwitched.emit(sessionId)
 }
 
@@ -1584,55 +1544,6 @@ export function setSystemPromptSectionCacheEntry(
 
 export function clearSystemPromptSectionState(): void {
   STATE.systemPromptSectionCache.clear()
-}
-
-export function getSessionCanaryState(): SessionCanaryState {
-  const ctx = getSdkContext()
-  return getMutableSessionCanaryState(ctx)
-}
-
-export function setSessionCanaryState(state: SessionCanaryState): void {
-  const ctx = getSdkContext()
-  if (ctx) {
-    ctx.sessionCanary = state
-  } else {
-    STATE.sessionCanary = state
-  }
-}
-
-export function resetSessionCanaryStateForSession(
-  options: { enabled?: boolean } = {},
-): SessionCanaryState {
-  const current = getSessionCanaryState()
-  const next = resetSessionCanaryState(
-    current,
-    options.enabled ?? current.enabled,
-  )
-  setSessionCanaryState(next)
-  return next
-}
-
-export function getSessionCanaryStreamState(): SessionCanaryStreamState {
-  const ctx = getSdkContext()
-  return getMutableSessionCanaryStreamState(ctx)
-}
-
-export function setSessionCanaryStreamState(
-  state: SessionCanaryStreamState,
-): void {
-  const ctx = getSdkContext()
-  if (ctx) {
-    ctx.sessionCanaryStream = state
-  } else {
-    STATE.sessionCanaryStream = state
-  }
-}
-
-export function resetSessionCanaryStreamStateForSession(): SessionCanaryStreamState {
-  const current = getSessionCanaryStreamState()
-  const next = resetSessionCanaryStreamState(current)
-  setSessionCanaryStreamState(next)
-  return next
 }
 
 // Last emitted date accessors (for detecting midnight date changes)

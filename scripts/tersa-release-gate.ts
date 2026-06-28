@@ -26,12 +26,14 @@ const INTERACTIVE_GATE_STEPS = [
 
 const LEGACY_OPEN_PRODUCT = ['open', 'claude'].join('')
 const LEGACY_SCOPED_PACKAGE = ['@gitlawb/', LEGACY_OPEN_PRODUCT].join('')
+const REMOVED_DRIFT_WARNING = String.fromCharCode(115, 101, 115, 115, 105, 111, 110, 32, 100, 114, 105, 102, 116, 32, 100, 101, 116, 101, 99, 116, 101, 100)
 
 const RELEASE_SURFACE_FORBIDDEN = [
   LEGACY_OPEN_PRODUCT,
   ['open', 'claude'].join(' '),
   'browser connector',
   'chrome connector',
+  REMOVED_DRIFT_WARNING,
   LEGACY_SCOPED_PACKAGE,
 ] as const
 
