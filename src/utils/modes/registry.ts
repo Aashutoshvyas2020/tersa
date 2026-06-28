@@ -3,6 +3,7 @@ import type {
   ResolvedTersaMode,
   TersaModeId,
   TersaModeIntensity,
+  TersaPromptModeId,
 } from './types.js'
 
 type PromptSpec = {
@@ -13,14 +14,21 @@ type PromptSpec = {
   'wenyan-full': string
 }
 
-type ModeDefinition = {
+export type ModeDefinition = {
   id: TersaModeId
   label: string
   description: string
-  prompt: PromptSpec
+  kind?: 'prompt' | 'runtime'
+  prompt?: PromptSpec
 }
 
 const MODE_DEFINITIONS: Record<TersaModeId, ModeDefinition> = {
+  cave: {
+    id: 'cave',
+    label: 'Cave Mode',
+    description: 'Reduce context usage during repository work.',
+    kind: 'runtime',
+  },
   karpathy: {
     id: 'karpathy',
     label: 'Karpathy Mode',
@@ -109,10 +117,20 @@ export function listModeDefinitions(): ModeDefinition[] {
   return Object.values(MODE_DEFINITIONS)
 }
 
+export function listPromptModeDefinitions(): Array<
+  ModeDefinition & { id: TersaPromptModeId; prompt: PromptSpec }
+> {
+  return listModeDefinitions().filter(definition => definition.prompt) as Array<
+    ModeDefinition & { id: TersaPromptModeId; prompt: PromptSpec }
+  >
+}
+
 export function renderModePrompt(mode: ResolvedTersaMode): string {
   const definition = MODE_DEFINITIONS[mode.id]
+  const prompt = definition.prompt
+  if (!prompt) return ''
   return compileModePrompt(
-    definition.prompt[mode.intensity] ?? definition.prompt.full,
+    prompt[mode.intensity] ?? prompt.full,
     mode.intensity,
   )
 }

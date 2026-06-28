@@ -1,9 +1,11 @@
-export type TersaModeId =
+export type TersaPromptModeId =
   | 'karpathy'
   | 'superpowers'
   | 'gsd'
   | 'designer'
   | 'efficiency'
+
+export type TersaModeId = 'cave' | TersaPromptModeId
 
 export type TersaModeIntensity =
   | 'lite'
@@ -28,7 +30,7 @@ export type TersaModesSettings = {
 }
 
 export type ResolvedTersaMode = {
-  id: TersaModeId
+  id: TersaPromptModeId
   label: string
   description: string
   enabled: boolean
@@ -37,5 +39,5 @@ export type ResolvedTersaMode = {
 
 export type ResolvedTersaModesConfig = {
   profile: TersaModeProfile
-  modes: Record<TersaModeId, ResolvedTersaMode>
+  modes: Record<TersaPromptModeId, ResolvedTersaMode>
 }

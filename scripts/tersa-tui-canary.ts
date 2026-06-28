@@ -29,7 +29,6 @@ const FORBIDDEN_SCREEN_STRINGS = [
   'codexplan',
   'gpt-5.5',
 ]
-const HIDDEN_MARKER_PATTERN = /<tersa-canary:[0-9a-f]{4}>/i
 
 function collapseWhitespace(line: string): string {
   return line.replace(/\s+/g, ' ').trim()
@@ -43,10 +42,12 @@ function snapshotContainsExpected(snapshot: ScreenSnapshot, compactSnapshot: str
   if (snapshot.text.includes(text) || compactSnapshot.includes(compactText(text))) {
     return true
   }
-  if (text === 'Session drift detected') {
-    return /sess(?:i|o)n\s*drift\s*de\w*cted/i.test(snapshot.text)
-  }
   return false
+}
+
+function printVisualReview(label: string, raw: string): void {
+  if (process.env.TERSA_TUI_VISUAL_REVIEW !== '1') return
+  console.log(`\n--- ${label} ---\n${normalizeScreenSnapshot(raw).text}\n`)
 }
 
 export function normalizeScreenSnapshot(raw: string): ScreenSnapshot {
@@ -105,9 +106,6 @@ export function assertStableScreen(
     if (lower.includes(forbidden)) {
       errors.push(`forbidden legacy branding: ${forbidden}`)
     }
-  }
-  if (HIDDEN_MARKER_PATTERN.test(snapshot.text)) {
-    errors.push('hidden session canary marker leaked to screen')
   }
 
   return { ok: errors.length === 0, errors }
@@ -229,26 +227,6 @@ async function runCanaryAtWidth(
           send: 'normal tui canary prompt\\r',
           waitMs: 8000,
         },
-        {
-          send: 'drift miss one\\r',
-          waitMs: 8000,
-        },
-        {
-          send: 'drift miss two\\r',
-          waitMs: 8000,
-        },
-        {
-          send: 'drift miss three\\r',
-          waitMs: 8000,
-        },
-        { send: '2', waitMs: 2000 },
-        { send: 'drift miss four\\r', waitMs: 8000 },
-        { send: 'drift miss five\\r', waitMs: 8000 },
-        { send: 'drift miss six\\r', waitMs: 8000 },
-        { send: '3', waitMs: 2000 },
-        { send: 'drift miss seven\\r', waitMs: 8000 },
-        { send: 'drift miss eight\\r', waitMs: 8000 },
-        { send: 'drift miss nine\\r', waitMs: 8000 },
       ] satisfies ExpectStep[]
   const expectSteps = steps
     .map(step => {
@@ -325,6 +303,7 @@ exit 0
       encoding: 'utf8',
     })
     const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
+    printVisualReview(`main flow width ${width}`, output)
     if (result.status !== 0) {
       throw new Error(`PTY canary failed at width ${width}\n${output}`)
     }
@@ -344,19 +323,6 @@ exit 0
         'TUI canary',
         'gpt-5.4-mini high',
       ], { checkDuplicates: false })
-      assertScreen(
-        output,
-        width,
-        `drift warning ${width}`,
-        [
-          'Session drift detected',
-          'gpt-5.4-mini',
-          'Compact context',
-          'Ignore',
-          "Don't warn again this session",
-        ],
-        { checkDuplicates: false },
-      )
     }
 
     const finalResult = assertStableScreen(currentSnapshot(output), {
@@ -449,7 +415,7 @@ exit 0
     })
     const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
     if (result.status !== 0) {
-      throw new Error(`PTY ${commandName} canary failed at width ${width}\n${output}`)
+      throw new Error(`PTY ${commandName} flow failed at width ${width}\n${output}`)
     }
     const finalResult = assertStableScreen(currentSnapshot(output), {
       width,

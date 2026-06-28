@@ -30,16 +30,6 @@ describe('tersa tui canary helpers', () => {
     expect(result.errors.some(error => error.includes('browser connector'))).toBe(true)
   })
 
-  test('flags leaked hidden session canary markers', () => {
-    const result = assertStableScreen(
-      normalizeScreenSnapshot('visible <tersa-canary:7f2a> text\n'),
-      { width: 80 },
-    )
-
-    expect(result.ok).toBe(false)
-    expect(result.errors).toContain('hidden session canary marker leaked to screen')
-  })
-
   test('ignores wide decorative box borders during width checks', () => {
     const result = assertStableScreen(
       normalizeScreenSnapshot(

@@ -2,8 +2,29 @@ import { describe, expect, test } from 'bun:test'
 import {
   builtInCommandNames,
   formatDescriptionWithSource,
+  isSlashVisibleCommand,
 } from './commands.js'
 import { isCommand } from './types/command.js'
+
+describe('command namespaces', () => {
+  test('slash autocomplete contains application commands only', () => {
+    const prompt = {
+      type: 'prompt',
+      name: 'review',
+      description: 'review',
+      source: 'builtin',
+      userInvocable: false,
+    } as any
+    const local = {
+      type: 'local',
+      name: 'help',
+      description: 'help',
+    } as any
+
+    expect(isSlashVisibleCommand(prompt)).toBe(false)
+    expect(isSlashVisibleCommand(local)).toBe(true)
+  })
+})
 
 describe('builtInCommandNames', () => {
   test('includes the request-size diagnostic command', () => {
