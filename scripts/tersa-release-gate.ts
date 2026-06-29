@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, resolve, relative } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { ponytailAuditReport } from './tersa-ponytail-audit.js'
 
 export const RELEASE_GATE_STEPS = [
   'bun run build',
@@ -117,9 +118,21 @@ if (import.meta.main) {
   const tier = (process.argv[2] ?? 'release') as 'dev' | 'interactive' | 'release' | 'audit'
   if (tier === 'audit') {
     const result = auditReleaseSurfaces()
-    if (result.ok) {
-      console.log('PASS: release surfaces are clean')
+    console.log(JSON.stringify({
+      scannedFiles: ponytailAuditReport.scannedFiles,
+      unusedDependencies: ponytailAuditReport.unusedDependencies,
+      cleanupGroups: ponytailAuditReport.groupAudits.length,
+      cleanupComplete: ponytailAuditReport.groupAudits.every(
+        group => group.cleanupComplete,
+      ),
+      unexpectedOrphans: ponytailAuditReport.unexpected,
+    }, null, 2))
+    if (result.ok && ponytailAuditReport.safeToProceed) {
+      console.log('PASS: release surfaces and repository weight are clean')
       process.exit(0)
+    }
+    if (!ponytailAuditReport.safeToProceed) {
+      result.issues.push('Ponytail repository audit failed')
     }
     console.error(`FAIL: forbidden release surface strings: ${result.violations.join(', ')}`)
     process.exit(1)

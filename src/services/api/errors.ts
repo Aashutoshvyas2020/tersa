@@ -67,6 +67,45 @@ function stripOpenAICompatibilityMetadata(message: string): string {
     .trim()
 }
 
+function formatQuotaDuration(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.round(totalSeconds))
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`
+  if (hours > 0) return `${hours}h`
+  if (minutes > 0) return `${minutes}m`
+  return `${seconds}s`
+}
+
+export function formatProviderQuotaMessage(
+  rawMessage: string,
+  provider: string,
+  nowMs = Date.now(),
+): string {
+  const planMatch = rawMessage.match(/"plan_(?:type|name)"\s*:\s*"([^"]+)"/i)
+  const resetAfterMatch = rawMessage.match(/"reset_after_seconds"\s*:\s*(\d+(?:\.\d+)?)/i)
+  const resetAtMatch = rawMessage.match(/"resets?_at"\s*:\s*(\d+(?:\.\d+)?)/i)
+  const resetSeconds = resetAfterMatch
+    ? Number(resetAfterMatch[1])
+    : resetAtMatch
+      ? Math.max(0, Number(resetAtMatch[1]) - nowMs / 1000)
+      : undefined
+  const plan = planMatch?.[1]
+    ? planMatch[1][0]!.toUpperCase() + planMatch[1].slice(1)
+    : undefined
+
+  return [
+    'Usage limit reached',
+    resetSeconds !== undefined
+      ? `Resets in ${formatQuotaDuration(resetSeconds)}`
+      : undefined,
+    `Provider: ${provider}`,
+    plan ? `Plan: ${plan}` : undefined,
+  ]
+    .filter((line): line is string => Boolean(line))
+    .join('\n')
+}
+
 function mapOpenAICompatibilityFailureToAssistantMessage(options: {
   category: OpenAICompatibilityFailureCategory
   model: string
@@ -112,6 +151,15 @@ function mapOpenAICompatibilityFailureToAssistantMessage(options: {
     case 'rate_limited':
       return createAssistantAPIErrorMessage({
         content: `${API_ERROR_MESSAGE_PREFIX}: Provider rate limit reached. Retry in a few seconds.`,
+        error: 'rate_limit',
+      })
+
+    case 'quota':
+      return createAssistantAPIErrorMessage({
+        content: formatProviderQuotaMessage(
+          options.rawMessage,
+          getAPIProvider() === 'codex' ? 'Codex' : 'OpenAI-compatible provider',
+        ),
         error: 'rate_limit',
       })
 
@@ -816,16 +864,7 @@ export function getAssistantMessageFromError(
       }
     }
 
-    if (process.env.USER_TYPE === 'ant') {
-      const baseMessage = `API Error: 400 ${error.message}\n\nRun /share and post the JSON file to ${MACRO.FEEDBACK_CHANNEL}.`
-      const rewindInstruction = getIsNonInteractiveSession()
-        ? ''
-        : ' Then, use /rewind to recover the conversation.'
-      return createAssistantAPIErrorMessage({
-        content: baseMessage + rewindInstruction,
-        error: 'invalid_request',
-      })
-    } else {
+    {
       const baseMessage = 'API Error: 400 due to tool use concurrency issues.'
       const rewindInstruction = getIsNonInteractiveSession()
         ? ''

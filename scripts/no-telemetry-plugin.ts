@@ -52,13 +52,6 @@ export function classifyFetchError() { return 'disabled'; }
 export async function submitTranscriptShare() { return { success: false }; }
 `,
 
-	// ─── Internal employee logging (not needed in the external build) ─────
-
-	'services/internalLogging': `
-export async function logPermissionContextForAnts() {}
-export const getContainerId = async () => null;
-`,
-
 	// ─── Deleted Anthropic-internal modules ───────────────────────────────
 
 	'services/api/dumpPrompts': `
