@@ -5,6 +5,7 @@ export type OpenAICompatibilityFailureCategory =
   | 'network_error'
   | 'auth_invalid'
   | 'rate_limited'
+  | 'quota'
   | 'model_not_found'
   | 'endpoint_not_found'
   | 'context_overflow'
@@ -36,6 +37,7 @@ const OPENAI_COMPATIBILITY_FAILURE_CATEGORIES: ReadonlySet<OpenAICompatibilityFa
     'network_error',
     'auth_invalid',
     'rate_limited',
+    'quota',
     'model_not_found',
     'endpoint_not_found',
     'context_overflow',
@@ -137,6 +139,17 @@ function isMalformedProviderResponse(body: string): boolean {
     lower.includes('unexpected token') ||
     lower.includes('cannot parse') ||
     lower.includes('not valid json')
+  )
+}
+
+function isHardQuotaMessage(body: string): boolean {
+  const lower = body.toLowerCase()
+  return (
+    lower.includes('usage_limit_reached') ||
+    lower.includes('usage limit reached') ||
+    lower.includes('insufficient_quota') ||
+    lower.includes('plan limit reached') ||
+    lower.includes('quota exceeded')
   )
 }
 
@@ -292,13 +305,16 @@ export function classifyOpenAIHttpFailure(options: {
   }
 
   if (options.status === 429) {
+    const hardQuota = isHardQuotaMessage(body)
     return {
       source: 'http',
-      category: 'rate_limited',
-      retryable: true,
+      category: hardQuota ? 'quota' : 'rate_limited',
+      retryable: !hardQuota,
       status: options.status,
       message: body,
-      hint: 'Provider rate-limited the request. Retry after backoff.',
+      hint: hardQuota
+        ? 'Provider plan quota is exhausted. Wait for the reset; retries will not help.'
+        : 'Provider rate-limited the request. Retry after backoff.',
     }
   }
 

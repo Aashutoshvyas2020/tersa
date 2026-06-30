@@ -55,9 +55,7 @@ import {
   createToolUseSummaryMessage,
   createMicrocompactBoundaryMessage,
 } from './utils/messages.js'
-import { sanitizeSessionCanaryAssistantMessage } from './utils/sessionCanary.js'
 import { analyzeContinuationIntent } from './utils/continuation.js'
-import { getSessionCanaryState } from './bootstrap/state.js'
 import { generateToolUseSummary } from './services/toolUseSummary/toolUseSummaryGenerator.js'
 import { prependUserContext, appendSystemContext } from './utils/api.js'
 import {
@@ -201,24 +199,11 @@ function shouldUseTuiCanaryFixture(): boolean {
 }
 
 function createTuiCanaryFixtureMessage(
-  messages: Message[],
-  querySource: QuerySource,
+  _messages: Message[],
+  _querySource: QuerySource,
 ): Message {
-  const marker = getSessionCanaryState().marker
-  const prompt = getLastUserText(messages).toLowerCase()
-  const driftMatches = [
-    ...prompt.matchAll(/drift miss (one|two|three|four|five|six|seven|eight|nine)/g),
-  ]
-  const driftMatch = driftMatches[driftMatches.length - 1]
-  const visibleResponse = 'TUI canary normal-response from gpt-5.4-mini high.'
-  const includeMarker = querySource.startsWith('repl_main_thread')
-  const response =
-    driftMatch
-      ? `TUI canary drift-${driftMatch[1]} response from gpt-5.4-mini high.`
-      : `${includeMarker ? marker : ''}${visibleResponse}`
-
   return createAssistantMessage({
-    content: response,
+    content: 'TUI canary normal-response from gpt-5.4-mini high.',
     usage: {
       input_tokens: 12,
       output_tokens: 8,
@@ -1057,12 +1042,7 @@ async function* queryLoop(
               yield yieldMessage
             }
             if (message.type === 'assistant') {
-              assistantMessages.push(
-                sanitizeSessionCanaryAssistantMessage(
-                  message,
-                  getSessionCanaryState().marker,
-                ).message,
-              )
+              assistantMessages.push(message)
 
               const msgToolUseBlocks = message.message.content.filter(
                 content => content.type === 'tool_use',

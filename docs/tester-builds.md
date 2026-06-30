@@ -1,5 +1,15 @@
 # Tester Builds
 
+## Certified tester scope
+
+```text
+Tersa for macOS arm64
+Verified with Codex OAuth
+Other providers included but not release-certified
+```
+
+This build is for controlled external testing. It does not certify Intel macOS, Windows, Linux, or non-Codex authentication routes.
+
 Tester builds ship as an npm tarball generated with `npm pack`.
 
 ## Build The Tester Artifact
@@ -52,9 +62,9 @@ Current quarantine list:
 
 - None.
 
-## Public NPM Publish
+## Public NPM Publish (deferred)
 
-Run the local package gate first:
+Public publication is outside the controlled tester release gate. Before any later public publish, run the local package gate first:
 
 ```bash
 bun run typecheck:tersa:baseline
@@ -119,8 +129,6 @@ menu flow:
 - `/permissions`
 - `/status`
 - normal prompt submission
-- session drift warning: two misses stay quiet, third miss warns, Ignore and
-  session suppression actions close the dialog correctly
 
 Packaged verification runs the faster startup-only canary against the installed
 `tersa` binary so tester packaging is not blocked by the full experimental flow:
@@ -138,10 +146,11 @@ Default scripted profile:
 
 ## Known Limits
 
-- Real provider credentials are still required for full interactive testing.
-- Some usage and token counters remain estimated on certain providers.
-- The PTY canary validates `gpt-5.4-mini` with `high` effort only.
-- The full-flow PTY canary is experimental and manual; packaging runs
-  startup-only canary coverage by default.
-- The tester package is verified only on environments explicitly listed in the
-  generated handoff README.
+- Codex OAuth is the only release-certified provider route in this pass.
+- Other providers remain available but are not authentication- or interaction-certified.
+- macOS arm64 is the only certified platform; Intel macOS, Windows, and Linux are outside this release matrix.
+- Real Codex OAuth credentials are required for the final acceptance flow.
+- Some usage and token counters remain estimated where the provider does not return exact usage.
+- The deterministic PTY harness validates `gpt-5.4-mini` with `high` effort only; real Codex OAuth acceptance is a separate gate.
+- The full-flow PTY harness is experimental and manual; packaging runs startup-only coverage by default.
+- The tester package is verified only on environments explicitly listed in the generated handoff README.

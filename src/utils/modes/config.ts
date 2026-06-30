@@ -2,17 +2,17 @@ import { getInitialSettings } from '../settings/settings.js'
 import type {
   ResolvedTersaMode,
   ResolvedTersaModesConfig,
-  TersaModeId,
   TersaModeIntensity,
+  TersaPromptModeId,
   TersaModeProfile,
   TersaModesSettings,
 } from './types.js'
-import { getModeDefinition, listModeDefinitions, renderModePrompt } from './registry.js'
+import { getModeDefinition, listPromptModeDefinitions, renderModePrompt } from './registry.js'
 
 const DEFAULT_PROFILE: TersaModeProfile = 'minimal'
 const DEFAULT_INTENSITY: TersaModeIntensity = 'full'
 
-const DEFAULT_ENABLED: Record<TersaModeProfile, Record<TersaModeId, boolean>> = {
+const DEFAULT_ENABLED: Record<TersaModeProfile, Record<TersaPromptModeId, boolean>> = {
   minimal: {
     karpathy: true,
     superpowers: false,
@@ -39,7 +39,7 @@ const DEFAULT_ENABLED: Record<TersaModeProfile, Record<TersaModeId, boolean>> = 
 function resolveMode(
   profile: TersaModeProfile,
   settings: TersaModesSettings | undefined,
-  id: TersaModeId,
+  id: TersaPromptModeId,
 ): ResolvedTersaMode {
   const definition = getModeDefinition(id)
   const modeSettings = settings?.[id]
@@ -74,7 +74,7 @@ export function getTersaModePromptSection(
   settings?: TersaModesSettings | null,
 ): string | null {
   const config = getTersaModesConfig(settings ?? undefined)
-  const enabledModes = listModeDefinitions()
+  const enabledModes = listPromptModeDefinitions()
     .map(definition => config.modes[definition.id])
     .filter(mode => mode.enabled)
 

@@ -195,6 +195,7 @@ export function isDollarInvocableCommand(cmd: Command): boolean {
 }
 
 export function isSlashVisibleCommand(cmd: Command): boolean {
+  if (cmd.type === 'prompt') return false
   return !isDollarInvocableCommand(cmd)
 }
 

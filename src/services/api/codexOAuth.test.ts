@@ -200,6 +200,35 @@ afterEach(() => {
   restoreCodexOAuthTestIsolation()
 })
 
+test('reports a readable callback-port conflict', async () => {
+  await acquireCodexOAuthTestIsolation()
+
+  try {
+    const service = new CodexOAuthService({
+      callbackPort: 1455,
+      callbackHost: '127.0.0.1',
+      createAuthCodeListener: () => ({
+        start: async () => {
+          const error = new Error('listen EADDRINUSE: address already in use 127.0.0.1:1455')
+          ;(error as NodeJS.ErrnoException).code = 'EADDRINUSE'
+          throw error
+        },
+        hasPendingResponse: () => false,
+        waitForAuthorization: async () => '',
+        handleSuccessRedirect: () => {},
+        handleErrorRedirect: () => {},
+        cancelPendingAuthorization: () => {},
+      }),
+    })
+
+    await expect(service.startOAuthFlow(async () => {})).rejects.toThrow(
+      'Codex OAuth needs 127.0.0.1:1455 for its callback',
+    )
+  } finally {
+    restoreCodexOAuthTestIsolation()
+  }
+})
+
 test('serves updated success copy after a successful Codex OAuth flow', async () => {
   await acquireCodexOAuthTestIsolation()
 
@@ -217,12 +246,12 @@ test('serves updated success copy after a successful Codex OAuth flow', async ()
           headers: { 'Content-Type': 'application/json' },
         },
       )
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     const service = new CodexOAuthService({
       callbackPort: 0,
       callbackHost: '127.0.0.1',
-      createAuthCodeListener: createFakeAuthCodeListener,
+      createAuthCodeListener: createFakeAuthCodeListener as never,
     })
 
     let capturedAuthUrl = ''
@@ -284,12 +313,12 @@ test('cancellation during token exchange returns a cancelled page and rejects th
           { once: true },
         )
       })
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     const service = new CodexOAuthService({
       callbackPort: 0,
       callbackHost: '127.0.0.1',
-      createAuthCodeListener: createFakeAuthCodeListener,
+      createAuthCodeListener: createFakeAuthCodeListener as never,
     })
 
     const flowPromise = service.startOAuthFlow(async () => {})

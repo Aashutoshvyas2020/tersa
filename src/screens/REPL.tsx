@@ -29,7 +29,7 @@ import { startPreventSleep, stopPreventSleep } from '../services/preventSleep.js
 import { useTerminalNotification } from '../ink/useTerminalNotification.js';
 import { hasCursorUpViewportYankBug } from '../ink/terminal.js';
 import { createFileStateCacheWithSizeLimit, mergeFileStateCaches, READ_FILE_STATE_CACHE_SIZE } from '../utils/fileStateCache.js';
-import { updateLastInteractionTime, getLastInteractionTime, getOriginalCwd, getProjectRoot, getSessionId, switchSession, setCostStateForRestore, getTurnHookDurationMs, getTurnHookCount, resetTurnHookDuration, getTurnToolDurationMs, getTurnToolCount, resetTurnToolDuration, getTurnClassifierDurationMs, getTurnClassifierCount, resetTurnClassifierDuration, setMainLoopModelOverride, setMainThreadAgentType, getSessionCanaryState, setSessionCanaryState } from '../bootstrap/state.js';
+import { updateLastInteractionTime, getLastInteractionTime, getOriginalCwd, getProjectRoot, getSessionId, switchSession, setCostStateForRestore, getTurnHookDurationMs, getTurnHookCount, resetTurnHookDuration, getTurnToolDurationMs, getTurnToolCount, resetTurnToolDuration, getTurnClassifierDurationMs, getTurnClassifierCount, resetTurnClassifierDuration, setMainLoopModelOverride, setMainThreadAgentType } from '../bootstrap/state.js';
 import { asSessionId, asAgentId } from '../types/ids.js';
 import { logForDebugging } from '../utils/debug.js';
 import { QueryGuard } from '../utils/QueryGuard.js';
@@ -65,7 +65,6 @@ import { useSSHSession } from '../hooks/useSSHSession.js';
 import { useAssistantHistory } from '../hooks/useAssistantHistory.js';
 import type { SSHSession } from '../ssh/createSSHSession.js';
 import { SkillImprovementSurvey } from '../components/SkillImprovementSurvey.js';
-import { SessionDriftWarningDialog } from '../components/SessionDriftWarningDialog.js';
 import { useSkillImprovementSurvey } from '../hooks/useSkillImprovementSurvey.js';
 import { useMoreRight } from '../moreright/useMoreRight.js';
 import { SpinnerWithVerb, BriefIdleStatus, type SpinnerMode } from '../components/Spinner.js';
@@ -73,10 +72,6 @@ import { getSystemPrompt } from '../constants/prompts.js';
 import { buildEffectiveSystemPrompt } from '../utils/systemPrompt.js';
 import { getSystemContext, getUserContext } from '../context.js';
 import { getMemoryFiles } from '../utils/instructionFiles.js';
-import {
-  resetSessionCanaryMissStreak,
-  suppressSessionCanaryWarningsForSession,
-} from '../utils/sessionCanary.js';
 import { startBackgroundHousekeeping } from '../utils/backgroundHousekeeping.js';
 import { getTotalCost, saveCurrentSessionCosts, resetCostState, getStoredSessionCosts } from '../cost-tracker.js';
 import { useCostSummary } from '../costHook.js';
@@ -653,74 +648,7 @@ export function REPL({
   const ultraplanPendingChoice = useAppState(s => s.ultraplanPendingChoice);
   const ultraplanLaunchPending = useAppState(s => s.ultraplanLaunchPending);
   const viewingAgentTaskId = useAppState(s => s.viewingAgentTaskId);
-  const sessionDriftWarning = useAppState(s => s.sessionDriftWarning);
-  const sessionDriftWarningsEnabled = useAppState(s => s.settings.sessionDriftWarnings ?? true);
   const setAppState = useSetAppState();
-  const showSessionDriftWarning = useCallback(() => {
-    const canaryState = getSessionCanaryState()
-    setAppState(prev =>
-      prev.sessionDriftWarning
-        ? prev
-        : {
-            ...prev,
-            sessionDriftWarning: {
-              consecutiveMisses: canaryState.consecutiveMisses,
-            },
-          },
-    )
-  }, [setAppState])
-  const clearSessionDriftWarning = useCallback(() => {
-    setAppState(prev =>
-      prev.sessionDriftWarning
-        ? {
-            ...prev,
-            sessionDriftWarning: null,
-          }
-        : prev,
-    )
-  }, [setAppState])
-  const handleSessionDriftCompact = useCallback(async () => {
-    try {
-      await onSubmitRef.current('/compact', {
-        setCursorOffset: () => {},
-        clearBuffer: () => {},
-        resetHistory: () => {},
-      })
-      if (getSessionCanaryState().consecutiveMisses === 0) {
-        clearSessionDriftWarning()
-      }
-    } catch (error) {
-      logError(error)
-    }
-  }, [clearSessionDriftWarning])
-  const handleIgnoreSessionDriftWarning = useCallback(() => {
-    resetSessionCanaryMissStreak(getSessionCanaryState())
-    clearSessionDriftWarning()
-  }, [clearSessionDriftWarning])
-  const handleSuppressSessionDriftWarning = useCallback(() => {
-    suppressSessionCanaryWarningsForSession(getSessionCanaryState())
-    clearSessionDriftWarning()
-  }, [clearSessionDriftWarning])
-  useEffect(() => {
-    const state = getSessionCanaryState()
-    if (state.enabled === sessionDriftWarningsEnabled) {
-      return
-    }
-    setSessionCanaryState({
-      ...state,
-      enabled: sessionDriftWarningsEnabled,
-      consecutiveMisses: 0,
-      lastResult: null,
-      suppressedForSession: false,
-    })
-    if (!sessionDriftWarningsEnabled) {
-      clearSessionDriftWarning()
-    }
-  }, [clearSessionDriftWarning, sessionDriftWarningsEnabled])
-  const sessionCanaryMarker = getSessionCanaryState().marker
-  useEffect(() => {
-    clearSessionDriftWarning()
-  }, [clearSessionDriftWarning, sessionCanaryMarker])
   const autoCompactTrackingBySessionRef = useRef(new Map<ReturnType<typeof getSessionId>, AutoCompactTrackingState>());
   const getAutoCompactTrackingForSession = useCallback((sessionId: ReturnType<typeof getSessionId>) => autoCompactTrackingBySessionRef.current.get(sessionId), []);
   const setAutoCompactTrackingForSession = useCallback((sessionId: ReturnType<typeof getSessionId>, tracking: AutoCompactTrackingState | undefined) => {
@@ -2177,7 +2105,7 @@ export function REPL({
   // Permission and interactive dialogs can show even when toolJSX is set,
   // as long as shouldContinueAnimation is true. This prevents deadlocks when
   // agents set background hints while waiting for user interaction.
-  function getFocusedInputDialog(): 'message-selector' | 'sandbox-permission' | 'tool-permission' | 'prompt' | 'worker-sandbox-permission' | 'elicitation' | 'cost' | 'idle-return' | 'init-onboarding' | 'ide-onboarding' | 'model-switch' | 'undercover-callout' | 'effort-callout' | 'remote-callout' | 'lsp-recommendation' | 'plugin-hint' | 'desktop-upsell' | 'ultraplan-choice' | 'ultraplan-launch' | 'session-drift-warning' | undefined {
+  function getFocusedInputDialog(): 'message-selector' | 'sandbox-permission' | 'tool-permission' | 'prompt' | 'worker-sandbox-permission' | 'elicitation' | 'cost' | 'idle-return' | 'init-onboarding' | 'ide-onboarding' | 'model-switch' | 'undercover-callout' | 'effort-callout' | 'remote-callout' | 'lsp-recommendation' | 'plugin-hint' | 'desktop-upsell' | 'ultraplan-choice' | 'ultraplan-launch' | undefined {
     // Exit states always take precedence
     if (isExiting || exitFlow) return undefined;
 
@@ -2196,7 +2124,6 @@ export function REPL({
     });
     if (criticalDialog) return criticalDialog;
 
-    if (allowDialogsWithAnimation && sessionDriftWarning) return 'session-drift-warning';
     // Suppress lower-priority interrupt dialogs while user is actively typing
     if (promptTypingSuppressionActive) return undefined;
     if (allowDialogsWithAnimation && idleReturnPending) return 'idle-return';
@@ -2852,8 +2779,8 @@ export function REPL({
         responseLengthBaseline: baseline,
         endResponseLength: baseline
       });
-    }, onStreamingText, showSessionDriftWarning);
-  }, [setMessages, setResponseLength, setStreamMode, setStreamingToolUses, setStreamingThinking, onStreamingText, showSessionDriftWarning]);
+    }, onStreamingText);
+  }, [setMessages, setResponseLength, setStreamMode, setStreamingToolUses, setStreamingThinking, onStreamingText]);
   const onQueryImpl = useCallback(async (messagesIncludingNewMessages: MessageType[], newMessages: MessageType[], abortController: AbortController, shouldQuery: boolean, additionalAllowedTools: string[], mainLoopModelParam: string, effort?: EffortValue) => {
     // Prepare IDE integration for new prompt. Read mcpClients fresh from
     // store — useManageMCPConnections may have populated it since the
@@ -5014,7 +4941,6 @@ export function REPL({
               resetHistory: () => { }
             });
           }} />}
-          {focusedInputDialog === 'session-drift-warning' && sessionDriftWarning && <SessionDriftWarningDialog modelLabel={mainLoopModel} consecutiveMisses={sessionDriftWarning.consecutiveMisses} onCompact={handleSessionDriftCompact} onIgnore={handleIgnoreSessionDriftWarning} onSuppressForSession={handleSuppressSessionDriftWarning} />}
           {focusedInputDialog === 'ide-onboarding' && <IdeOnboardingDialog onDone={() => setShowIdeOnboarding(false)} installationStatus={ideInstallationStatus} />}
           {process.env.USER_TYPE === 'ant' && focusedInputDialog === 'model-switch' && AntModelSwitchCallout && <AntModelSwitchCallout onDone={(selection: string, modelAlias?: string) => {
             setShowModelSwitchCallout(false);

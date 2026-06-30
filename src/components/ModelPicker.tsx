@@ -43,6 +43,9 @@ export type Props = {
   onRefresh?: () => void;
 };
 const NO_PREFERENCE = '__NO_PREFERENCE__';
+export function resolveModelPickerLayout(columns: number | undefined): 'compact' | 'compact-vertical' {
+  return (columns ?? 80) < 72 ? 'compact-vertical' : 'compact';
+}
 function mapDiscoveryToneToColor(tone: ModelPickerDiscoveryState['tone']): 'error' | 'warning' | 'success' | 'subtle' {
   switch (tone) {
     case 'error':
@@ -307,7 +310,7 @@ export function ModelPicker(t0) {
   const t20 = onCancel ?? _temp4;
   let t21;
   if ($[49] !== handleFocus || $[50] !== handleSelect || $[51] !== initialFocusValue || $[52] !== initialValue || $[53] !== selectOptions || $[54] !== t20 || $[55] !== visibleCount) {
-    t21 = <Box flexDirection="column"><Select defaultValue={initialValue} defaultFocusValue={initialFocusValue} options={selectOptions} onChange={handleSelect} onFocus={handleFocus} onCancel={t20} visibleOptionCount={visibleCount} layout="compact-vertical" /></Box>;
+    t21 = <Box flexDirection="column"><Select defaultValue={initialValue} defaultFocusValue={initialFocusValue} options={selectOptions} onChange={handleSelect} onFocus={handleFocus} onCancel={t20} visibleOptionCount={visibleCount} layout={resolveModelPickerLayout(process.stdout.columns)} /></Box>;
     $[49] = handleFocus;
     $[50] = handleSelect;
     $[51] = initialFocusValue;

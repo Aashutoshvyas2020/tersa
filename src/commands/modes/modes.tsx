@@ -3,14 +3,16 @@ import { Dialog } from '../../components/design-system/Dialog.js'
 import { Box, Text, useInput } from '../../ink.js'
 import { useSetAppState } from '../../state/AppState.js'
 import type { LocalJSXCommandCall } from '../../types/command.js'
+import { DEFAULT_CAVE_MODE_CONFIG } from '../../utils/caveMode/config.js'
+import type { CaveModeConfig } from '../../utils/caveMode/types.js'
 import { getTersaModesConfig } from '../../utils/modes/config.js'
 import { listModeDefinitions } from '../../utils/modes/registry.js'
-import type { TersaModeId, TersaModesSettings } from '../../utils/modes/types.js'
+import type { TersaModesSettings, TersaPromptModeId } from '../../utils/modes/types.js'
 import { updateSettingsForSource } from '../../utils/settings/settings.js'
 
 export function toggleModeSetting(
   current: TersaModesSettings | undefined,
-  id: TersaModeId,
+  id: TersaPromptModeId,
 ): TersaModesSettings {
   const config = getTersaModesConfig(current)
   const currentMode = config.modes[id]
@@ -26,18 +28,34 @@ export function toggleModeSetting(
   }
 }
 
+export function toggleCaveModeSetting(
+  current: Partial<CaveModeConfig> | undefined,
+): CaveModeConfig {
+  const resolved = { ...DEFAULT_CAVE_MODE_CONFIG, ...(current ?? {}) }
+  const enabled = resolved.enabled && resolved.intensity !== 'off'
+  return {
+    ...resolved,
+    enabled: !enabled,
+    intensity: !enabled && resolved.intensity === 'off' ? 'full' : resolved.intensity,
+  }
+}
+
 function ModesCommand({
   onDone,
   current,
+  currentCave,
 }: {
   onDone: Parameters<LocalJSXCommandCall>[0]
   current?: TersaModesSettings
+  currentCave?: Partial<CaveModeConfig>
 }) {
   const setAppState = useSetAppState()
   const [draft, setDraft] = React.useState<TersaModesSettings>(current ?? {})
+  const [draftCave, setDraftCave] = React.useState<Partial<CaveModeConfig>>(currentCave ?? {})
   const [selectedIndex, setSelectedIndex] = React.useState(0)
   const definitions = React.useMemo(() => listModeDefinitions(), [])
   const config = getTersaModesConfig(draft)
+  const caveMode = { ...DEFAULT_CAVE_MODE_CONFIG, ...draftCave }
 
   const close = React.useCallback(() => {
     onDone('Modes updated', { display: 'system' })
@@ -46,6 +64,29 @@ function ModesCommand({
   const toggleSelected = React.useCallback(() => {
     const definition = definitions[selectedIndex]
     if (!definition) return
+
+    if (definition.id === 'cave') {
+      const nextCave = toggleCaveModeSetting(draftCave)
+      const result = updateSettingsForSource('userSettings', {
+        caveMode: nextCave,
+      } as any)
+      if (result.error) {
+        onDone(`Failed to update modes: ${result.error.message}`, {
+          display: 'system',
+        })
+        return
+      }
+
+      setDraftCave(nextCave)
+      setAppState(prev => ({
+        ...prev,
+        settings: {
+          ...prev.settings,
+          caveMode: nextCave,
+        },
+      }))
+      return
+    }
 
     const next = toggleModeSetting(draft, definition.id)
     const result = updateSettingsForSource('userSettings', {
@@ -66,7 +107,7 @@ function ModesCommand({
         modes: next,
       },
     }))
-  }, [definitions, draft, onDone, selectedIndex, setAppState])
+  }, [definitions, draft, draftCave, onDone, selectedIndex, setAppState])
 
   useInput(
     (input, key) => {
@@ -97,14 +138,20 @@ function ModesCommand({
     >
       <Box flexDirection="column">
         {definitions.map((definition, index) => {
-          const mode = config.modes[definition.id]
+          const mode =
+            definition.id === 'cave'
+              ? {
+                  enabled: caveMode.enabled && caveMode.intensity !== 'off',
+                  intensity: caveMode.intensity,
+                }
+              : config.modes[definition.id]
           const selected = index === selectedIndex
           return (
             <Box key={definition.id} flexDirection="column" marginBottom={1}>
               <Text bold={selected}>
                 {selected ? '> ' : '  '}
                 {mode.enabled ? '[on]  ' : '[off] '}
-                {definition.label}
+                {definition.label} · {mode.intensity}
               </Text>
               <Text dimColor={true}>    {definition.description}</Text>
             </Box>
@@ -116,10 +163,12 @@ function ModesCommand({
 }
 
 export const call: LocalJSXCommandCall = async (onDone, context) => {
+  const settings = context.getAppState().settings
   return (
     <ModesCommand
       onDone={onDone}
-      current={context.getAppState().settings.modes as TersaModesSettings | undefined}
+      current={settings.modes as TersaModesSettings | undefined}
+      currentCave={settings.caveMode}
     />
   )
 }
