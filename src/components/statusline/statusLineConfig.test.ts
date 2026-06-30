@@ -19,7 +19,7 @@ describe('builtin status line config', () => {
     expect(config.showBackgroundTasks).toBe(true)
     expect(config.showWarnings).toBe(true)
     expect(config.showIdeContext).toBe(false)
-    expect(config.showTokenPercentage).toBe(false)
+    expect(config.showTokenPercentage).toBe(true)
     expect(config.tokenDetail).toBe('compact')
     expect(config.estimatedMarker).toBe(true)
     expect(config.colorIntensity).toBe('normal')
@@ -34,6 +34,15 @@ describe('builtin status line config', () => {
     expect(config.showProjectDirectory).toBe(true)
     expect(config.showGit).toBe(true)
     expect(config.showBackgroundTasks).toBe(true)
+    expect(config.showTokenPercentage).toBe(true)
+  })
+
+  test('keeps token percentage visible when old settings disabled it', () => {
+    const config = normalizeBuiltinStatusLineConfig({
+      type: 'builtin',
+      showTokenPercentage: false,
+    })
+
     expect(config.showTokenPercentage).toBe(true)
   })
 

@@ -367,20 +367,12 @@ export function formatRequestSizeReport(report: RequestSizeReport): string {
     return lines.join('\n')
   }
 
-  lines.push('Top contributors:')
-  lines.push('')
-  lines.push('| # | Contributor | Tokens | Context byte equiv. |')
-  lines.push('|---|-------------|--------|---------------------|')
-
+  lines.push('Top contributors')
   for (const [index, contributor] of report.topContributors.entries()) {
-    const details = contributor.details ? ` (${contributor.details})` : ''
+    const details = contributor.details ? ` · ${contributor.details}` : ''
     lines.push(
-      [
-        `| ${index + 1}`,
-        contributor.label + details,
-        formatTokens(contributor.tokens),
-        `${formatFileSize(contributor.bytes)} |`,
-      ].join(' | '),
+      `${index + 1}. ${contributor.label}`,
+      `   ${formatTokens(contributor.tokens)} tokens · ${formatFileSize(contributor.bytes)} byte equivalent${details}`,
     )
   }
 

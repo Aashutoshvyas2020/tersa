@@ -145,8 +145,40 @@ async function navigateToPreset(
   stdin: { write: (data: string) => void },
   label: (typeof PRESET_ORDER)[number],
 ): Promise<void> {
-  const index = PRESET_ORDER.indexOf(label)
-  if (index < 0) throw new Error(`Unknown preset label: ${label}`)
+  const signIn = ['Codex OAuth', 'xAI OAuth (Grok)'] as const
+  const local = ['LM Studio', 'Atomic Chat', 'Ollama'] as const
+  const intent = signIn.includes(label as (typeof signIn)[number])
+    ? 'sign-in'
+    : local.includes(label as (typeof local)[number])
+      ? 'local'
+      : label === 'Custom'
+        ? 'advanced'
+        : 'api-key'
+  const intentOrder = ['sign-in', 'api-key', 'local', 'advanced'] as const
+  const intentIndex = intentOrder.indexOf(intent)
+
+  for (let i = 0; i < intentIndex; i++) {
+    stdin.write('j')
+    await Bun.sleep(25)
+  }
+  stdin.write('\r')
+  await Bun.sleep(50)
+
+  const order =
+    intent === 'sign-in'
+      ? [...signIn]
+      : intent === 'local'
+        ? [...local]
+        : intent === 'advanced'
+          ? PRESET_ORDER.filter(item => !signIn.includes(item as any))
+          : PRESET_ORDER.filter(
+              item =>
+                !signIn.includes(item as any) &&
+                !local.includes(item as any) &&
+                item !== 'Custom',
+            )
+  const index = order.indexOf(label as never)
+  if (index < 0) throw new Error(`Unknown preset label for ${intent}: ${label}`)
   for (let i = 0; i < index; i++) {
     stdin.write('j')
     await Bun.sleep(25)
@@ -618,7 +650,7 @@ test('ProviderManager shows API mode picker for custom OpenAI-compatible provide
 
     mounted.stdin.write('\r')
     await waitForFrameOutput(mounted.getOutput, frame =>
-      frame.includes('Choose provider preset'),
+      frame.includes('Choose how you want Tersa to connect.'),
     )
 
     await navigateToPreset(mounted.stdin, 'Custom')
@@ -661,7 +693,7 @@ test('ProviderManager keeps full setup flow for presets with placeholder endpoin
 
     mounted.stdin.write('\r')
     await waitForFrameOutput(mounted.getOutput, frame =>
-      frame.includes('Choose provider preset'),
+      frame.includes('Choose how you want Tersa to connect.'),
     )
 
     await navigateToPreset(mounted.stdin, 'Azure OpenAI')
@@ -705,7 +737,7 @@ test('ProviderManager asks for model and API key when adding OpenAI preset', asy
 
     mounted.stdin.write('\r')
     await waitForFrameOutput(mounted.getOutput, frame =>
-      frame.includes('Choose provider preset'),
+      frame.includes('Choose how you want Tersa to connect.'),
     )
 
     await navigateToPreset(mounted.stdin, 'OpenAI')
@@ -773,7 +805,7 @@ test('ProviderManager saves OpenAI preset GPT-5 models with Responses API', asyn
 
     mounted.stdin.write('\r')
     await waitForFrameOutput(mounted.getOutput, frame =>
-      frame.includes('Choose provider preset'),
+      frame.includes('Choose how you want Tersa to connect.'),
     )
 
     await navigateToPreset(mounted.stdin, 'OpenAI')
@@ -832,7 +864,7 @@ test('ProviderManager saves MiniMax preset with Anthropic-compatible endpoint an
 
     mounted.stdin.write('\r')
     await waitForFrameOutput(mounted.getOutput, frame =>
-      frame.includes('Choose provider preset'),
+      frame.includes('Choose how you want Tersa to connect.'),
     )
 
     await navigateToPreset(mounted.stdin, 'MiniMax')
@@ -987,7 +1019,7 @@ test('ProviderManager saves Hicap preset non-GPT model with Chat Completions', a
 
     mounted.stdin.write('\r')
     await waitForFrameOutput(mounted.getOutput, frame =>
-      frame.includes('Choose provider preset'),
+      frame.includes('Choose how you want Tersa to connect.'),
     )
 
     await navigateToPreset(mounted.stdin, 'Hicap')
@@ -2186,9 +2218,11 @@ test('ProviderManager hides Codex OAuth setup in bare mode', async () => {
   const output = await renderProviderManagerFrame(ProviderManager, {
     mode: 'first-run',
     waitForOutput: frame =>
-      frame.includes('Set up provider') && frame.includes('OpenAI'),
+      frame.includes('Set up provider') && frame.includes('Use an API key'),
   })
 
   expect(output).toContain('Set up provider')
+  expect(output).toContain('Use an API key')
+  expect(output).not.toContain('Sign in')
   expect(output).not.toContain('Codex OAuth')
 })

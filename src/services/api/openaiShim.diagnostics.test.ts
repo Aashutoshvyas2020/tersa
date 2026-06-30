@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, expect, mock, test } from 'bun:test'
-import { acquireSharedMutationLock, releaseSharedMutationLock } from '../../test/sharedMutationLock.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../test/sharedMutationLock.js'
+import * as actualDebug from '../../utils/debug.js'
 
 const originalFetch = globalThis.fetch
 const originalEnv = {
@@ -8,12 +12,71 @@ const originalEnv = {
   OPENAI_MODEL: process.env.OPENAI_MODEL,
 }
 
-function restoreEnv(key: string, value: string | undefined): void {
-  if (value === undefined) {
-    delete process.env[key]
-  } else {
-    process.env[key] = value
+type DebugLogOptions = Parameters<typeof actualDebug.logForDebugging>[1]
+type ShimClient = {
+  beta: {
+    messages: {
+      create: (params: Record<string, unknown>) => Promise<unknown>
+    }
   }
+}
+
+function restoreEnv(key: string, value: string | undefined): void {
+  if (value === undefined) delete process.env[key]
+  else process.env[key] = value
+}
+
+function createDebugSpy() {
+  return mock((_message: string, _options?: DebugLogOptions) => {})
+}
+
+function mockDebugModule(debugSpy: ReturnType<typeof createDebugSpy>): void {
+  mock.module('../../utils/debug.js', () => ({
+    ...actualDebug,
+    logForDebugging: debugSpy,
+  }))
+}
+
+async function createTestClient(): Promise<ShimClient> {
+  const nonce = `${Date.now()}-${Math.random()}`
+  const { createOpenAIShimClient } = await import(`./openaiShim.ts?ts=${nonce}`)
+  return createOpenAIShimClient({}) as ShimClient
+}
+
+function setFetchImplementation(
+  implementation: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>,
+): void {
+  globalThis.fetch = Object.assign(implementation, {
+    preconnect: originalFetch.preconnect,
+  })
+}
+
+function successfulResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      id: 'chatcmpl-1',
+      model: 'qwen2.5-coder:7b',
+      choices: [
+        {
+          message: { role: 'assistant', content: 'ok' },
+          finish_reason: 'stop',
+        },
+      ],
+      usage: {
+        prompt_tokens: 5,
+        completion_tokens: 2,
+        total_tokens: 7,
+      },
+    }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } },
+  )
+}
+
+function findLog(
+  debugSpy: ReturnType<typeof createDebugSpy>,
+  text: string,
+) {
+  return debugSpy.mock.calls.find(([message]) => message.includes(text))
 }
 
 beforeEach(async () => {
@@ -33,33 +96,19 @@ afterEach(() => {
 })
 
 test('logs classified transport diagnostics with category and code', async () => {
-  const debugSpy = mock(() => {})
-  mock.module('../../utils/debug.js', () => ({
-    logForDebugging: debugSpy,
-  }))
-
-  const nonce = `${Date.now()}-${Math.random()}`
-  const { createOpenAIShimClient } = await import(`./openaiShim.ts?ts=${nonce}`)
-
+  const debugSpy = createDebugSpy()
+  mockDebugModule(debugSpy)
   process.env.OPENAI_BASE_URL = 'http://localhost:11434/v1'
   process.env.OPENAI_API_KEY = 'ollama'
 
   const transportError = Object.assign(new TypeError('fetch failed'), {
     code: 'ECONNREFUSED',
   })
-
-  globalThis.fetch = mock(async () => {
+  setFetchImplementation(async () => {
     throw transportError
-  }) as typeof globalThis.fetch
+  })
 
-  const client = createOpenAIShimClient({}) as {
-    beta: {
-      messages: {
-        create: (params: Record<string, unknown>) => Promise<unknown>
-      }
-    }
-  }
-
+  const client = await createTestClient()
   await expect(
     client.beta.messages.create({
       model: 'qwen2.5-coder:7b',
@@ -69,44 +118,26 @@ test('logs classified transport diagnostics with category and code', async () =>
     }),
   ).rejects.toThrow('openai_category=connection_refused')
 
-  const transportLog = debugSpy.mock.calls.find(call =>
-    typeof call?.[0] === 'string' && call[0].includes('transport failure'),
-  )
-
+  const transportLog = findLog(debugSpy, 'transport failure')
   expect(transportLog).toBeDefined()
-  expect(String(transportLog?.[0])).toContain('category=connection_refused')
-  expect(String(transportLog?.[0])).toContain('code=ECONNREFUSED')
+  expect(transportLog?.[0]).toContain('category=connection_refused')
+  expect(transportLog?.[0]).toContain('code=ECONNREFUSED')
   expect(transportLog?.[1]).toEqual({ level: 'warn' })
 })
 
 test('redacts credentials in transport diagnostic URL logs', async () => {
-  const debugSpy = mock(() => {})
-  mock.module('../../utils/debug.js', () => ({
-    logForDebugging: debugSpy,
-  }))
-
-  const nonce = `${Date.now()}-${Math.random()}`
-  const { createOpenAIShimClient } = await import(`./openaiShim.ts?ts=${nonce}`)
-
+  const debugSpy = createDebugSpy()
+  mockDebugModule(debugSpy)
   process.env.OPENAI_BASE_URL = 'http://user:supersecret@localhost:11434/v1'
   process.env.OPENAI_API_KEY = 'supersecret'
 
-  const transportError = Object.assign(new TypeError('fetch failed'), {
-    code: 'ECONNREFUSED',
+  setFetchImplementation(async () => {
+    throw Object.assign(new TypeError('fetch failed'), {
+      code: 'ECONNREFUSED',
+    })
   })
 
-  globalThis.fetch = mock(async () => {
-    throw transportError
-  }) as typeof globalThis.fetch
-
-  const client = createOpenAIShimClient({}) as {
-    beta: {
-      messages: {
-        create: (params: Record<string, unknown>) => Promise<unknown>
-      }
-    }
-  }
-
+  const client = await createTestClient()
   await expect(
     client.beta.messages.create({
       model: 'qwen2.5-coder:7b',
@@ -116,72 +147,29 @@ test('redacts credentials in transport diagnostic URL logs', async () => {
     }),
   ).rejects.toThrow('openai_category=connection_refused')
 
-  const transportLog = debugSpy.mock.calls.find(call =>
-    typeof call?.[0] === 'string' && call[0].includes('transport failure'),
+  const logLine = findLog(debugSpy, 'transport failure')?.[0] ?? ''
+  expect(logLine).toContain(
+    'url=http://redacted:redacted@localhost:11434/v1/chat/completions',
   )
-
-  expect(transportLog).toBeDefined()
-  const logLine = String(transportLog?.[0])
-  expect(logLine).toContain('url=http://redacted:redacted@localhost:11434/v1/chat/completions')
   expect(logLine).not.toContain('user:supersecret')
   expect(logLine).not.toContain('supersecret@')
 })
+
 test('logs self-heal localhost fallback with redacted from/to URLs', async () => {
-  const debugSpy = mock(() => {})
-  mock.module('../../utils/debug.js', () => ({
-    logForDebugging: debugSpy,
-  }))
-
-  const nonce = `${Date.now()}-${Math.random()}`
-  const { createOpenAIShimClient } = await import(`./openaiShim.ts?ts=${nonce}`)
-
+  const debugSpy = createDebugSpy()
+  mockDebugModule(debugSpy)
   process.env.OPENAI_BASE_URL = 'http://user:supersecret@localhost:11434/v1'
   process.env.OPENAI_API_KEY = 'supersecret'
 
-  globalThis.fetch = mock(async (input: string | Request) => {
-    const url = typeof input === 'string' ? input : input.url
+  setFetchImplementation(async input => {
+    const url = input instanceof Request ? input.url : String(input)
     if (url.includes('localhost')) {
-      throw Object.assign(new TypeError('fetch failed'), {
-        code: 'ENOTFOUND',
-      })
+      throw Object.assign(new TypeError('fetch failed'), { code: 'ENOTFOUND' })
     }
+    return successfulResponse()
+  })
 
-    return new Response(
-      JSON.stringify({
-        id: 'chatcmpl-1',
-        model: 'qwen2.5-coder:7b',
-        choices: [
-          {
-            message: {
-              role: 'assistant',
-              content: 'ok',
-            },
-            finish_reason: 'stop',
-          },
-        ],
-        usage: {
-          prompt_tokens: 5,
-          completion_tokens: 2,
-          total_tokens: 7,
-        },
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    )
-  }) as typeof globalThis.fetch
-
-  const client = createOpenAIShimClient({}) as {
-    beta: {
-      messages: {
-        create: (params: Record<string, unknown>) => Promise<unknown>
-      }
-    }
-  }
-
+  const client = await createTestClient()
   await expect(
     client.beta.messages.create({
       model: 'qwen2.5-coder:7b',
@@ -191,78 +179,37 @@ test('logs self-heal localhost fallback with redacted from/to URLs', async () =>
     }),
   ).resolves.toBeDefined()
 
-  const fallbackLog = debugSpy.mock.calls.find(call =>
-    typeof call?.[0] === 'string' &&
-    call[0].includes('self-heal retry reason=localhost_resolution_failed'),
+  const logLine =
+    findLog(debugSpy, 'self-heal retry reason=localhost_resolution_failed')?.[0] ??
+    ''
+  expect(logLine).toContain(
+    'from=http://redacted:redacted@localhost:11434/v1/chat/completions',
   )
-
-  expect(fallbackLog).toBeDefined()
-  const logLine = String(fallbackLog?.[0])
-  expect(logLine).toContain('from=http://redacted:redacted@localhost:11434/v1/chat/completions')
-  expect(logLine).toContain('to=http://redacted:redacted@127.0.0.1:11434/v1/chat/completions')
+  expect(logLine).toContain(
+    'to=http://redacted:redacted@127.0.0.1:11434/v1/chat/completions',
+  )
   expect(logLine).not.toContain('supersecret')
 })
 
 test('logs self-heal toolless retry for local tool-call incompatibility', async () => {
-  const debugSpy = mock(() => {})
-  mock.module('../../utils/debug.js', () => ({
-    logForDebugging: debugSpy,
-  }))
-
-  const nonce = `${Date.now()}-${Math.random()}`
-  const { createOpenAIShimClient } = await import(`./openaiShim.ts?ts=${nonce}`)
-
+  const debugSpy = createDebugSpy()
+  mockDebugModule(debugSpy)
   process.env.OPENAI_BASE_URL = 'http://localhost:11434/v1'
   process.env.OPENAI_API_KEY = 'ollama'
 
   let callCount = 0
-  globalThis.fetch = mock(async () => {
+  setFetchImplementation(async () => {
     callCount += 1
     if (callCount === 1) {
       return new Response('tool_calls are not supported', {
         status: 400,
-        headers: {
-          'Content-Type': 'text/plain',
-        },
+        headers: { 'Content-Type': 'text/plain' },
       })
     }
+    return successfulResponse()
+  })
 
-    return new Response(
-      JSON.stringify({
-        id: 'chatcmpl-1',
-        model: 'qwen2.5-coder:7b',
-        choices: [
-          {
-            message: {
-              role: 'assistant',
-              content: 'ok',
-            },
-            finish_reason: 'stop',
-          },
-        ],
-        usage: {
-          prompt_tokens: 7,
-          completion_tokens: 3,
-          total_tokens: 10,
-        },
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    )
-  }) as typeof globalThis.fetch
-
-  const client = createOpenAIShimClient({}) as {
-    beta: {
-      messages: {
-        create: (params: Record<string, unknown>) => Promise<unknown>
-      }
-    }
-  }
-
+  const client = await createTestClient()
   await expect(
     client.beta.messages.create({
       model: 'qwen2.5-coder:7b',
@@ -273,9 +220,7 @@ test('logs self-heal toolless retry for local tool-call incompatibility', async 
           description: 'Read file',
           input_schema: {
             type: 'object',
-            properties: {
-              filePath: { type: 'string' },
-            },
+            properties: { filePath: { type: 'string' } },
             required: ['filePath'],
           },
         },
@@ -285,11 +230,10 @@ test('logs self-heal toolless retry for local tool-call incompatibility', async 
     }),
   ).resolves.toBeDefined()
 
-  const fallbackLog = debugSpy.mock.calls.find(call =>
-    typeof call?.[0] === 'string' &&
-    call[0].includes('self-heal retry reason=tool_call_incompatible mode=toolless'),
+  const fallbackLog = findLog(
+    debugSpy,
+    'self-heal retry reason=tool_call_incompatible mode=toolless',
   )
-
   expect(fallbackLog).toBeDefined()
   expect(fallbackLog?.[1]).toEqual({ level: 'warn' })
 })

@@ -80,6 +80,11 @@ import {
 } from './CustomSelect/index.js'
 import { Pane } from './design-system/Pane.js'
 import TextInput from './TextInput.js'
+import {
+  getProviderIntentTitle,
+  getProviderPresetsForIntent,
+  type ProviderSetupIntent,
+} from './providerSetupIntent.js'
 import { useCodexOAuthFlow } from './useCodexOAuthFlow.js'
 import { useXaiOAuthFlow } from './useXaiOAuthFlow.js'
 
@@ -98,6 +103,10 @@ type Props = {
 
 type Screen =
   | 'menu'
+  | 'select-intent'
+  | 'select-sign-in'
+  | 'select-api-preset'
+  | 'select-local-preset'
   | 'select-preset'
   | 'select-ollama-model'
   | 'select-atomic-chat-model'
@@ -721,7 +730,10 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
   const githubRefreshEpochRef = React.useRef(0)
   const codexRefreshEpochRef = React.useRef(0)
   const [screen, setScreen] = React.useState<Screen>(
-    mode === 'first-run' ? 'select-preset' : 'menu',
+    mode === 'first-run' ? 'select-intent' : 'menu',
+  )
+  const [presetReturnScreen, setPresetReturnScreen] = React.useState<Screen>(
+    'select-intent',
   )
   const [editingProfileId, setEditingProfileId] = React.useState<string | null>(null)
   const [draftProvider, setDraftProvider] = React.useState<ProviderProfile['provider']>(
@@ -1628,9 +1640,9 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
                 setScreen('form')
                 return
               }
-              setScreen('select-preset')
+              setScreen(presetReturnScreen)
             }}
-            onCancel={() => setScreen('select-preset')}
+            onCancel={() => setScreen(presetReturnScreen)}
             visibleOptionCount={2}
           />
         </Box>
@@ -1660,7 +1672,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             setDraft(nextDraft)
             persistDraft(nextDraft)
           }}
-          onCancel={() => setScreen('select-preset')}
+          onCancel={() => setScreen(presetReturnScreen)}
         />
       </Box>
     )
@@ -1705,9 +1717,9 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
                 setScreen('form')
                 return
               }
-              setScreen('select-preset')
+              setScreen(presetReturnScreen)
             }}
-            onCancel={() => setScreen('select-preset')}
+            onCancel={() => setScreen(presetReturnScreen)}
             visibleOptionCount={2}
           />
         </Box>
@@ -1737,7 +1749,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             setDraft(nextDraft)
             persistDraft(nextDraft)
           }}
-          onCancel={() => setScreen('select-preset')}
+          onCancel={() => setScreen(presetReturnScreen)}
         />
       </Box>
     )
@@ -1781,8 +1793,8 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
       return
     }
 
-    if (mode === 'first-run') {
-      setScreen('select-preset')
+    if (!editingProfileId) {
+      setScreen(presetReturnScreen)
       return
     }
 
@@ -1796,7 +1808,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
 
   function handleBackFromPresetModel(): void {
     setErrorMessage(undefined)
-    setScreen('select-preset')
+    setScreen(presetReturnScreen)
   }
 
   useKeybinding('confirm:no', handleBackFromPresetModel, {
@@ -1822,7 +1834,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
   // makes Esc work on preset-api-key (which also has a TextInput).
   function handleBackFromXaiOAuth(): void {
     setErrorMessage(undefined)
-    setScreen('select-preset')
+    setScreen('select-sign-in')
   }
 
   useKeybinding('confirm:no', handleBackFromXaiOAuth, {
@@ -1830,45 +1842,36 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
     isActive: screen === 'xai-oauth',
   })
 
-  function renderPresetSelection(): React.ReactNode {
-    const canUseCodexOAuth = !isBareMode()
-    const canUseXaiOAuth = !isBareMode()
-    const options: OptionWithDescription<string>[] = ORDERED_PROVIDER_PRESETS.map(preset => {
-      const metadata = getProviderPresetUiMetadata(preset)
-      return {
-        value: preset,
-        label: getPresetLabel(preset, metadata.label, { badge: metadata.badge }),
-        description: metadata.description,
-      }
-    })
-
-    if (canUseCodexOAuth) {
-      // Insert after DeepSeek so Codex OAuth keeps its established position
-      // in the picker even with Gitlawb Opengateway pinned at the top.
-      options.splice(7, 0, {
-        value: 'codex-oauth',
-        label: (
-          <Text>
-            <Text>Codex OAuth </Text>
-            <Text color="success" bold>★ Recommended</Text>
-          </Text>
-        ),
+  function renderIntentSelection(): React.ReactNode {
+    const options: OptionWithDescription<ProviderSetupIntent | 'skip'>[] = [
+      ...(!isBareMode()
+        ? [
+            {
+              value: 'sign-in' as const,
+              label: 'Sign in',
+              description:
+                'Use ChatGPT / Codex OAuth or xAI OAuth in your browser',
+            },
+          ]
+        : []),
+      {
+        value: 'api-key',
+        label: 'Use an API key',
         description:
-          'Sign in with ChatGPT in your browser and store Codex credentials securely',
-      })
-    }
-
-    if (canUseXaiOAuth) {
-      // Place xAI OAuth directly under Codex OAuth so both browser-sign-in
-      // options group together visually.
-      options.splice(canUseCodexOAuth ? 8 : 7, 0, {
-        value: 'xai-oauth',
-        label: 'xAI OAuth (Grok)',
+          'Choose a hosted provider, then enter only the details it needs',
+      },
+      {
+        value: 'local',
+        label: 'Connect a local model',
+        description: 'Use Ollama, LM Studio, or Atomic Chat on this Mac',
+      },
+      {
+        value: 'advanced',
+        label: 'Advanced',
         description:
-          'Sign in with your xAI account in the browser and store credentials securely',
-      })
-    }
-
+          'Browse every provider preset or configure a custom endpoint',
+      },
+    ]
     if (mode === 'first-run') {
       options.push({
         value: 'skip',
@@ -1880,36 +1883,108 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
     return (
       <Box flexDirection="column" gap={1}>
         <Text color="remember" bold>
-          {mode === 'first-run' ? 'Set up provider' : 'Choose provider preset'}
+          {mode === 'first-run' ? 'Set up provider' : 'Add provider'}
         </Text>
-        <Text dimColor>
-          Pick a preset, then complete the details it needs.
-        </Text>
+        <Text dimColor>Choose how you want Tersa to connect.</Text>
         <Select
           options={options}
-          onChange={(value: string) => {
+          onChange={value => {
             if (value === 'skip') {
               closeWithCancelled('Provider setup skipped')
               return
             }
-            if (value === 'codex-oauth') {
-              setScreen('codex-oauth')
-              return
-            }
-            if (value === 'xai-oauth') {
-              setScreen('xai-oauth')
-              return
-            }
-            startCreateFromPreset(value as ProviderPreset)
+            if (value === 'sign-in') setScreen('select-sign-in')
+            else if (value === 'api-key') setScreen('select-api-preset')
+            else if (value === 'local') setScreen('select-local-preset')
+            else setScreen('select-preset')
           }}
           onCancel={() => {
-            if (mode === 'first-run') {
-              closeWithCancelled('Provider setup skipped')
-              return
-            }
-            returnToMenu()
+            if (mode === 'first-run') closeWithCancelled('Provider setup skipped')
+            else returnToMenu()
           }}
-          visibleOptionCount={Math.min(13, options.length)}
+          visibleOptionCount={options.length}
+        />
+      </Box>
+    )
+  }
+
+  function renderSignInSelection(): React.ReactNode {
+    const options: OptionWithDescription<string>[] = []
+    if (!isBareMode()) {
+      options.push(
+        {
+          value: 'codex-oauth',
+          label: (
+            <Text>
+              <Text>ChatGPT / Codex </Text>
+              <Text color="success" bold>★ Recommended</Text>
+            </Text>
+          ),
+          description: 'Sign in with ChatGPT in your browser',
+        },
+        {
+          value: 'xai-oauth',
+          label: 'xAI / Grok',
+          description: 'Sign in with your xAI account in your browser',
+        },
+      )
+    }
+
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text color="remember" bold>{getProviderIntentTitle('sign-in')}</Text>
+        <Text dimColor>Credentials are stored only after login succeeds.</Text>
+        {options.length > 0 ? (
+          <Select
+            options={options}
+            onChange={value => setScreen(value as 'codex-oauth' | 'xai-oauth')}
+            onCancel={() => setScreen('select-intent')}
+            visibleOptionCount={options.length}
+          />
+        ) : (
+          <>
+            <Text dimColor>Browser sign-in is unavailable in bare mode.</Text>
+            <Select
+              options={[{ value: 'back', label: 'Back' }]}
+              onChange={() => setScreen('select-intent')}
+              onCancel={() => setScreen('select-intent')}
+              visibleOptionCount={1}
+            />
+          </>
+        )}
+      </Box>
+    )
+  }
+
+  function renderPresetSelection(
+    intent: Exclude<ProviderSetupIntent, 'sign-in'> = 'advanced',
+  ): React.ReactNode {
+    const presets = getProviderPresetsForIntent(intent)
+    const options: OptionWithDescription<string>[] = presets.map(preset => {
+      const metadata = getProviderPresetUiMetadata(preset)
+      return {
+        value: preset,
+        label: getPresetLabel(preset, metadata.label, { badge: metadata.badge }),
+        description: metadata.description,
+      }
+    })
+
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text color="remember" bold>
+          {getProviderIntentTitle(intent)}
+        </Text>
+        <Text dimColor>
+          Choose a provider, then complete only the details it requires.
+        </Text>
+        <Select
+          options={options}
+          onChange={(value: string) => {
+            setPresetReturnScreen(screen)
+            startCreateFromPreset(value as ProviderPreset)
+          }}
+          onCancel={() => setScreen('select-intent')}
+          visibleOptionCount={Math.min(10, options.length)}
         />
       </Box>
     )
@@ -2170,7 +2245,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             setErrorMessage(undefined)
             switch (value) {
               case 'add':
-                setScreen('select-preset')
+                setScreen('select-intent')
                 break
               case 'activate':
                 if (hasSelectableProviders) {
@@ -2349,8 +2424,20 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
   let content: React.ReactNode
 
   switch (screen) {
+    case 'select-intent':
+      content = renderIntentSelection()
+      break
+    case 'select-sign-in':
+      content = renderSignInSelection()
+      break
+    case 'select-api-preset':
+      content = renderPresetSelection('api-key')
+      break
+    case 'select-local-preset':
+      content = renderPresetSelection('local')
+      break
     case 'select-preset':
-      content = renderPresetSelection()
+      content = renderPresetSelection('advanced')
       break
     case 'select-ollama-model':
       content = renderOllamaSelection()
@@ -2361,7 +2448,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
     case 'xai-oauth':
       content = (
         <XaiOAuthSetup
-          onBack={() => setScreen('select-preset')}
+          onBack={() => setScreen('select-sign-in')}
           onConfigured={async (tokens, persistCredentials) => {
             const payload: ProviderProfileInput = {
               provider: 'xai',
@@ -2450,7 +2537,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
     case 'codex-oauth':
       content = (
         <CodexOAuthSetup
-          onBack={() => setScreen('select-preset')}
+          onBack={() => setScreen('select-sign-in')}
           onConfigured={async (tokens, persistCredentials) => {
             const payload: ProviderProfileInput = {
               provider: 'openai',

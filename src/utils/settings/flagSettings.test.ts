@@ -9,9 +9,6 @@ import {
   setFlagSettingsPath,
 } from '../../bootstrap/state.js'
 import {
-  resolveOutOfProcessTeammateProviderFromCliArgs,
-} from '../../services/api/agentRouting.js'
-import {
   acquireSharedMutationLock,
   releaseSharedMutationLock,
 } from '../../test/sharedMutationLock.js'
@@ -63,9 +60,13 @@ test('loads --settings before resolving out-of-process teammate model routes', a
   ]
 
   const loadResult = eagerLoadSettingsFromArgs(args)
+  const importStamp = `${Date.now()}-${Math.random()}`
   const { getInitialSettings } = (await import(
-    `./settings.ts?flagSettingsActual=${Date.now()}-${Math.random()}`
+    `./settings.ts?flagSettingsActual=${importStamp}`
   )) as SettingsModule
+  const { resolveOutOfProcessTeammateProviderFromCliArgs } = await import(
+    `../../services/api/agentRouting.ts?flagSettingsActual=${importStamp}`
+  )
 
   expect(loadResult).toEqual({ ok: true })
   expect(getFlagSettingsPath()).toBe(settingsPath)

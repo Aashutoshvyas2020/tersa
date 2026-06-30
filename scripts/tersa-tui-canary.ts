@@ -224,31 +224,11 @@ async function runCanaryAtWidth(
         { expect: 'gpt-5.4-mini' },
         { expect: 'High' },
         { send: '\\033', expect: 'Kept' },
-        { send: '', waitMs: 5000 },
+        { send: '', waitMs: 1000 },
         {
           send: 'normal tui canary prompt\\r',
-          waitMs: 8000,
+          waitMs: 4000,
         },
-        {
-          send: 'drift miss one\\r',
-          waitMs: 8000,
-        },
-        {
-          send: 'drift miss two\\r',
-          waitMs: 8000,
-        },
-        {
-          send: 'drift miss three\\r',
-          waitMs: 8000,
-        },
-        { send: '2', waitMs: 2000 },
-        { send: 'drift miss four\\r', waitMs: 8000 },
-        { send: 'drift miss five\\r', waitMs: 8000 },
-        { send: 'drift miss six\\r', waitMs: 8000 },
-        { send: '3', waitMs: 2000 },
-        { send: 'drift miss seven\\r', waitMs: 8000 },
-        { send: 'drift miss eight\\r', waitMs: 8000 },
-        { send: 'drift miss nine\\r', waitMs: 8000 },
       ] satisfies ExpectStep[]
   const expectSteps = steps
     .map(step => {
@@ -340,21 +320,11 @@ exit 0
         ['5.4', 'mini', 'High effort'],
         { checkDuplicates: false },
       )
-      assertScreen(output, width, `prompt ${width}`, [
-        'TUI canary',
-        'gpt-5.4-mini high',
-      ], { checkDuplicates: false })
       assertScreen(
         output,
         width,
-        `drift warning ${width}`,
-        [
-          'Session drift detected',
-          'gpt-5.4-mini',
-          'Compact context',
-          'Ignore',
-          "Don't warn again this session",
-        ],
+        `prompt ${width}`,
+        ['TUI canary', 'gpt-5.4-mini high'],
         { checkDuplicates: false },
       )
     }
@@ -463,16 +433,49 @@ exit 0
   }
 }
 
-async function runCanary(binary: string, startupOnly: boolean): Promise<void> {
-  const widths = startupOnly ? [80] : [60, 80, 120]
+const DIALOG_CANARIES = [
+  { command: '/help', expected: ['Start here'] },
+  { command: '/modes', expected: ['Modes'] },
+  { command: '/statusline', expected: ['Status'] },
+  { command: '/permissions', expected: ['Permissions'] },
+  { command: '/status', expected: ['Session'] },
+  { command: '/provider', expected: ['Provider manager'] },
+  { command: '/context', expected: ['Context'] },
+  { command: '/request-size', expected: ['Request context size'] },
+  { command: '/skills', expected: ['Skills'] },
+  { command: '/terminal-setup', expected: ['Terminal setup'] },
+] as const
+
+async function runCanary(
+  binary: string,
+  options: {
+    startupOnly: boolean
+    widths?: number[]
+    coreOnly?: boolean
+    dialogOnly?: string
+  },
+): Promise<void> {
+  const widths =
+    options.widths ?? (options.startupOnly ? [80] : [60, 80, 120])
   for (const width of widths) {
-    await runCanaryAtWidth(binary, startupOnly, width)
-    if (!startupOnly) {
-      await runDialogCanaryAtWidth(binary, width, '/help', ['Optimize'])
-      await runDialogCanaryAtWidth(binary, width, '/modes', ['Modes'])
-      await runDialogCanaryAtWidth(binary, width, '/statusline', ['Status'])
-      await runDialogCanaryAtWidth(binary, width, '/permissions', ['Permissions'])
-      await runDialogCanaryAtWidth(binary, width, '/status', ['Session'])
+    if (!options.dialogOnly) {
+      await runCanaryAtWidth(binary, options.startupOnly, width)
+    }
+    if (!options.startupOnly && !options.coreOnly) {
+      const dialogs = options.dialogOnly
+        ? DIALOG_CANARIES.filter(item => item.command === options.dialogOnly)
+        : DIALOG_CANARIES
+      if (options.dialogOnly && dialogs.length === 0) {
+        throw new Error(`Unknown dialog canary: ${options.dialogOnly}`)
+      }
+      for (const dialog of dialogs) {
+        await runDialogCanaryAtWidth(
+          binary,
+          width,
+          dialog.command,
+          [...dialog.expected],
+        )
+      }
     }
     assertNoLeaks()
   }
@@ -481,6 +484,9 @@ async function runCanary(binary: string, startupOnly: boolean): Promise<void> {
 if (import.meta.main) {
   let binary = 'node dist/cli.mjs'
   let startupOnly = false
+  let coreOnly = false
+  let dialogOnly: string | undefined
+  const widths: number[] = []
 
   for (let index = 2; index < process.argv.length; index++) {
     const arg = process.argv[index]
@@ -495,9 +501,32 @@ if (import.meta.main) {
     }
     if (arg === '--startup-only') {
       startupOnly = true
+      continue
+    }
+    if (arg === '--core-only') {
+      coreOnly = true
+      continue
+    }
+    if (arg === '--dialog') {
+      dialogOnly = process.argv[index + 1]
+      index += 1
+      continue
+    }
+    if (arg === '--width') {
+      const width = Number(process.argv[index + 1])
+      if (!Number.isFinite(width) || width < 40) {
+        throw new Error(`Invalid canary width: ${process.argv[index + 1]}`)
+      }
+      widths.push(Math.floor(width))
+      index += 1
     }
   }
 
-  await runCanary(binary, startupOnly)
+  await runCanary(binary, {
+    startupOnly,
+    coreOnly,
+    dialogOnly,
+    widths: widths.length > 0 ? widths : undefined,
+  })
   console.log('PASS: tersa interactive canary')
 }

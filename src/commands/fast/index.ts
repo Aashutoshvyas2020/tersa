@@ -1,8 +1,5 @@
 import type { Command } from '../../commands.js'
-import {
-  FAST_MODE_MODEL_DISPLAY,
-  isFastModeEnabled,
-} from '../../utils/fastMode.js'
+import { FAST_MODE_MODEL_DISPLAY } from '../../utils/fastMode.js'
 import { shouldInferenceConfigCommandBeImmediate } from '../../utils/immediateCommand.js'
 
 const fast = {
@@ -11,16 +8,11 @@ const fast = {
   get description() {
     return `Toggle fast mode (${FAST_MODE_MODEL_DISPLAY} only)`
   },
-  availability: ['claude-ai', 'console'],
-  isEnabled: () => isFastModeEnabled(),
-  get isHidden() {
-    return !isFastModeEnabled()
-  },
   argumentHint: '[on|off]',
   get immediate() {
     return shouldInferenceConfigCommandBeImmediate()
   },
-  load: () => import('./fast.js'),
+  load: () => import('./publicFast.js'),
 } satisfies Command
 
 export default fast

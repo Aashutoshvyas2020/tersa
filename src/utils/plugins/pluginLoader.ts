@@ -38,6 +38,7 @@ import {
   readFile,
   readlink,
   realpath,
+  lstat,
   rename,
   rm,
   rmdir,
@@ -88,6 +89,11 @@ import { verifyAndDemote } from './dependencyResolver.js'
 import { classifyFetchError, logPluginFetch } from './fetchTelemetry.js'
 import { checkGitAvailable } from './gitAvailability.js'
 import { buildGitChildEnv } from './gitEnv.js'
+import {
+  type DirectPluginRecord,
+  isManagedDirectPluginInstallPath,
+  loadDirectPluginRegistry,
+} from './directPluginRegistry.js'
 import { getInMemoryInstalledPlugins } from './installedPluginsManager.js'
 import { getManagedPluginNames } from './managedPlugins.js'
 import {
@@ -3236,6 +3242,70 @@ async function loadSessionOnlyPlugins(
   return { plugins, errors }
 }
 
+async function validatedDirectPluginPath(
+  record: DirectPluginRecord,
+): Promise<string> {
+  const installPath = resolve(record.installPath)
+  const resolvedInstallPath = await realpath(installPath)
+
+  if (record.source.type === 'path') {
+    const resolvedSourcePath = await realpath(record.source.value)
+    if (resolvedSourcePath !== resolvedInstallPath) {
+      throw new Error('Direct plugin path no longer matches its registered source')
+    }
+    return resolvedInstallPath
+  }
+
+  if (!isManagedDirectPluginInstallPath(installPath)) {
+    throw new Error('Git direct plugin path escaped its managed directory')
+  }
+  if ((await lstat(installPath)).isSymbolicLink()) {
+    throw new Error('Git direct plugin install cannot be a symbolic link')
+  }
+  const managedRoot = await realpath(join(getPluginsDirectory(), 'direct'))
+  const pathFromRoot = relative(managedRoot, resolvedInstallPath)
+  if (
+    pathFromRoot === '' ||
+    pathFromRoot === '..' ||
+    pathFromRoot.startsWith(`..${sep}`)
+  ) {
+    throw new Error('Git direct plugin resolved outside its managed directory')
+  }
+  return resolvedInstallPath
+}
+
+export async function loadPersistentDirectPlugins(): Promise<{
+  plugins: LoadedPlugin[]
+  errors: PluginError[]
+}> {
+  const registry = loadDirectPluginRegistry()
+  const plugins: LoadedPlugin[] = []
+  const errors: PluginError[] = []
+  for (const record of Object.values(registry.plugins)) {
+    if (!record.enabled) continue
+    const source = `${record.id}@direct`
+    try {
+      const result = await createPluginFromPath(
+        await validatedDirectPluginPath(record),
+        source,
+        true,
+        record.id,
+      )
+      result.plugin.source = source
+      result.plugin.repository = source
+      plugins.push(result.plugin)
+      errors.push(...result.errors)
+    } catch (error) {
+      errors.push({
+        type: 'generic-error',
+        source,
+        error: `Failed to load direct plugin: ${errorMessage(error)}`,
+      })
+    }
+  }
+  return { plugins, errors }
+}
+
 /**
  * Merge plugins from session (--plugin-dir), marketplace (installed), and
  * builtin sources. Session plugins override marketplace plugins with the
@@ -3445,8 +3515,9 @@ async function assemblePluginLoadResult(
   // getInlinePlugins() is a synchronous state read with no dependency on
   // marketplace loading, so these two sources can be fetched concurrently.
   const inlinePlugins = getInlinePlugins()
-  const [marketplaceResult, sessionResult] = await Promise.all([
+  const [marketplaceResult, directResult, sessionResult] = await Promise.all([
     marketplaceLoader(),
+    loadPersistentDirectPlugins(),
     inlinePlugins.length > 0
       ? loadSessionOnlyPlugins(inlinePlugins)
       : Promise.resolve({ plugins: [], errors: [] }),
@@ -3457,14 +3528,32 @@ async function assemblePluginLoadResult(
   // Session plugins (--plugin-dir) override installed ones by name,
   // UNLESS the installed plugin is locked by managed settings
   // (policySettings). See mergePluginSources() for details.
+  const managedNames = getManagedPluginNames()
+  const allowedDirectPlugins = directResult.plugins.filter(
+    plugin => !managedNames?.has(plugin.name),
+  )
+  const managedDirectErrors: PluginError[] = directResult.plugins
+    .filter(plugin => managedNames?.has(plugin.name))
+    .map(plugin => ({
+      type: 'generic-error',
+      source: plugin.source,
+      plugin: plugin.name,
+      error: `Direct plugin "${plugin.name}" ignored because managed settings control that plugin name`,
+    }))
+  const directNames = new Set(allowedDirectPlugins.map(plugin => plugin.name))
+  const marketplacePlugins = marketplaceResult.plugins.filter(
+    plugin => !directNames.has(plugin.name),
+  )
   const { plugins: allPlugins, errors: mergeErrors } = mergePluginSources({
     session: sessionResult.plugins,
-    marketplace: marketplaceResult.plugins,
+    marketplace: [...allowedDirectPlugins, ...marketplacePlugins],
     builtin: [...builtinResult.enabled, ...builtinResult.disabled],
-    managedNames: getManagedPluginNames(),
+    managedNames,
   })
   const allErrors = [
     ...marketplaceResult.errors,
+    ...directResult.errors,
+    ...managedDirectErrors,
     ...sessionResult.errors,
     ...mergeErrors,
   ]

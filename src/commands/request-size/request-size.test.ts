@@ -137,7 +137,7 @@ test('interactive command failures still render transient output', async () => {
 
   expect(isValidElement(result)).toBe(true)
   expect(
-    (result as { props: { reportText: string } }).props.reportText,
+    (result as { props: { errorMessage?: string } }).props.errorMessage,
   ).toContain('Unable to estimate request context size')
   expect(onDone).not.toHaveBeenCalled()
 })
@@ -251,7 +251,9 @@ test('slash command processing does not create transcript messages after close',
   const localJSX = await waitForCaptured(() => capturedToolJSX)
   expect(localJSX.jsx.props).toEqual(
     expect.objectContaining({
-      reportText: expect.stringContaining('Estimated context load:'),
+      report: expect.objectContaining({
+        estimatedTokens: 3_000,
+      }),
     }),
   )
 

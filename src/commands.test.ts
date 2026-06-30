@@ -3,9 +3,16 @@ import {
   builtInCommandNames,
   formatDescriptionWithSource,
 } from './commands.js'
+import fastCommand from './commands/fast/index.js'
 import { isCommand } from './types/command.js'
 
 describe('builtInCommandNames', () => {
+  test('keeps /fast discoverable even when the active provider cannot use it', () => {
+    expect('availability' in fastCommand).toBe(false)
+    expect('isEnabled' in fastCommand).toBe(false)
+    expect('isHidden' in fastCommand).toBe(false)
+  })
+
   test('includes the request-size diagnostic command', () => {
     expect(builtInCommandNames()).toContain('request-size')
   })

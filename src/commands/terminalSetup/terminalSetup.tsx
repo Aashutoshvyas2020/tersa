@@ -10,8 +10,7 @@ import { color } from '../../ink.js';
 import { maybeMarkProjectOnboardingComplete } from '../../projectOnboardingState.js';
 import type { ToolUseContext } from '../../Tool.js';
 import type { LocalJSXCommandContext, LocalJSXCommandOnDone } from '../../types/command.js';
-import { backupTerminalPreferences, checkAndRestoreTerminalBackup, getTerminalPlistPath, markTerminalSetupComplete } from '../../utils/appleTerminalBackup.js';
-import { setupShellCompletion } from '../../utils/completionCache.js';
+import { backupTerminalPreferences, checkAndRestoreTerminalBackup, getTerminalPlistPath, markTerminalSetupComplete, restoreTerminalPreferencesBackup } from '../../utils/appleTerminalBackup.js';
 import { getGlobalConfig, saveGlobalConfig } from '../../utils/config.js';
 import { env } from '../../utils/env.js';
 import { isFsInaccessible } from '../../utils/errors.js';
@@ -72,9 +71,94 @@ function formatPathLink(filePath: string): string {
 }
 export function shouldOfferTerminalSetup(): boolean {
   // iTerm2, WezTerm, Ghostty, Kitty, and Warp natively support CSI u / Kitty
-  // keyboard protocol, which Claude Code already parses. No setup needed for
-  // these terminals.
-  return platform() === 'darwin' && env.terminal === 'Apple_Terminal' || env.terminal === 'vscode' || env.terminal === 'cursor' || env.terminal === 'windsurf' || env.terminal === 'alacritty' || env.terminal === 'zed';
+  // keyboard protocol. No setup is needed for these terminals.
+  return (
+    (platform() === 'darwin' && env.terminal === 'Apple_Terminal') ||
+    env.terminal === 'vscode' ||
+    env.terminal === 'cursor' ||
+    env.terminal === 'windsurf' ||
+    env.terminal === 'alacritty' ||
+    env.terminal === 'zed'
+  );
+}
+
+export type TerminalSetupPlan = {
+  terminalName: string;
+  target: string;
+  changes: string[];
+  backup: string;
+  restart: string | null;
+  supportsUndo: boolean;
+};
+
+export function getTerminalSetupPlan(
+  terminal: string | null = env.terminal,
+): TerminalSetupPlan | null {
+  switch (terminal) {
+    case 'Apple_Terminal':
+      return {
+        terminalName: 'Apple Terminal',
+        target: 'The current default and startup Terminal.app profiles',
+        changes: [
+          'Enable Use Option as Meta key',
+          'Disable the audio bell and keep the visual bell',
+        ],
+        backup: 'Export Terminal.app preferences to a timestamped Tersa backup before applying changes',
+        restart: 'Restart Terminal.app after setup',
+        supportsUndo: true,
+      };
+    case 'vscode':
+    case 'cursor':
+    case 'windsurf': {
+      const name = terminal === 'vscode' ? 'VSCode' : terminal === 'cursor' ? 'Cursor' : 'Windsurf';
+      return {
+        terminalName: name,
+        target: `${name} user keybindings.json`,
+        changes: ['Add a terminal-only Shift+Enter send-sequence binding'],
+        backup: 'Copy the existing keybindings file before writing',
+        restart: null,
+        supportsUndo: false,
+      };
+    }
+    case 'alacritty':
+      return {
+        terminalName: 'Alacritty',
+        target: 'The active Alacritty TOML configuration',
+        changes: ['Add a Shift+Enter terminal newline binding'],
+        backup: 'Copy the existing configuration before writing',
+        restart: 'Restart Alacritty after setup',
+        supportsUndo: false,
+      };
+    case 'zed':
+      return {
+        terminalName: 'Zed',
+        target: 'Zed user keymap configuration',
+        changes: ['Add a terminal-only Shift+Enter newline binding'],
+        backup: 'Copy the existing keymap before writing',
+        restart: null,
+        supportsUndo: false,
+      };
+    default:
+      return null;
+  }
+}
+
+export function formatTerminalSetupPreview(plan: TerminalSetupPlan): string {
+  return [
+    `Terminal setup preview · ${plan.terminalName}`,
+    '',
+    `Target: ${plan.target}`,
+    'Changes:',
+    ...plan.changes.map(change => `- ${change}`),
+    `Backup: ${plan.backup}`,
+    ...(plan.restart ? [`After applying: ${plan.restart}`] : []),
+    '',
+    'No settings have been changed.',
+    'Run /terminal-setup apply to confirm and apply this plan.',
+    ...(plan.supportsUndo
+      ? ['Run /terminal-setup undo to restore the most recent Tersa backup.']
+      : []),
+  ].join(EOL);
 }
 export async function setupTerminal(theme: ThemeName): Promise<string> {
   let result = '';
@@ -118,10 +202,6 @@ export async function setupTerminal(theme: ThemeName): Promise<string> {
   });
   maybeMarkProjectOnboardingComplete();
 
-  // Install shell completions (internal-only, since the completion command is internal-only)
-  if ("external" === 'ant') {
-    result += await setupShellCompletion(theme);
-  }
   return result;
 }
 export function isShiftEnterKeyBindingInstalled(): boolean {
@@ -139,7 +219,7 @@ export function markBackslashReturnUsed(): void {
     }));
   }
 }
-export async function call(onDone: LocalJSXCommandOnDone, context: ToolUseContext & LocalJSXCommandContext, _args: string): Promise<null> {
+export async function call(onDone: LocalJSXCommandOnDone, context: ToolUseContext & LocalJSXCommandContext, args: string): Promise<null> {
   if (env.terminal && env.terminal in NATIVE_CSIU_TERMINALS) {
     const message = `Shift+Enter is natively supported in ${NATIVE_CSIU_TERMINALS[env.terminal]}.
 
@@ -148,20 +228,15 @@ No configuration needed. Just use Shift+Enter to add newlines.`;
     return null;
   }
 
-  // Check if terminal is supported
   if (!shouldOfferTerminalSetup()) {
     const terminalName = env.terminal || 'your current terminal';
     const currentPlatform = getPlatform();
-
-    // Build platform-specific terminal suggestions
     let platformTerminals = '';
     if (currentPlatform === 'macos') {
       platformTerminals = '   • macOS: Apple Terminal\n';
     } else if (currentPlatform === 'windows') {
       platformTerminals = '   • Windows: Windows Terminal\n';
     }
-    // For Linux and other platforms, we don't show native terminal options
-    // since they're not currently supported
 
     const message = `Terminal setup cannot be run from ${terminalName}.
 
@@ -179,6 +254,44 @@ ${chalk.dim('Note: iTerm2, WezTerm, Ghostty, Kitty, and Warp support Shift+Enter
     onDone(message);
     return null;
   }
+
+  const action = args.trim().toLowerCase();
+  const plan = getTerminalSetupPlan();
+  if (!plan) {
+    onDone('No terminal setup plan is available for the current terminal.');
+    return null;
+  }
+
+  if (action === '' || action === 'preview' || action === 'inspect') {
+    onDone(formatTerminalSetupPreview(plan));
+    return null;
+  }
+
+  if (action === 'undo') {
+    if (env.terminal !== 'Apple_Terminal') {
+      onDone('Automatic undo is currently available only for Apple Terminal. Restore the backup path printed during setup for this terminal.');
+      return null;
+    }
+    const restoreResult = await restoreTerminalPreferencesBackup();
+    if (restoreResult.status === 'restored') {
+      saveGlobalConfig(current => ({
+        ...current,
+        optionAsMetaKeyInstalled: false,
+      }));
+      onDone(`Restored Terminal.app preferences from ${restoreResult.backupPath ?? 'the most recent Tersa backup'}. Restart Terminal.app to load the restored settings.`);
+    } else if (restoreResult.status === 'failed') {
+      onDone(`Could not restore Terminal.app preferences automatically. Run: defaults import com.apple.Terminal ${restoreResult.backupPath}`);
+    } else {
+      onDone('No Tersa Terminal.app backup is available to restore.');
+    }
+    return null;
+  }
+
+  if (action !== 'apply') {
+    onDone('Unknown terminal setup action. Use /terminal-setup, /terminal-setup apply, or /terminal-setup undo.');
+    return null;
+  }
+
   const result = await setupTerminal(context.options.theme);
   onDone(result);
   return null;
@@ -354,7 +467,7 @@ async function enableOptionAsMetaForTerminal(theme: ThemeName): Promise<string> 
     // Flush the preferences cache
     await execFileNoThrow('killall', ['cfprefsd']);
     markTerminalSetupComplete();
-    return `${color('success', theme)(`Configured Terminal.app settings:`)}${EOL}${color('success', theme)('- Enabled "Use Option as Meta key"')}${EOL}${color('success', theme)('- Switched to visual bell')}${EOL}${chalk.dim('Option+Enter will now enter a newline.')}${EOL}${chalk.dim('You must restart Terminal.app for changes to take effect.', theme)}${EOL}`;
+    return `${color('success', theme)(`Configured Terminal.app settings:`)}${EOL}${color('success', theme)('- Enabled "Use Option as Meta key"')}${EOL}${color('success', theme)('- Switched to visual bell')}${EOL}${chalk.dim(`Backup: ${formatPathLink(backupPath)}`)}${EOL}${chalk.dim('Option+Enter will now enter a newline.')}${EOL}${chalk.dim('You must restart Terminal.app for changes to take effect.', theme)}${EOL}${chalk.dim('Undo with /terminal-setup undo')}${EOL}`;
   } catch (error) {
     logError(error);
 

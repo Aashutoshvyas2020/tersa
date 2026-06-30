@@ -1,85 +1,58 @@
 import * as React from 'react'
 import { PRODUCT_DISPLAY_NAME } from '../../constants/product.js'
 import { Box, Text } from '../../ink.js'
-import { getTersaOptimizationStatusRows } from '../../utils/tersaStatus.js'
-import { PromptInputHelpMenu } from '../PromptInput/PromptInputHelpMenu.js'
+import { ResponsiveRow } from '../design-system/ResponsiveRow.js'
 
-const OPTIMIZATION_HELP: Record<string, string> = {
-  Mode:
-    'Global cave mode. full turns the token-saver stack on, light keeps it leaner, off disables it.',
-  Tool:
-    'Compress tool output before it enters the conversation, so raw logs do not waste context.',
-  Struct:
-    'Run structure-aware compression on large JSON or XML output instead of dumping it raw.',
-  Dedup:
-    'If the same file or range is read again unchanged, return a short reuse stub instead of full text.',
-  History:
-    'Compress older tool/result history so long sessions keep less dead weight.',
-  RTK:
-    'Rewrite shell commands to smaller or cleaner equivalents when a shorter command is safe.',
-  Repo:
-    'Inject a compact repo map instead of flooding context with broad file-tree detail.',
-  Memory:
-    'Inject a compact memory recall instead of replaying all historical notes.',
-  Skill:
-    'Compress skill prompt text before it is injected. full is the strongest visible compression.',
-  ML:
-    'Optional model-based compression sidecar. off means no ML compressor is active.',
-  Sidecar:
-    'The external command used for ML compression. configured/unset shows whether a sidecar exists.',
-  Profile:
-    'Mode preset. minimal = Karpathy only; standard = Karpathy + Super; full-auto = all modes.',
-  Karpathy:
-    'Simplicity first. Explicit assumptions, smallest safe change, and proof before done.',
-  Super:
-    'Structured execution. Clarify, plan, test, verify, and review before claiming complete.',
-  GSD:
-    'Phase-driven execution with checkpoints and explicit blocker reporting.',
-  Designer:
-    'UI taste mode. Keep hierarchy clear, surfaces restrained, and controls legible.',
-}
+const QUICK_START = [
+  ['1', 'Describe the outcome you want and any constraints.'],
+  ['2', 'Review the plan and approve only the permissions it needs.'],
+  ['3', 'Inspect /diff, run the relevant tests, then commit.'],
+] as const
 
-function renderOptimizationRow(label: string, value: string): React.ReactNode {
-  return (
-    <Text key={label} wrap="wrap">
-      <Text color="inactive">{label.padEnd(8)}</Text>
-      <Text color="inactive">· </Text>
-      <Text color="text">{value}</Text>
-      <Text color="inactive"> — {OPTIMIZATION_HELP[label] ?? 'No help text available.'}</Text>
-    </Text>
-  )
-}
+const ESSENTIAL_COMMANDS = [
+  ['/status', 'runtime, model, effort, and integrations'],
+  ['/model', 'change the active model'],
+  ['/permissions', 'review or change tool access'],
+  ['/diff', 'inspect repository changes'],
+  ['/modes', 'configure planning and optimization modes'],
+  ['$<skill>', 'run an installed skill'],
+] as const
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <Box>
-      <Text bold>{children}</Text>
-    </Box>
-  )
-}
-
-export function General() {
-  const optimizationRows = getTersaOptimizationStatusRows()
-
+export function General(): React.ReactNode {
   return (
     <Box flexDirection="column" paddingY={1} gap={1}>
-      <Box>
-        <Text>
-          {PRODUCT_DISPLAY_NAME} understands your codebase, makes edits with your permission, and executes commands — right from your terminal.
-        </Text>
+      <Text wrap="wrap">
+        {PRODUCT_DISPLAY_NAME} works in your repository, proposes changes, and
+        runs commands with the permissions you approve.
+      </Text>
+
+      <Box flexDirection="column">
+        <Text bold>Start here</Text>
+        {QUICK_START.map(([step, description]) => (
+          <ResponsiveRow key={step} stackBelow={60} gap={1}>
+            <Text color="suggestion">{step}.</Text>
+            <Text wrap="wrap">{description}</Text>
+          </ResponsiveRow>
+        ))}
       </Box>
 
-      <Box flexDirection="column" gap={1}>
-        <SectionTitle>Shortcuts</SectionTitle>
-        <PromptInputHelpMenu gap={2} fixedWidth={true} />
+      <Box flexDirection="column">
+        <Text bold>Essentials</Text>
+        {ESSENTIAL_COMMANDS.map(([command, description]) => (
+          <ResponsiveRow key={command} stackBelow={60} gap={1}>
+            <Box width={14} flexShrink={0}>
+              <Text color="suggestion">{command}</Text>
+            </Box>
+            <Text dimColor wrap="wrap">
+              {description}
+            </Text>
+          </ResponsiveRow>
+        ))}
       </Box>
 
-      <Box flexDirection="column" gap={1} marginTop={1}>
-        <SectionTitle>Optimize</SectionTitle>
-        <Box flexDirection="column" gap={0}>
-          {optimizationRows.map(([label, value]) => renderOptimizationRow(label, value))}
-        </Box>
-      </Box>
+      <Text dimColor wrap="wrap">
+        Open the Commands tab and type to filter the complete command list.
+      </Text>
     </Box>
   )
 }

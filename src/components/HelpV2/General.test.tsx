@@ -1,60 +1,31 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import React from 'react'
+import { stringWidth } from '../../ink/stringWidth.js'
 import { renderToString } from '../../utils/staticRender.js'
-import {
-  acquireSharedMutationLock,
-  releaseSharedMutationLock,
-} from '../../test/sharedMutationLock.js'
-
-beforeEach(async () => {
-  await acquireSharedMutationLock('components/HelpV2/General.test.tsx')
-  mock.module('../../utils/tersaStatus.js', () => ({
-    getTersaOptimizationStatusRows: () => [
-      ['Mode', 'full'],
-      ['Tool', 'on'],
-      ['Struct', 'on'],
-      ['Dedup', 'on'],
-      ['History', 'on'],
-      ['RTK', 'on'],
-      ['Repo', 'on'],
-      ['Memory', 'on'],
-      ['Skill', 'full'],
-      ['ML', 'off'],
-      ['Sidecar', 'off'],
-      ['Profile', 'minimal'],
-      ['Karpathy', 'full'],
-      ['Super', 'off'],
-      ['GSD', 'off'],
-      ['Designer', 'off'],
-    ],
-  }))
-})
-
-afterEach(() => {
-  try {
-    mock.restore()
-  } finally {
-    releaseSharedMutationLock()
-  }
-})
+import { General } from './General.js'
 
 describe('HelpV2 General tab', () => {
-  test('explains optimize rows and mode presets', async () => {
-    const { General } = await import('./General.js?help-general')
+  test('presents a concise quick start and essential commands', async () => {
+    const output = await renderToString(<General />, 80)
 
-    const output = await renderToString(<General />, 120)
+    expect(output).toContain('Start here')
+    expect(output).toContain('Describe the outcome')
+    expect(output).toContain('Review the plan')
+    expect(output).toContain('Inspect /diff')
+    expect(output).toContain('Essentials')
+    expect(output).toContain('/status')
+    expect(output).toContain('/permissions')
+    expect(output).toContain('/modes')
+    expect(output).not.toContain('Global cave mode')
+  })
 
-    expect(output).toContain('Shortcuts')
-    expect(output).toContain('Optimize')
-    expect(output).toContain('Mode    · full')
-    expect(output).toContain('Tool    · on')
-    expect(output).toContain('Global cave mode')
-    expect(output).toContain('Compress tool output')
-    expect(output).toContain('If the same file or range is read again unchanged')
-    expect(output).toContain('Mode preset')
-    expect(output).toContain('Karpathy')
-    expect(output).toContain('Super')
-    expect(output).toContain('GSD')
-    expect(output).toContain('Designer')
+  test('fits the supported terminal widths without horizontal overflow', async () => {
+    for (const width of [40, 60, 80, 120]) {
+      const output = await renderToString(<General />, width)
+      const visibleLines = output.split('\n')
+      expect(
+        Math.max(...visibleLines.map(line => stringWidth(line))),
+      ).toBeLessThanOrEqual(width)
+    }
   })
 })

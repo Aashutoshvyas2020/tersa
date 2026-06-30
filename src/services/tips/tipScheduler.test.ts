@@ -91,16 +91,16 @@ function setState(opts: {
 }
 
 describe('getTipToShowOnSpinner — sponsored partitioning', () => {
-  test('picks sponsored when cap met and sponsored tips eligible', async () => {
+  test('keeps sponsored tips disabled even when the old cap is met', async () => {
     setState({
       numStartups: 100,
-      lastSponsored: 80, // 20 sessions ago, frequency 10 → eligible
+      lastSponsored: 80,
       frequency: 10,
       tips: [makeTip('regular-1'), makeTip('atomic-x', true)],
     })
     const { getTipToShowOnSpinner } = await freshScheduler()
     const pick = await getTipToShowOnSpinner()
-    expect(pick?.id).toBe('atomic-x')
+    expect(pick?.id).toBe('regular-1')
   })
 
   test('falls back to regular when cap not met', async () => {
@@ -127,16 +127,15 @@ describe('getTipToShowOnSpinner — sponsored partitioning', () => {
     expect(pick?.id).toBe('regular-1')
   })
 
-  test('first-ever sponsored slot is eligible (no history)', async () => {
+  test('does not show sponsored content on a first-ever slot', async () => {
     setState({
       numStartups: 100,
-      // no lastSponsored → Infinity sessions
       frequency: 10,
       tips: [makeTip('regular-1'), makeTip('atomic-x', true)],
     })
     const { getTipToShowOnSpinner } = await freshScheduler()
     const pick = await getTipToShowOnSpinner()
-    expect(pick?.id).toBe('atomic-x')
+    expect(pick?.id).toBe('regular-1')
   })
 
   test('returns undefined when no tips at all', async () => {

@@ -804,6 +804,7 @@ export async function gitClone(
   targetPath: string,
   ref?: string,
   sparsePaths?: string[],
+  recurseSubmodules = true,
 ): Promise<{ code: number; stderr: string }> {
   const useSparse = sparsePaths && sparsePaths.length > 0
   const args = [
@@ -822,8 +823,10 @@ export async function gitClone(
     // for sparse clones — sparse monorepos rarely need them, and recursing
     // submodules would defeat the partial-clone bandwidth savings.
     args.push('--filter=blob:none', '--no-checkout')
-  } else {
+  } else if (recurseSubmodules) {
     args.push('--recurse-submodules', '--shallow-submodules')
+  } else {
+    args.push('--no-recurse-submodules')
   }
 
   if (ref) {
@@ -2000,7 +2003,9 @@ export async function removeMarketplaceSource(name: string): Promise<void> {
     // Remove related plugins from enabledPlugins (format: "plugin@marketplace")
     if (settings.enabledPlugins) {
       const marketplaceSuffix = `@${name}`
-      const updatedPlugins = { ...settings.enabledPlugins }
+      const updatedPlugins: Partial<typeof settings.enabledPlugins> = {
+        ...settings.enabledPlugins,
+      }
       let removedPlugins = false
 
       for (const pluginId in updatedPlugins) {
@@ -2011,7 +2016,8 @@ export async function removeMarketplaceSource(name: string): Promise<void> {
       }
 
       if (removedPlugins) {
-        updates.enabledPlugins = updatedPlugins
+        updates.enabledPlugins =
+          updatedPlugins as typeof settings.enabledPlugins
         needsUpdate = true
       }
     }

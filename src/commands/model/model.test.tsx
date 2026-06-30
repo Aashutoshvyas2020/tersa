@@ -60,6 +60,7 @@ async function expectModelCommandDoesNotWaitForRefresh(
 
 beforeEach(async () => {
   await acquireSharedMutationLock('commands/model/model.test.tsx')
+  mock.restore()
 })
 
 afterEach(() => {

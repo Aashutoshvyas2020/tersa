@@ -31,7 +31,6 @@ type BooleanKey =
   | 'showBackgroundTasks'
   | 'showWarnings'
   | 'showIdeContext'
-  | 'showTokenPercentage'
   | 'estimatedMarker'
 
 type Row =
@@ -87,7 +86,6 @@ function buildRows(
     { kind: 'boolean', key: 'showBackgroundTasks', label: 'Background tasks' },
     { kind: 'boolean', key: 'showWarnings', label: 'Warnings' },
     { kind: 'boolean', key: 'showIdeContext', label: 'IDE context' },
-    { kind: 'boolean', key: 'showTokenPercentage', label: 'Token percentage' },
     {
       kind: 'choice',
       key: 'tokenDetail',

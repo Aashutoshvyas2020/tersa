@@ -1,26 +1,60 @@
 /**
- * Stub — message type definitions not included in source snapshot.
+ * Compatibility message contracts for the open-source snapshot.
  *
- * The upstream Anthropic source defines a rich Message discriminated union
- * with structured Content blocks, role tags, tool_use payloads, and so on.
- * That file is not mirrored to this open snapshot. This stub exists so
- * `tsc --noEmit` can resolve `import { Message, ... } from 'src/types/message'`
- * across the ~21 callers without fixing every transitive type the call
- * sites use.
- *
- * Once the real definitions are restored upstream-side or reconstructed
- * from runtime usage, replace these `any` aliases with proper types and
- * delete this comment. See issue #473 for the typecheck-foundation effort.
+ * The original runtime ships a large discriminated message union that is not
+ * present in this repository snapshot. These aliases intentionally preserve
+ * the structural surface consumed by the application while keeping runtime
+ * code unchanged. Individual message producers and renderers continue to
+ * validate concrete payloads at their existing boundaries.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type Message = any
-export type AssistantMessage = any
-export type UserMessage = any
-export type SystemMessage = any
-export type SystemAPIErrorMessage = any
-export type AttachmentMessage = any
-export type ProgressMessage<T = any> = any
-export type HookResultMessage = any
-export type NormalizedUserMessage = any
+
+export type MessageRecord = Record<string, any>
+
+export type Message = MessageRecord
+export type NormalizedMessage = MessageRecord
+export type RenderableMessage = MessageRecord
+export type AssistantMessage = MessageRecord
+export type NormalizedAssistantMessage = MessageRecord
+export type UserMessage = MessageRecord
+export type NormalizedUserMessage = MessageRecord
+export type SystemMessage = MessageRecord
+export type SystemAPIErrorMessage = MessageRecord
+export type SystemAwaySummaryMessage = MessageRecord
+export type SystemBridgeStatusMessage = MessageRecord
+export type SystemCompactBoundaryMessage = MessageRecord
+export type SystemFileSnapshotMessage = MessageRecord
+export type SystemInformationalMessage = MessageRecord
+export type SystemLocalCommandMessage = MessageRecord
+export type SystemMemorySavedMessage = MessageRecord
+export type SystemMicrocompactBoundaryMessage = MessageRecord
+export type SystemPermissionRetryMessage = MessageRecord
+export type SystemScheduledTaskFireMessage = MessageRecord
+export type SystemStopHookSummaryMessage = MessageRecord
+export type SystemThinkingMessage = MessageRecord
+export type SystemTurnDurationMessage = MessageRecord
+export type TombstoneMessage = MessageRecord
+export type ToolUseSummaryMessage = MessageRecord
+export type HookResultMessage = MessageRecord
+export type GroupedToolUseMessage = MessageRecord
+export type CollapsedReadSearchGroup = MessageRecord
+export type CompactMetadata = MessageRecord
+
+export type AttachmentMessage<T = any> = MessageRecord & {
+  attachment?: T
+}
+
+export type ProgressMessage<T = any> = MessageRecord & {
+  data?: T
+}
+
+export type SystemMessageLevel =
+  | 'debug'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | string
+
 export type PartialCompactDirection = 'from' | 'up_to'

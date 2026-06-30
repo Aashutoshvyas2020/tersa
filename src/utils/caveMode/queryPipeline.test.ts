@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { createFileStateCacheWithSizeLimit } from '../fileStateCache.js'
 import type { ToolUseContext } from '../../Tool.js'
 import { DEFAULT_CAVE_MODE_CONFIG } from './config.js'
@@ -11,6 +11,20 @@ import {
   buildMemoryRecallSummary,
   buildRepoMapSummary,
 } from './queryPipeline.js'
+
+let originalCaveMode: string | undefined
+
+beforeEach(() => {
+  originalCaveMode = process.env.TERSA_CAVE_MODE
+  delete process.env.TERSA_CAVE_MODE
+  resetSettingsCache()
+})
+
+afterEach(() => {
+  if (originalCaveMode === undefined) delete process.env.TERSA_CAVE_MODE
+  else process.env.TERSA_CAVE_MODE = originalCaveMode
+  resetSettingsCache()
+})
 
 function createToolUseContext(): ToolUseContext {
   return {

@@ -23,8 +23,11 @@ afterAll(() => {
 })
 
 import { stripVTControlCharacters as stripAnsi } from 'node:util'
-import { detectProvider, printStartupScreen } from './StartupScreen.js'
-import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'
+import {
+  detectProvider,
+  printStartupScreen,
+  renderStartupLines,
+} from './StartupScreen.js'
 import {
   resetSettingsCache,
   setSessionSettingsCache,
@@ -59,7 +62,6 @@ const originalEnv: Record<string, string | undefined> = {}
 const originalMacro = (globalThis as Record<string, unknown>).MACRO
 const originalIsTTY = process.stdout.isTTY
 const originalWrite = process.stdout.write
-const originalModel = getGlobalConfig().model
 
 beforeEach(() => {
   for (const key of ENV_KEYS) {
@@ -67,18 +69,10 @@ beforeEach(() => {
     delete process.env[key]
   }
   setSessionSettingsCache({ settings: {}, errors: [] })
-  saveGlobalConfig(current => ({
-    ...current,
-    model: undefined,
-  }))
 })
 
 afterEach(() => {
   resetSettingsCache()
-  saveGlobalConfig(current => ({
-    ...current,
-    model: originalModel,
-  }))
   ;(globalThis as Record<string, unknown>).MACRO = originalMacro
   Object.defineProperty(process.stdout, 'isTTY', {
     configurable: true,
@@ -118,11 +112,34 @@ describe('printStartupScreen logo', () => {
     printStartupScreen()
 
     const plainOutput = stripAnsi(output)
-    expect(plainOutput).toContain('████████╗███████╗██████╗ ███████╗ █████╗')
-    expect(plainOutput).toContain('╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗')
+    expect(plainOutput).toContain('TERSA')
     expect(plainOutput).toContain('Provider')
-    expect(plainOutput).toContain('Mode')
-    expect(plainOutput).toContain('tersa vtest-version')
+    expect(plainOutput).toContain('Model')
+    expect(plainOutput).not.toContain('  Mode  ')
+    expect(plainOutput).toContain('vtest-version')
+  })
+
+  test('fits every visible row at 60 columns', () => {
+    ;(globalThis as Record<string, unknown>).MACRO = { VERSION: 'test-version' }
+    const lines = renderStartupLines(undefined, 60, 24).map(stripAnsi)
+    expect(lines.some(line => line.includes('Provider'))).toBe(true)
+    expect(lines.some(line => line.includes('Model'))).toBe(true)
+    expect(Math.max(...lines.map(line => line.length))).toBeLessThanOrEqual(60)
+  })
+
+  test('uses a stacked layout at 40 columns', () => {
+    ;(globalThis as Record<string, unknown>).MACRO = { VERSION: 'test-version' }
+    const lines = renderStartupLines(undefined, 40, 24).map(stripAnsi)
+    expect(lines).toContain('  Provider')
+    expect(lines).toContain('  Model')
+    expect(Math.max(...lines.map(line => line.length))).toBeLessThanOrEqual(40)
+  })
+
+  test('shows resize guidance below 40 columns', () => {
+    ;(globalThis as Record<string, unknown>).MACRO = { VERSION: 'test-version' }
+    const lines = renderStartupLines(undefined, 39, 24).map(stripAnsi)
+    expect(lines.join('\n')).toContain('Resize to at least 40 columns.')
+    expect(lines.join('\n')).not.toContain('Provider')
   })
 })
 

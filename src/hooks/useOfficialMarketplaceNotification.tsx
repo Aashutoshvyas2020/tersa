@@ -14,7 +14,7 @@ export function useOfficialMarketplaceNotification() {
 }
 async function _temp() {
   const result = await checkAndInstallOfficialMarketplace();
-  const notifs = [];
+  const notifs: Notification[] = [];
   if (result.configSaveFailed) {
     logForDebugging("Showing marketplace config save failure notification");
     notifs.push({
@@ -25,23 +25,15 @@ async function _temp() {
     });
   }
   if (result.installed) {
-    logForDebugging("Showing marketplace installation success notification");
+    logForDebugging("Plugin marketplace installed without a startup notification");
+  } else if (result.skipped && result.reason === "unknown") {
+    logForDebugging("Showing marketplace installation failure notification");
     notifs.push({
-      key: "marketplace-installed",
-      jsx: <Text color="success">✓ Anthropic marketplace installed · /plugin to see available plugins</Text>,
+      key: "marketplace-install-failed",
+      jsx: <Text color="warning">Plugin marketplace setup failed · Will retry on next startup</Text>,
       priority: "immediate",
-      timeoutMs: 7000
+      timeoutMs: 8000
     });
-  } else {
-    if (result.skipped && result.reason === "unknown") {
-      logForDebugging("Showing marketplace installation failure notification");
-      notifs.push({
-        key: "marketplace-install-failed",
-        jsx: <Text color="warning">Failed to install Anthropic marketplace · Will retry on next startup</Text>,
-        priority: "immediate",
-        timeoutMs: 8000
-      });
-    }
   }
   return notifs;
 }

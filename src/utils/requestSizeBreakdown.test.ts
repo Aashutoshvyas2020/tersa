@@ -333,7 +333,7 @@ describe('request size breakdown', () => {
     expect(output).toContain('MCP server redacted')
   })
 
-  test('formatted tool details redact secrets and preserve the markdown table', () => {
+  test('formatted tool details redact secrets in the structured text report', () => {
     const report = createRequestSizeReport(
       makeContextData({
         categories: [{ name: 'Messages', tokens: 9_000, color: 'permission' }],

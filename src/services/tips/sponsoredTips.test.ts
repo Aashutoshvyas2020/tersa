@@ -53,10 +53,10 @@ function resetState(settings: StubSettings = {}, numStartups = 100) {
 }
 
 describe('sponsoredTipsEnabled', () => {
-  test('defaults to true when no settings present', async () => {
+  test('is disabled for production testing regardless of settings', async () => {
     resetState()
     const { sponsoredTips } = await freshImport()
-    expect(sponsoredTips.sponsoredTipsEnabled()).toBe(true)
+    expect(sponsoredTips.sponsoredTipsEnabled()).toBe(false)
   })
 
   test('returns false when explicitly disabled', async () => {
@@ -73,22 +73,22 @@ describe('sponsoredTipsEnabled', () => {
 })
 
 describe('getSponsoredTipsFrequency', () => {
-  test('defaults to 10', async () => {
+  test('returns zero while sponsored tips are disabled', async () => {
     resetState()
     const { sponsoredTips } = await freshImport()
-    expect(sponsoredTips.getSponsoredTipsFrequency()).toBe(10)
+    expect(sponsoredTips.getSponsoredTipsFrequency()).toBe(0)
   })
 
-  test('honors user-configured frequency', async () => {
+  test('does not re-enable through a configured frequency', async () => {
     resetState({ sponsoredTipsFrequency: 25 })
     const { sponsoredTips } = await freshImport()
-    expect(sponsoredTips.getSponsoredTipsFrequency()).toBe(25)
+    expect(sponsoredTips.getSponsoredTipsFrequency()).toBe(0)
   })
 
-  test('rejects negative values', async () => {
+  test('keeps negative settings disabled', async () => {
     resetState({ sponsoredTipsFrequency: -5 })
     const { sponsoredTips } = await freshImport()
-    expect(sponsoredTips.getSponsoredTipsFrequency()).toBe(10)
+    expect(sponsoredTips.getSponsoredTipsFrequency()).toBe(0)
   })
 })
 

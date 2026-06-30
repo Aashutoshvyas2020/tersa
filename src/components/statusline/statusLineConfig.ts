@@ -19,7 +19,7 @@ export const DEFAULT_BUILTIN_STATUSLINE_CONFIG: BuiltinStatusLineConfig = {
   showBackgroundTasks: true,
   showWarnings: true,
   showIdeContext: false,
-  showTokenPercentage: false,
+  showTokenPercentage: true,
   tokenDetail: 'compact',
   estimatedMarker: true,
   colorIntensity: 'normal',
@@ -92,6 +92,7 @@ export function normalizeBuiltinStatusLineConfig(
   return {
     ...base,
     enabled: base.enabled !== false,
+    showTokenPercentage: true,
     tokenDetail: sanitizeTokenDetail(base.tokenDetail),
     colorIntensity: sanitizeColorIntensity(base.colorIntensity),
     useThemeColors: base.useThemeColors !== false,
@@ -120,6 +121,9 @@ export function toggleBuiltinStatusLineBoolean(
     | 'estimatedMarker',
 ): BuiltinStatusLineConfig {
   const normalized = normalizeBuiltinStatusLineConfig(config)
+  if (key === 'showTokenPercentage') {
+    return normalized
+  }
   return {
     ...normalized,
     [key]: !normalized[key],

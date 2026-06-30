@@ -275,7 +275,9 @@ function checkOpenAIEnv(): CheckResult[] {
     } else {
       const detail = credentials.source === 'env'
         ? 'Using CODEX_API_KEY.'
-        : `Using ${credentials.authPath}.`
+        : credentials.authPath
+          ? `Using stored credentials from ${credentials.authPath}.`
+          : 'Using stored OAuth credentials.'
       results.push(pass('CODEX auth', detail))
     }
     return results

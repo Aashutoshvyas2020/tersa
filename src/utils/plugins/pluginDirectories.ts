@@ -9,7 +9,7 @@
  * The base directory can be overridden via CLAUDE_CODE_PLUGIN_CACHE_DIR.
  */
 
-import { mkdirSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { readdir, rm, stat } from 'fs/promises'
 import { delimiter, join } from 'path'
 import { getUseCoworkPlugins } from '../../bootstrap/state.js'
@@ -94,9 +94,29 @@ function sanitizePluginId(pluginId: string): string {
   return pluginId.replace(/[^a-zA-Z0-9\-_]/g, '-')
 }
 
+function directPluginDataId(pluginId: string): string {
+  if (!pluginId.endsWith('@direct')) return pluginId
+  const id = pluginId.slice(0, -'@direct'.length)
+  const registryPath = join(getPluginsDirectory(), 'direct_plugins.json')
+  if (!existsSync(registryPath)) return pluginId
+  try {
+    const registry = JSON.parse(readFileSync(registryPath, 'utf8')) as {
+      plugins?: Record<string, { dataId?: unknown }>
+    }
+    const dataId = registry.plugins?.[id]?.dataId
+    return typeof dataId === 'string' && dataId.length > 0 ? dataId : pluginId
+  } catch {
+    return pluginId
+  }
+}
+
 /** Pure path — no mkdir. For display (e.g. uninstall dialog). */
 export function pluginDataDirPath(pluginId: string): string {
-  return join(getPluginsDirectory(), 'data', sanitizePluginId(pluginId))
+  return join(
+    getPluginsDirectory(),
+    'data',
+    sanitizePluginId(directPluginDataId(pluginId)),
+  )
 }
 
 /**

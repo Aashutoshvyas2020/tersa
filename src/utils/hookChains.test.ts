@@ -26,6 +26,7 @@ async function importHookChainsModule(options?: {
   mock.restore()
 
   const allowRemoteSessions = options?.allowRemoteSessions ?? true
+  const actualPolicyLimits = await import('../services/policyLimits/index.js')
 
   mock.module('../services/analytics/index.js', () => ({
     logEvent: () => {},
@@ -33,9 +34,11 @@ async function importHookChainsModule(options?: {
 
   mock.module('./telemetry/events.js', () => ({
     logOTelEvent: async () => {},
+    redactIfDisabled: () => '<REDACTED>',
   }))
 
   mock.module('../services/policyLimits/index.js', () => ({
+    ...actualPolicyLimits,
     isPolicyAllowed: () => allowRemoteSessions,
   }))
 

@@ -25,6 +25,18 @@ import { getPluginErrorMessage } from '../../types/plugin.js'
 import { errorMessage } from '../../utils/errors.js'
 import { logError } from '../../utils/log.js'
 import { clearAllCaches } from '../../utils/plugins/cacheUtils.js'
+import { migrateCaveKitToDirect } from '../../utils/plugins/directPluginMigration.js'
+import {
+  listDirectPlugins,
+  loadDirectPluginRegistry,
+  normalizeDirectPluginId,
+} from '../../utils/plugins/directPluginRegistry.js'
+import {
+  addDirectPlugin,
+  cleanupUnreferencedDirectPluginInstall,
+  reloadDirectPlugins,
+  removeDirectPlugin,
+} from '../../utils/plugins/directPluginSource.js'
 import { getInstallCounts } from '../../utils/plugins/installCounts.js'
 import {
   isPluginInstalled,
@@ -48,7 +60,10 @@ import {
   parsePluginIdentifier,
   scopeToSettingSource,
 } from '../../utils/plugins/pluginIdentifier.js'
-import { loadAllPlugins } from '../../utils/plugins/pluginLoader.js'
+import {
+  clearPluginCache,
+  loadAllPlugins,
+} from '../../utils/plugins/pluginLoader.js'
 import type { PluginSource } from '../../utils/plugins/schemas.js'
 import {
   type ValidationResult,
@@ -153,6 +168,109 @@ export async function pluginValidateHandler(
   }
 }
 
+async function verifyDirectPluginLoaded(id: string): Promise<void> {
+  const source = `${id}@direct`
+  clearPluginCache(`verify direct plugin ${id}`)
+  const result = await loadAllPlugins()
+  const plugin = [...result.enabled, ...result.disabled].find(
+    candidate => candidate.source === source,
+  )
+  const errors = result.errors.filter(error => error.source === source)
+  if (!plugin || errors.length > 0) {
+    const details = errors.map(getPluginErrorMessage).join('; ')
+    throw new Error(
+      details || `Direct plugin ${source} did not load through the plugin runtime`,
+    )
+  }
+}
+
+export async function pluginAddDirectHandler(
+  source: string,
+  options: { id?: string; force?: boolean; cowork?: boolean },
+): Promise<void> {
+  if (options.cowork) setUseCoworkPlugins(true)
+  const before = loadDirectPluginRegistry()
+  let record: Awaited<ReturnType<typeof addDirectPlugin>> | undefined
+  try {
+    record = await addDirectPlugin(source, options)
+    await verifyDirectPluginLoaded(record.id)
+    cliOk(
+      `${figures.tick} Added direct plugin ${record.id}@direct (${record.version}) from ${record.installPath}`,
+    )
+  } catch (error) {
+    const { saveDirectPluginRegistry } = await import(
+      '../../utils/plugins/directPluginRegistry.js'
+    )
+    saveDirectPluginRegistry(before)
+    if (record?.source.type === 'git') {
+      cleanupUnreferencedDirectPluginInstall(record.installPath, before)
+    }
+    clearPluginCache('rollback failed direct plugin add')
+    cliError(`${figures.cross} Failed to add direct plugin: ${errorMessage(error)}`)
+  }
+}
+
+export async function pluginRemoveDirectHandler(
+  id: string,
+  options: { cowork?: boolean },
+): Promise<void> {
+  if (options.cowork) setUseCoworkPlugins(true)
+  try {
+    const removed = removeDirectPlugin(id.replace(/@direct$/, ''))
+    clearPluginCache(`removed direct plugin ${removed.id}`)
+    cliOk(
+      `${figures.tick} Removed direct plugin ${removed.id}@direct; source files and plugin data were preserved`,
+    )
+  } catch (error) {
+    cliError(`${figures.cross} Failed to remove direct plugin: ${errorMessage(error)}`)
+  }
+}
+
+export async function pluginReloadDirectHandler(
+  id: string | undefined,
+  options: { cowork?: boolean },
+): Promise<void> {
+  if (options.cowork) setUseCoworkPlugins(true)
+  const before = loadDirectPluginRegistry()
+  let records: Awaited<ReturnType<typeof reloadDirectPlugins>> = []
+  try {
+    records = await reloadDirectPlugins(id)
+    for (const record of records) await verifyDirectPluginLoaded(record.id)
+    cliOk(
+      `${figures.tick} Reloaded ${records.length} direct ${plural(records.length, 'plugin')}`,
+    )
+  } catch (error) {
+    const { saveDirectPluginRegistry } = await import(
+      '../../utils/plugins/directPluginRegistry.js'
+    )
+    saveDirectPluginRegistry(before)
+    for (const record of records) {
+      if (record.source.type === 'git') {
+        cleanupUnreferencedDirectPluginInstall(record.installPath, before)
+      }
+    }
+    clearPluginCache('rollback failed direct plugin reload')
+    cliError(`${figures.cross} Failed to reload direct plugins: ${errorMessage(error)}`)
+  }
+}
+
+export async function pluginMigrateCaveKitHandler(options: {
+  cowork?: boolean
+}): Promise<void> {
+  if (options.cowork) setUseCoworkPlugins(true)
+  try {
+    const result = await migrateCaveKitToDirect(async source => {
+      await verifyDirectPluginLoaded(source.replace(/@direct$/, ''))
+    })
+    clearPluginCache('CaveKit direct migration complete')
+    cliOk(
+      `${figures.tick} Migrated ${result.legacyPluginId} to ${result.directPlugin.id}@direct; rollback archive: ${result.archivePath}`,
+    )
+  } catch (error) {
+    cliError(`${figures.cross} Failed to migrate CaveKit: ${errorMessage(error)}`)
+  }
+}
+
 // plugin list (lines 5217–5416)
 export async function pluginListHandler(options: {
   json?: boolean
@@ -169,6 +287,7 @@ export async function pluginListHandler(options: {
   const enabledPlugins = getPluginEditableScopes()
 
   const pluginIds = Object.keys(installedData.plugins)
+  const directPlugins = listDirectPlugins()
 
   // Load all plugins once. The JSON and human paths both need:
   //  - loadErrors (to show load failures per plugin)
@@ -181,9 +300,13 @@ export async function pluginListHandler(options: {
     errors: loadErrors,
   } = await loadAllPlugins()
   const allLoadedPlugins = [...loadedEnabled, ...loadedDisabled]
+  const directLoadedPlugins = allLoadedPlugins.filter(p =>
+    p.source.endsWith('@direct'),
+  )
   const inlinePlugins = allLoadedPlugins.filter(p =>
     p.source.endsWith('@inline'),
   )
+  const directLoadErrors = loadErrors.filter(e => e.source.endsWith('@direct'))
   // Path-level inline failures (dir doesn't exist, parse error before
   // manifest is read) use source='inline[N]'. Plugin-level errors after
   // manifest read use source='name@inline'. Collect both for the session
@@ -250,6 +373,29 @@ export async function pluginListHandler(options: {
           errors: pluginErrors.length > 0 ? pluginErrors : undefined,
         })
       }
+    }
+
+    for (const record of directPlugins) {
+      const source = `${record.id}@direct`
+      const loaded = directLoadedPlugins.find(plugin => plugin.source === source)
+      const servers = loaded
+        ? loaded.mcpServers || (await loadPluginMcpServers(loaded))
+        : undefined
+      const recordErrors = directLoadErrors
+        .filter(error => error.source === source)
+        .map(getPluginErrorMessage)
+      plugins.push({
+        id: source,
+        version: record.version,
+        scope: 'direct',
+        enabled: record.enabled,
+        installPath: record.installPath,
+        installedAt: record.addedAt,
+        lastUpdated: record.updatedAt,
+        mcpServers:
+          servers && Object.keys(servers).length > 0 ? servers : undefined,
+        errors: recordErrors.length > 0 ? recordErrors : undefined,
+      })
     }
 
     // Session-only plugins: scope='session', no install metadata.
@@ -346,13 +492,17 @@ export async function pluginListHandler(options: {
     }
   }
 
-  if (pluginIds.length === 0 && inlinePlugins.length === 0) {
+  if (
+    pluginIds.length === 0 &&
+    directPlugins.length === 0 &&
+    inlinePlugins.length === 0
+  ) {
     // inlineLoadErrors can exist with zero inline plugins (e.g. --plugin-dir
     // points at a nonexistent path). Don't early-exit over them — fall
     // through to the session section so the failure is visible.
     if (inlineLoadErrors.length === 0) {
       cliOk(
-        'No plugins installed. Use `tersa plugin install` to install a plugin.',
+        'No plugins installed. Use `tersa plugin add <path-or-git-url>` or `tersa plugin install <plugin>`.',
       )
     }
   }
@@ -392,6 +542,35 @@ export async function pluginListHandler(options: {
       // biome-ignore lint/suspicious/noConsole:: intentional console output
       console.log(`    Status: ${status}`)
       for (const error of pluginErrors) {
+        // biome-ignore lint/suspicious/noConsole:: intentional console output
+        console.log(`    Error: ${getPluginErrorMessage(error)}`)
+      }
+      // biome-ignore lint/suspicious/noConsole:: intentional console output
+      console.log('')
+    }
+  }
+
+  if (directPlugins.length > 0 || directLoadErrors.length > 0) {
+    // biome-ignore lint/suspicious/noConsole:: intentional console output
+    console.log('Direct plugins:\n')
+    for (const record of directPlugins) {
+      const source = `${record.id}@direct`
+      const recordErrors = directLoadErrors.filter(error => error.source === source)
+      const status =
+        recordErrors.length > 0
+          ? `${figures.cross} failed to load`
+          : record.enabled
+            ? `${figures.tick} enabled`
+            : `${figures.cross} disabled`
+      // biome-ignore lint/suspicious/noConsole:: intentional console output
+      console.log(`  ${figures.pointer} ${source}`)
+      // biome-ignore lint/suspicious/noConsole:: intentional console output
+      console.log(`    Version: ${record.version}`)
+      // biome-ignore lint/suspicious/noConsole:: intentional console output
+      console.log(`    Path: ${record.installPath}`)
+      // biome-ignore lint/suspicious/noConsole:: intentional console output
+      console.log(`    Status: ${status}`)
+      for (const error of recordErrors) {
         // biome-ignore lint/suspicious/noConsole:: intentional console output
         console.log(`    Error: ${getPluginErrorMessage(error)}`)
       }

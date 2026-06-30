@@ -3,6 +3,7 @@ import { homedir } from 'os'
 import { buildCuratedStatusLineSegments } from './StatusLine.js'
 import { getDefaultBuiltinStatusLineConfig } from './statusline/statusLineConfig.js'
 import { DEFAULT_CAVE_MODE_CONFIG } from '../utils/caveMode/config.js'
+import { stringWidth } from '../ink/stringWidth.js'
 
 function buildSegments(args: {
   currentDir: string
@@ -21,6 +22,9 @@ function buildSegments(args: {
   showBackgroundTasks?: boolean
   tasks?: Record<string, unknown>
   remoteBackgroundTaskCount?: number
+  maxWidth?: number
+  usedPercentage?: number
+  showGit?: boolean
 }) {
   const { segments } = buildCuratedStatusLineSegments({
     messages: args.messages ?? [],
@@ -48,8 +52,8 @@ function buildSegments(args: {
         total_output_tokens: 0,
         context_window_size: 400_000,
         current_usage: args.currentUsage ?? null,
-        used_percentage: 0,
-        remaining_percentage: 100,
+        used_percentage: args.usedPercentage ?? 0,
+        remaining_percentage: 100 - (args.usedPercentage ?? 0),
       },
       exceeds_200k_tokens: false,
       ...(args.worktreeOriginalCwd
@@ -66,7 +70,10 @@ function buildSegments(args: {
     },
     permissionMode: 'default',
     effort: 'high',
-    repo: { branch: null, branchChanges: null },
+    repo: {
+      branch: args.showGit ? 'feature/status-priority' : null,
+      branchChanges: args.showGit ? 3 : null,
+    },
     prNumber: null,
     sessionName: null,
     sessionId: 'session-test',
@@ -89,7 +96,7 @@ function buildSegments(args: {
     settings: {
       statusLine: {
         ...getDefaultBuiltinStatusLineConfig(),
-        showGit: false,
+        showGit: args.showGit ?? false,
         showPermissions: false,
         showPlanGoalMode: false,
         showWarnings: args.showWarnings ?? false,
@@ -106,7 +113,7 @@ function buildSegments(args: {
     tokenDetail: args.tokenDetail ?? 'compact',
     estimatedMarker: true,
     colorIntensity: 'normal',
-    maxWidth: 120,
+    maxWidth: args.maxWidth ?? 120,
   })
 
   return segments
@@ -182,6 +189,30 @@ describe('StatusLine token segment', () => {
     expect(tokenSegment?.text).toContain('out 250')
     expect(tokenSegment?.text).toContain('cache 250')
   })
+
+  test('keeps token percentage visible within every supported narrow width', () => {
+    for (const maxWidth of [40, 60, 80]) {
+      const segments = buildSegments({
+        currentDir: '/Users/aashu/tersa',
+        projectDir: '/Users/aashu/tersa',
+        currentUsage: {
+          input_tokens: 40_000,
+          output_tokens: 2_000,
+          cache_creation_input_tokens: 1_000,
+          cache_read_input_tokens: 1_000,
+        },
+        showTokenPercentage: true,
+        tokenDetail: 'detailed',
+        maxWidth,
+      })
+      const tokenSegment = segments.find(segment => segment.id === 'tokens')
+      const rendered = segments.map(segment => segment.text).join('  ')
+
+      expect(tokenSegment).toBeDefined()
+      expect(tokenSegment?.text).toContain('%')
+      expect(stringWidth(rendered)).toBeLessThanOrEqual(maxWidth)
+    }
+  })
 })
 
 describe('StatusLine runtime activity', () => {
@@ -239,6 +270,58 @@ describe('StatusLine warnings', () => {
       }).find(segment => segment.id === 'warning-auth')
 
       expect(warningSegment).toBeUndefined()
+    } finally {
+      for (const [key, value] of Object.entries(previousEnv)) {
+        if (value === undefined) {
+          delete process.env[key as keyof typeof previousEnv]
+        } else {
+          process.env[key as keyof typeof previousEnv] = value
+        }
+      }
+    }
+  })
+
+  test('preserves warnings and tokens before project and git context', () => {
+    const previousEnv = {
+      CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI,
+      OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
+      OPENAI_MODEL: process.env.OPENAI_MODEL,
+      CHATGPT_ACCOUNT_ID: process.env.CHATGPT_ACCOUNT_ID,
+      CODEX_API_KEY: process.env.CODEX_API_KEY,
+      CODEX_ACCOUNT_ID: process.env.CODEX_ACCOUNT_ID,
+    }
+
+    process.env.CLAUDE_CODE_USE_OPENAI = '1'
+    process.env.OPENAI_BASE_URL = 'https://chatgpt.com/backend-api/codex'
+    process.env.OPENAI_MODEL = 'codexplan'
+    process.env.CHATGPT_ACCOUNT_ID = 'acct_test'
+    process.env.CODEX_API_KEY = 'codex-test'
+    delete process.env.CODEX_ACCOUNT_ID
+
+    try {
+      const segments = buildSegments({
+        currentDir: '/Users/aashu/tersa',
+        projectDir: '/Users/aashu/tersa',
+        currentUsage: {
+          input_tokens: 370_000,
+          output_tokens: 10_000,
+          cache_creation_input_tokens: 0,
+          cache_read_input_tokens: 0,
+        },
+        usedPercentage: 95,
+        showWarnings: true,
+        showGit: true,
+        showTokenPercentage: true,
+        tokenDetail: 'detailed',
+        maxWidth: 40,
+      })
+      const rendered = segments.map(segment => segment.text).join('  ')
+
+      expect(segments.some(segment => segment.id === 'tokens')).toBe(true)
+      expect(segments.some(segment => segment.kind === 'warning')).toBe(true)
+      expect(segments.some(segment => segment.id === 'project')).toBe(false)
+      expect(segments.some(segment => segment.id === 'git')).toBe(false)
+      expect(stringWidth(rendered)).toBeLessThanOrEqual(40)
     } finally {
       for (const [key, value] of Object.entries(previousEnv)) {
         if (value === undefined) {

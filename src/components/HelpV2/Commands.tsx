@@ -1,81 +1,127 @@
-import { c as _c } from "react-compiler-runtime";
-import * as React from 'react';
-import { useMemo } from 'react';
-import { type Command, formatDescriptionWithSource } from '../../commands.js';
-import { Box, Text } from '../../ink.js';
-import { truncate } from '../../utils/format.js';
-import { Select } from '../CustomSelect/select.js';
-import { useTabHeaderFocus } from '../design-system/Tabs.js';
+import * as React from 'react'
+import { useMemo } from 'react'
+import { type Command, formatDescriptionWithSource } from '../../commands.js'
+import { useSearchInput } from '../../hooks/useSearchInput.js'
+import { Box, Text, useTerminalFocus } from '../../ink.js'
+import { truncate } from '../../utils/format.js'
+import { SearchBox } from '../SearchBox.js'
+import { ResponsiveRow } from '../design-system/ResponsiveRow.js'
+import { useTabHeaderFocus } from '../design-system/Tabs.js'
+
 type Props = {
-  commands: Command[];
-  maxHeight: number;
-  columns: number;
-  title: string;
-  onCancel: () => void;
-  emptyMessage?: string;
-};
-export function Commands(t0) {
-  const $ = _c(14);
-  const {
-    commands,
-    maxHeight,
-    columns,
-    title,
-    onCancel,
-    emptyMessage
-  } = t0;
-  const {
-    headerFocused,
-    focusHeader
-  } = useTabHeaderFocus();
-  const maxWidth = Math.max(1, columns - 10);
-  const visibleCount = Math.max(1, Math.floor((maxHeight - 10) / 2));
-  let t1;
-  if ($[0] !== commands || $[1] !== maxWidth) {
-    const seen = new Set();
-    let t2;
-    if ($[3] !== maxWidth) {
-      t2 = cmd_0 => ({
-        label: `/${cmd_0.name}`,
-        value: cmd_0.name,
-        description: truncate(formatDescriptionWithSource(cmd_0), maxWidth, true)
-      });
-      $[3] = maxWidth;
-      $[4] = t2;
-    } else {
-      t2 = $[4];
-    }
-    t1 = commands.filter(cmd => {
-      if (seen.has(cmd.name)) {
-        return false;
-      }
-      seen.add(cmd.name);
-      return true;
-    }).sort(_temp).map(t2);
-    $[0] = commands;
-    $[1] = maxWidth;
-    $[2] = t1;
-  } else {
-    t1 = $[2];
-  }
-  const options = t1;
-  let t2;
-  if ($[5] !== commands.length || $[6] !== emptyMessage || $[7] !== focusHeader || $[8] !== headerFocused || $[9] !== onCancel || $[10] !== options || $[11] !== title || $[12] !== visibleCount) {
-    t2 = <Box flexDirection="column" paddingY={1}>{commands.length === 0 && emptyMessage ? <Text dimColor={true}>{emptyMessage}</Text> : <><Text>{title}</Text><Box marginTop={1}><Select options={options} visibleOptionCount={visibleCount} onCancel={onCancel} disableSelection={true} hideIndexes={true} layout="compact-vertical" onUpFromFirstItem={focusHeader} isDisabled={headerFocused} /></Box></>}</Box>;
-    $[5] = commands.length;
-    $[6] = emptyMessage;
-    $[7] = focusHeader;
-    $[8] = headerFocused;
-    $[9] = onCancel;
-    $[10] = options;
-    $[11] = title;
-    $[12] = visibleCount;
-    $[13] = t2;
-  } else {
-    t2 = $[13];
-  }
-  return t2;
+  commands: Command[]
+  maxHeight: number
+  columns: number
+  title: string
+  onCancel: () => void
+  emptyMessage?: string
 }
-function _temp(a, b) {
-  return a.name.localeCompare(b.name);
+
+export type HelpCommandSummary = {
+  name: string
+  description: string
+}
+
+export function filterHelpCommands(
+  commands: Command[],
+  query: string,
+): HelpCommandSummary[] {
+  const seen = new Set<string>()
+  const summaries = commands.flatMap(command => {
+    if (seen.has(command.name)) return []
+    seen.add(command.name)
+    return [
+      {
+        name: command.name,
+        description: formatDescriptionWithSource(command),
+      },
+    ]
+  })
+  const normalized = query.trim().toLowerCase()
+  if (!normalized) {
+    return summaries.sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  return summaries
+    .filter(command =>
+      `${command.name} ${command.description}`.toLowerCase().includes(normalized),
+    )
+    .sort((a, b) => {
+      const aPrefix = a.name.toLowerCase().startsWith(normalized) ? 0 : 1
+      const bPrefix = b.name.toLowerCase().startsWith(normalized) ? 0 : 1
+      return aPrefix - bPrefix || a.name.localeCompare(b.name)
+    })
+}
+
+export function Commands({
+  commands,
+  maxHeight,
+  columns,
+  title,
+  onCancel,
+  emptyMessage = 'No commands found',
+}: Props): React.ReactNode {
+  const { headerFocused, focusHeader } = useTabHeaderFocus()
+  const isTerminalFocused = useTerminalFocus()
+  const { query, cursorOffset, handleKeyDown } = useSearchInput({
+    isActive: !headerFocused,
+    onExit: focusHeader,
+    onExitUp: focusHeader,
+    onCancel,
+    backspaceExitsOnEmpty: false,
+    columns,
+  })
+  const filtered = useMemo(
+    () => filterHelpCommands(commands, query),
+    [commands, query],
+  )
+  const compact = columns < 60
+  const rowHeight = compact ? 2 : 1
+  const visibleCount = Math.max(
+    2,
+    Math.floor((Math.max(8, maxHeight) - 7) / rowHeight),
+  )
+  const visible = filtered.slice(0, visibleCount)
+  const descriptionWidth = Math.max(12, columns - (compact ? 8 : 32))
+
+  return (
+    <Box
+      flexDirection="column"
+      paddingY={1}
+      gap={1}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      <Text>{title}</Text>
+      <SearchBox
+        query={query}
+        cursorOffset={cursorOffset}
+        placeholder="Filter commands…"
+        isFocused={!headerFocused}
+        isTerminalFocused={isTerminalFocused}
+        width="100%"
+      />
+      <Box flexDirection="column">
+        {visible.length === 0 ? (
+          <Text dimColor>{query ? 'No matching commands' : emptyMessage}</Text>
+        ) : (
+          visible.map(command => (
+            <ResponsiveRow key={command.name} stackBelow={60} gap={1}>
+              <Box width={compact ? undefined : 24} flexShrink={0}>
+                <Text color="suggestion">/{command.name}</Text>
+              </Box>
+              <Text dimColor wrap="truncate-end">
+                {truncate(command.description, descriptionWidth, true)}
+              </Text>
+            </ResponsiveRow>
+          ))
+        )}
+      </Box>
+      <Text dimColor>
+        {filtered.length === 0
+          ? 'Esc closes help'
+          : `${Math.min(visible.length, filtered.length)} of ${filtered.length} · type to filter · ↑ returns to tabs`}
+      </Text>
+    </Box>
+  )
 }

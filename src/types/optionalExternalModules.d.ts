@@ -1,0 +1,6 @@
+declare module 'asciichart'
+declare module 'audio-capture-napi'
+declare module 'cacache'
+declare module 'image-processor-napi'
+declare module 'plist'
+declare module 'url-handler-napi'

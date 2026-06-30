@@ -3,10 +3,7 @@ import { feature } from 'bun:bundle'
 import type { OptionWithDescription } from '../../../components/CustomSelect/select.js'
 import type { ToolPermissionContext } from '../../../Tool.js'
 import type { PermissionMode } from '../../../utils/permissions/PermissionMode.js'
-import {
-  getModeColor,
-  permissionModeTitle,
-} from '../../../utils/permissions/PermissionMode.js'
+import { permissionModeTitle } from '../../../utils/permissions/PermissionMode.js'
 
 export type ManageablePermissionMode = Extract<
   PermissionMode,
@@ -18,15 +15,35 @@ export type ManageablePermissionMode = Extract<
   | 'fullAccess'
 >
 
+export type PermissionModeOptionValue =
+  | ManageablePermissionMode
+  | '__standard_modes'
+  | '__elevated_modes'
+
 const MODE_DESCRIPTIONS: Record<ManageablePermissionMode, string> = {
-  default: 'Standard behavior; prompts for dangerous operations.',
-  acceptEdits: 'Auto-accept file edit operations in the workspace.',
-  plan: 'Analysis only; tool execution is blocked.',
-  auto: 'Use classifier-driven approvals when available.',
+  default:
+    'Standard. Asks before edits, shell commands, network access, and other risky actions.',
+  acceptEdits:
+    'Standard. Workspace file edits are automatic; shell, network, and broader access still prompt.',
+  plan: 'Standard. Read-only analysis; edits and command execution are blocked.',
+  auto:
+    'Standard. Uses classifier-driven approvals when available and still preserves safety boundaries.',
   bypassPermissions:
-    'Skip normal permission prompts while preserving hard safety prompts.',
+    'ELEVATED. Skips normal permission prompts for edits, shell, and network actions; hard safety prompts remain.',
   fullAccess:
-    'Skip normal permission prompts and hard safety-check prompts.',
+    'ELEVATED · HIGHEST RISK. Skips normal prompts and hard safety-check prompts for this session.',
+}
+
+export function isElevatedPermissionMode(
+  mode: PermissionMode,
+): mode is Extract<PermissionMode, 'bypassPermissions' | 'fullAccess'> {
+  return mode === 'bypassPermissions' || mode === 'fullAccess'
+}
+
+export function isManageablePermissionMode(
+  value: PermissionModeOptionValue,
+): value is ManageablePermissionMode {
+  return value !== '__standard_modes' && value !== '__elevated_modes'
 }
 
 export function getManageablePermissionModes(
@@ -42,23 +59,48 @@ export function getManageablePermissionModes(
   }
 
   modes.push('bypassPermissions', 'fullAccess')
-
   return modes
+}
+
+function modeOption(
+  mode: ManageablePermissionMode,
+  context: ToolPermissionContext,
+): OptionWithDescription<PermissionModeOptionValue> {
+  const current = mode === context.mode
+  const elevated = isElevatedPermissionMode(mode)
+  return {
+    label: `${elevated ? '[ELEVATED] ' : ''}${permissionModeTitle(mode)}${
+      current ? ' (current)' : ''
+    }`,
+    value: mode,
+    description: MODE_DESCRIPTIONS[mode],
+    color: elevated ? 'warning' : undefined,
+  }
 }
 
 export function getPermissionModeOptions(
   context: ToolPermissionContext,
-): OptionWithDescription<ManageablePermissionMode>[] {
-  return getManageablePermissionModes(context).map(mode => ({
-    label:
-      mode === context.mode
-        ? `${permissionModeTitle(mode)} (current)`
-        : permissionModeTitle(mode),
-    value: mode,
-    description: MODE_DESCRIPTIONS[mode],
-    color:
-      mode === 'bypassPermissions' || mode === 'fullAccess'
-        ? getModeColor(mode)
-        : undefined,
-  }))
+): OptionWithDescription<PermissionModeOptionValue>[] {
+  const modes = getManageablePermissionModes(context)
+  const standard = modes.filter(mode => !isElevatedPermissionMode(mode))
+  const elevated = modes.filter(isElevatedPermissionMode)
+
+  return [
+    {
+      label: 'STANDARD MODES',
+      value: '__standard_modes',
+      description: 'Prompted or read-only access with safety boundaries intact.',
+      disabled: true,
+    },
+    ...standard.map(mode => modeOption(mode, context)),
+    {
+      label: 'ELEVATED ACCESS',
+      value: '__elevated_modes',
+      description:
+        'Reduces or removes approval barriers. Selecting either mode opens a separate confirmation.',
+      disabled: true,
+      color: 'warning',
+    },
+    ...elevated.map(mode => modeOption(mode, context)),
+  ]
 }

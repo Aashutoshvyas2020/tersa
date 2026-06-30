@@ -57,6 +57,7 @@ const EXECUTABLE_PATH_REGEX =
   /\.(?:sh|bash|zsh|ps1|exe|msi|pkg|deb|rpm|zip|tar|tgz|gz|xz|dmg|appimage)(?:$|[?#])/i
 const SENSITIVE_PATH_REGEX =
   /^(?:\.github\/workflows\/|scripts\/|bin\/|install(?:\/|\.|$)|.*(?:Dockerfile|docker-compose|compose\.ya?ml)$)/i
+const GIT_CAPTURE_MAX_BUFFER = 64 * 1024 * 1024
 
 function parseOptions(argv: string[]): CliOptions {
   const options: CliOptions = {
@@ -380,6 +381,7 @@ export function scanAddedLines(lines: DiffLine[]): Finding[] {
 export function getGitDiff(baseRef: string, headRef = 'HEAD'): string {
   const mergeBase = spawnSync('git', ['merge-base', baseRef, headRef], {
     encoding: 'utf8',
+    maxBuffer: GIT_CAPTURE_MAX_BUFFER,
   })
 
   if (mergeBase.status !== 0) {
@@ -392,7 +394,10 @@ export function getGitDiff(baseRef: string, headRef = 'HEAD'): string {
   const diff = spawnSync(
     'git',
     ['diff', '--unified=0', '--no-ext-diff', `${base}...${headRef}`],
-    { encoding: 'utf8' },
+    {
+      encoding: 'utf8',
+      maxBuffer: GIT_CAPTURE_MAX_BUFFER,
+    },
   )
 
   if (diff.status !== 0) {

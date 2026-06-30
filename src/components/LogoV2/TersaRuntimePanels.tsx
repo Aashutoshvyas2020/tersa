@@ -3,12 +3,8 @@ import { Box, Text } from '../../ink.js'
 import { useAppState } from '../../state/AppState.js'
 import { useMainLoopModel } from '../../hooks/useMainLoopModel.js'
 import { truncate } from '../../utils/format.js'
-import { getDisplayedEffortLevel } from '../../utils/effort.js'
-import { renderModelSetting } from '../../utils/model/model.js'
-import {
-  getTersaOptimizationStatusRows,
-  resolveTersaProviderStatus,
-} from '../../utils/tersaStatus.js'
+import { getRuntimePresentationState } from '../../utils/runtimePresentationState.js'
+import { getTersaOptimizationStatusRows } from '../../utils/tersaStatus.js'
 
 type Props = {
   compact?: boolean
@@ -55,20 +51,15 @@ export function TersaRuntimePanels({ compact = false, width = 64 }: Props) {
   const effortValue = useAppState(s => s.effortValue)
   const modeSettings = useAppState(s => s.settings.modes)
   const model = useMainLoopModel()
-  const provider = resolveTersaProviderStatus(model ?? undefined)
-  const modelLabel = renderModelSetting(model)
-  const displayedEffort =
-    effortValue === undefined
-      ? 'auto'
-      : getDisplayedEffortLevel(model, effortValue)
+  const runtime = getRuntimePresentationState(model, effortValue)
   const panelWidth = Math.max(42, Math.min(width, compact ? 78 : 96))
   const boxWidth = compact ? panelWidth : Math.floor((panelWidth - 2) / 2)
   const innerWidth = Math.max(20, boxWidth - 15)
   const providerRows = [
-    ['Provider', provider.name],
-    ['Model', truncate(modelLabel, innerWidth)],
-    ['Effort', displayedEffort],
-    ['Endpoint', truncate(provider.baseUrl, innerWidth)],
+    ['Provider', runtime.provider],
+    ['Model', truncate(runtime.model, innerWidth)],
+    ['Effort', runtime.effort],
+    ['Endpoint', truncate(runtime.endpoint, innerWidth)],
   ] as const
   const optimizationRows = getTersaOptimizationStatusRows(modeSettings)
   const optimizationPairs: Array<[

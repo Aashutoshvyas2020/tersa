@@ -499,7 +499,7 @@ export function buildCuratedStatusLineSegments(args: {
     usedTokens,
     contextWindowSize,
     estimated,
-    showTokenPercentage: Boolean(config.showTokenPercentage && args.showTokenPercentage),
+    showTokenPercentage: config.showTokenPercentage !== false,
     usedPercentage,
     tokenDetail: config.tokenDetail ?? args.tokenDetail,
     currentUsage,
@@ -637,78 +637,90 @@ function fitCuratedStatusLineSegments(
   baseSegments: CuratedStatusSegment[],
   maxWidth: number,
 ): CuratedStatusSegment[] {
-  const cloned = baseSegments.map(segment => ({ ...segment }))
-  const getWidth = (segments: CuratedStatusSegment[]) =>
+  if (maxWidth <= 0) return []
+
+  const segments = baseSegments.map(segment => ({ ...segment }))
+  const getWidth = () =>
     stringWidth(
       segments
         .map(segment => segment.text)
         .filter(Boolean)
         .join('  '),
     )
-
-  const find = (id: string) => cloned.find(segment => segment.id === id)
+  const find = (id: string) => segments.find(segment => segment.id === id)
   const remove = (id: string) => {
-    const index = cloned.findIndex(segment => segment.id === id)
-    if (index >= 0) cloned.splice(index, 1)
+    const index = segments.findIndex(segment => segment.id === id)
+    if (index >= 0) segments.splice(index, 1)
+  }
+  const reduceIfNeeded = (reduce: () => void) => {
+    if (getWidth() > maxWidth) reduce()
   }
 
-  const identity = find('identity')
-  const tokens = find('tokens')
-
-  const reduceSteps = [
-    () => remove('mcp'),
-    () => remove('tasks'),
-    () => remove('warning-auth'),
-    () => remove('warning-ctx'),
-    () => {
-      const token = find('tokens')
-      if (token && token.text.includes(' in ')) {
-        const tokenCore = token.text.split(' in ')[0]
-        token.text = tokenCore
-      }
-    },
-    () => remove('project'),
-    () => remove('git'),
-    () => remove('plan-goal'),
-    () => remove('permissions'),
-    () => remove('product'),
-    () => {
-      if (identity) {
-        identity.text = identity.text.includes(':')
-          ? identity.text.split(':').slice(1).join(':')
-          : identity.text
-      }
-    },
-    () => {
-      if (identity && identity.text.includes(' ')) {
-        identity.text = identity.text.split(' ')[0]
-      }
-    },
-  ]
-
-  for (const step of reduceSteps) {
-    if (getWidth(cloned) <= maxWidth) break
-    step()
+  // Decision-critical information wins the width budget. Remove ambient
+  // integrations and navigation context before warnings or token usage.
+  for (const id of [
+    'ide',
+    'mcp',
+    'tasks',
+    'project',
+    'git',
+    'plan-goal',
+    'product',
+  ]) {
+    reduceIfNeeded(() => remove(id))
   }
 
-  if (getWidth(cloned) > maxWidth) {
-    const separatorWidth = cloned.length > 1 ? (cloned.length - 1) * 2 : 0
-    const fixedWidth = cloned
-      .filter(segment => segment.id !== 'identity')
-      .reduce((sum, segment) => sum + stringWidth(segment.text), separatorWidth)
-    if (identity && fixedWidth < maxWidth) {
-      identity.text = truncateToWidth(identity.text, maxWidth - fixedWidth - (cloned.length > 1 ? 2 : 0))
+  reduceIfNeeded(() => {
+    const token = find('tokens')
+    if (token?.text.includes(' in ')) token.text = token.text.split(' in ')[0]!
+  })
+
+  reduceIfNeeded(() => {
+    const identity = find('identity')
+    if (identity?.text.includes(':')) {
+      identity.text = identity.text.split(':').slice(1).join(':')
+    }
+  })
+  reduceIfNeeded(() => {
+    const identity = find('identity')
+    if (identity?.text.includes(' ')) identity.text = identity.text.split(' ')[0]!
+  })
+
+  // Permission state remains longer than ordinary context, but auth/context
+  // warnings and token usage still outrank it on constrained terminals.
+  reduceIfNeeded(() => remove('permissions'))
+  reduceIfNeeded(() => remove('identity'))
+
+  const token = find('tokens')
+  if (getWidth() > maxWidth && token) {
+    const percentage = token.text.match(/(?:^|\s)(~?\d+(?:\.\d+)?%)(?:\s|$)/)?.[1]
+    if (percentage) token.text = percentage
+  }
+
+  if (getWidth() > maxWidth) {
+    const warning = segments.find(segment => segment.kind === 'warning')
+    if (warning) {
+      const others = segments.filter(segment => segment !== warning)
+      const separators = others.length > 0 ? 2 : 0
+      const otherWidth = stringWidth(others.map(segment => segment.text).join('  '))
+      const remaining = maxWidth - otherWidth - separators
+      if (remaining > 0) warning.text = truncateToWidth(warning.text, remaining)
+      else remove(warning.id)
     }
   }
 
-  if (tokens && identity && getWidth(cloned) > maxWidth) {
-    const remaining = maxWidth - stringWidth(tokens.text) - 2
-    if (remaining > 0) {
-      identity.text = truncateToWidth(identity.text, remaining)
+  if (getWidth() > maxWidth) {
+    for (const segment of [...segments]) {
+      if (segment.id !== 'tokens') remove(segment.id)
     }
   }
 
-  return cloned
+  const survivingToken = find('tokens')
+  if (survivingToken && getWidth() > maxWidth) {
+    survivingToken.text = truncateToWidth(survivingToken.text, maxWidth)
+  }
+
+  return segments
 }
 
 function getCuratedSegmentTextProps(

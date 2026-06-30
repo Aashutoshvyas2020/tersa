@@ -1,2 +1,12 @@
-// Stub — SDK tool types not included in source snapshot
-export type {}
+export type {
+  AgentToolProgress,
+  BashProgress,
+  MCPProgress,
+  PowerShellProgress,
+  REPLToolProgress,
+  SdkWorkflowProgress,
+  SkillToolProgress,
+  TaskOutputProgress,
+  ToolProgressData,
+  WebSearchProgress,
+} from '../../types/tools.js'

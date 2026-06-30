@@ -1,22 +1,13 @@
 import chalk from 'chalk'
 import { color } from '../../components/design-system/color.js'
-import { getSettings_DEPRECATED } from '../../utils/settings/settings.js'
 import type { Tip, TipContext, TipSponsor } from './types.js'
 
-const DEFAULT_FREQUENCY = 10
-
 export function sponsoredTipsEnabled(): boolean {
-  const settings = getSettings_DEPRECATED()
-  if (settings.sponsoredTipsEnabled === false) return false
-  if (settings.sponsoredTipsFrequency === 0) return false
-  return true
+  return false
 }
 
 export function getSponsoredTipsFrequency(): number {
-  const settings = getSettings_DEPRECATED()
-  const f = settings.sponsoredTipsFrequency
-  if (typeof f === 'number' && f >= 0) return f
-  return DEFAULT_FREQUENCY
+  return 0
 }
 
 const ATOMIC: TipSponsor = {

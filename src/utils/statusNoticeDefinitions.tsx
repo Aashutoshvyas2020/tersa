@@ -7,7 +7,7 @@ import { getCwd } from './cwd.js';
 import { relative } from 'path';
 import { formatNumber } from './format.js';
 import type { getGlobalConfig } from './config.js';
-import { getAnthropicApiKeyWithSource, getApiKeyFromConfigOrMacOSKeychain, getAuthTokenSource, isClaudeAISubscriber } from './auth.js';
+import { getAnthropicApiKeyWithSource, getApiKeyFromConfigOrMacOSKeychain, getAuthTokenSource, isClaudeAISubscriber, type ApiKeySource } from './auth.js';
 import type { AgentDefinitionsResult } from '../tools/AgentTool/loadAgentsDir.js';
 import { getAgentDescriptionsTotalTokens, AGENT_DESCRIPTIONS_THRESHOLD } from './statusNoticeHelpers.js';
 import { isSupportedJetBrainsTerminal, toIDEDisplayName, getTerminalIdeType } from './ide.js';
@@ -100,23 +100,24 @@ const claudeAiSubscriberExternalTokenNotice: StatusNoticeDefinition = {
       </WarningNoticeRow>;
   }
 };
+function getAnthropicApiKeySourceSafe(): ApiKeySource {
+  try {
+    return getAnthropicApiKeyWithSource({
+      skipRetrievingKeyFromApiKeyHelper: true
+    }).source;
+  } catch {
+    return 'none';
+  }
+}
 const apiKeyConflictNotice: StatusNoticeDefinition = {
   id: 'api-key-conflict',
   type: 'warning',
   isActive: () => {
-    const {
-      source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
-      skipRetrievingKeyFromApiKeyHelper: true
-    });
+    const apiKeySource = getAnthropicApiKeySourceSafe();
     return !!getApiKeyFromConfigOrMacOSKeychain() && (apiKeySource === 'ANTHROPIC_API_KEY' || apiKeySource === 'apiKeyHelper');
   },
   render: () => {
-    const {
-      source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
-      skipRetrievingKeyFromApiKeyHelper: true
-    });
+    const apiKeySource = getAnthropicApiKeySourceSafe();
     return <WarningNoticeRow marginTop={1}>
         <Text color="warning">
           Auth conflict: Using {apiKeySource} instead of Anthropic Console key.
@@ -129,20 +130,12 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
   id: 'both-auth-methods',
   type: 'warning',
   isActive: () => {
-    const {
-      source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
-      skipRetrievingKeyFromApiKeyHelper: true
-    });
+    const apiKeySource = getAnthropicApiKeySourceSafe();
     const authTokenInfo = getAuthTokenSource();
     return apiKeySource !== 'none' && authTokenInfo.source !== 'none' && !(apiKeySource === 'apiKeyHelper' && authTokenInfo.source === 'apiKeyHelper');
   },
   render: () => {
-    const {
-      source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
-      skipRetrievingKeyFromApiKeyHelper: true
-    });
+    const apiKeySource = getAnthropicApiKeySourceSafe();
     const authTokenInfo = getAuthTokenSource();
     return <Box flexDirection="column" marginTop={1}>
         <WarningNoticeRow>
