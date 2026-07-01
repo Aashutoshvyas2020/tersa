@@ -93,7 +93,8 @@ function extractSessionId(baseUrl: string): string {
 }
 
 function serializeToCacheMessage(events: SDKMessage[]): CacheMessage[] {
-  return events.map((m): CacheMessage => {
+  return events.map((raw): CacheMessage => {
+    const m = raw as SDKMessage & CacheMessage
     const isArrayContent = Array.isArray(m.content)
     const cacheMsg: CacheMessage = {
       role: m.role,
@@ -144,7 +145,7 @@ function serializeToCacheMessage(events: SDKMessage[]): CacheMessage[] {
 
 function deserializeFromCacheMessage(messages: CacheMessage[]): SDKMessage[] {
   return messages.map((m): SDKMessage => {
-    let content: SDKMessage['content']
+    let content: unknown
     if (m.contentIsArray) {
       try {
         content = JSON.parse(m.content)
@@ -155,41 +156,41 @@ function deserializeFromCacheMessage(messages: CacheMessage[]): SDKMessage[] {
       content = m.content
     }
 
-    const msg: SDKMessage = {
+    const msg: Record<string, unknown> = {
       role: m.role,
       content,
-      tool_calls: m.tool_calls as SDKMessage['tool_calls'],
+      tool_calls: m.tool_calls,
       tool_use_id: m.tool_use_id,
     }
     // Restore all SDK fields
     if (m.id) msg.id = m.id
     if (m.type) msg.type = m.type
-    if (m.message) msg.message = m.message as SDKMessage['message']
+    if (m.message) msg.message = m.message
     if (m.uuid) msg.uuid = m.uuid
     if (m.session_id) msg.session_id = m.session_id
     if (m.parent_tool_use_id) msg.parent_tool_use_id = m.parent_tool_use_id
-    if (m.tool_use_result) msg.tool_use_result = m.tool_use_result as SDKMessage['tool_use_result']
+    if (m.tool_use_result) msg.tool_use_result = m.tool_use_result
     if (m.model) msg.model = m.model
     if (m.created_at) msg.created_at = m.created_at
     if (m.stop_reason) msg.stop_reason = m.stop_reason
-    if (m.usage) msg.usage = m.usage as SDKMessage['usage']
+    if (m.usage) msg.usage = m.usage
     if (m.subtype) msg.subtype = m.subtype
-    if (m.result) msg.result = m.result as SDKMessage['result']
-    if (m.event) msg.event = m.event as SDKMessage['event']
+    if (m.result) msg.result = m.result
+    if (m.event) msg.event = m.event
     if (typeof m.is_development === 'boolean') msg.is_development = m.is_development
     if (typeof m.index === 'number') msg.index = m.index
     // Assistant error (SDKAssistantMessage)
-    if (m.error) msg.error = m.error as SDKMessage['error']
+    if (m.error) msg.error = m.error
     // Result errors (SDKResultMessage error variant)
-    if (m.errors) msg.errors = m.errors as SDKMessage['errors']
+    if (m.errors) msg.errors = m.errors
     // System status (SDKStatusMessage - only truthy values get serialized)
-    if (m.status) msg.status = m.status as SDKMessage['status']
+    if (m.status) msg.status = m.status
     // Compact boundary metadata (SDKCompactBoundaryMessage)
-    if (m.compact_metadata) msg.compact_metadata = m.compact_metadata as SDKMessage['compact_metadata']
+    if (m.compact_metadata) msg.compact_metadata = m.compact_metadata
     // Tool progress fields (SDKToolProgressMessage)
-    if (m.tool_name) msg.tool_name = m.tool_name as SDKMessage['tool_name']
-    if (m.elapsed_time_seconds !== undefined) msg.elapsed_time_seconds = m.elapsed_time_seconds as SDKMessage['elapsed_time_seconds']
-    return msg
+    if (m.tool_name) msg.tool_name = m.tool_name
+    if (m.elapsed_time_seconds !== undefined) msg.elapsed_time_seconds = m.elapsed_time_seconds
+    return msg as unknown as SDKMessage
   })
 }
 
@@ -243,7 +244,11 @@ export async function cacheSession(
 
   sessionMetadataCache.set(sessionId, { hasMore, lastId })
 
-  const newUuids = new Set(events.map(e => e.uuid))
+  const newUuids = new Set(
+    events
+      .map(event => ('uuid' in event ? event.uuid : undefined))
+      .filter((uuid): uuid is string => typeof uuid === 'string'),
+  )
   const lastUuids = lastSavedIds.get(sessionId)
   const newCount = events.length
   const lastCount = lastSavedCounts.get(sessionId) ?? 0
