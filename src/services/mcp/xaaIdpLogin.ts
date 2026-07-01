@@ -481,7 +481,7 @@ export async function acquireIdpIdToken(
     codeVerifier,
     redirectUri,
     fetchFn: (url, init) => {
-      const { signal, cleanup } = createCombinedAbortSignal(init?.signal, {
+      const { signal, cleanup } = createCombinedAbortSignal(init?.signal ?? undefined, {
         timeoutMs: IDP_REQUEST_TIMEOUT_MS,
       })
       // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins

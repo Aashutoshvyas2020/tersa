@@ -308,6 +308,9 @@ async function cachedMicrocompactPath(
   const mod = await getCachedMCModule()
   const state = ensureCachedMCState()
   const config = mod.getCachedMCConfig()
+  if (!config) {
+    return { messages }
+  }
 
   const compactableToolIds = new Set(collectCompactableToolIds(messages))
   // Second pass: register tool results grouped by user message

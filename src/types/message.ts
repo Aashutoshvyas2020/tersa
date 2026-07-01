@@ -19,10 +19,22 @@ export type Message = MessageRecord
 export type NormalizedMessage = MessageRecord
 export type RenderableMessage = MessageRecord
 export type AssistantMessage = MessageRecord
-export type NormalizedAssistantMessage<T = any> = MessageRecord
+export type NormalizedAssistantMessage<T = any> = {
+  type: 'assistant'
+  message: { content: T[]; [key: string]: any }
+  [key: string]: any
+}
 export type UserMessage = MessageRecord
-export type NormalizedUserMessage = MessageRecord
-export type SystemMessage = MessageRecord
+export type NormalizedUserMessage = {
+  type: 'user'
+  message: { content: any[]; [key: string]: any }
+  [key: string]: any
+}
+export type SystemMessage = {
+  type: 'system'
+  subtype: string
+  [key: string]: any
+}
 export type SystemAPIErrorMessage = MessageRecord
 export type SystemApiMetricsMessage = MessageRecord
 export type SystemAwaySummaryMessage = MessageRecord
@@ -124,7 +136,11 @@ export type CompactMetadata = {
   preCompactDiscoveredTools?: string[]
   [key: string]: any
 }
-export type AttachmentMessage<T = any> = MessageRecord & { attachment?: T }
+export type AttachmentMessage<T = any> = {
+  type: 'attachment'
+  attachment: T
+  [key: string]: any
+}
 export type ProgressMessage<T = any> = {
   type: 'progress'
   data: T

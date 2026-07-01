@@ -735,16 +735,6 @@ export function deriveUUID(parentUUID: UUID, index: number): UUID {
 }
 
 // Split messages, so each content block gets its own message
-export function normalizeMessages(
-  messages: AssistantMessage[],
-): NormalizedAssistantMessage[]
-export function normalizeMessages(
-  messages: UserMessage[],
-): NormalizedUserMessage[]
-export function normalizeMessages(
-  messages: (AssistantMessage | UserMessage)[],
-): (NormalizedAssistantMessage | NormalizedUserMessage)[]
-export function normalizeMessages(messages: Message[]): NormalizedMessage[]
 export function normalizeMessages(messages: Message[]): NormalizedMessage[] {
   // isNewChain tracks whether we need to generate new UUIDs for messages when normalizing.
   // When a message has multiple content blocks, we split it into multiple messages,
@@ -2801,6 +2791,7 @@ export function getToolUseID(message: NormalizedMessage): string | null {
         ? (message.toolUseID ?? null)
         : null
   }
+  return null
 }
 
 export function filterUnresolvedToolUses(messages: Message[]): Message[] {

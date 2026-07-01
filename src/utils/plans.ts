@@ -7,7 +7,6 @@ import type { AgentId, SessionId } from 'src/types/ids.js'
 import type { LogOption } from 'src/types/logs.js'
 import type {
   AssistantMessage,
-  AttachmentMessage,
   SystemFileSnapshotMessage,
   UserMessage,
 } from 'src/types/message.js'
@@ -325,10 +324,11 @@ function recoverPlanFromMessages(log: LogOption): string | null {
     }
 
     if (msg.type === 'attachment') {
-      const attachmentMsg = msg as AttachmentMessage
-      if (attachmentMsg.attachment?.type === 'plan_file_reference') {
-        const plan = (attachmentMsg.attachment as { planContent?: string })
-          .planContent
+      const attachment = msg.attachment as
+        | { type?: string; planContent?: string }
+        | undefined
+      if (attachment?.type === 'plan_file_reference') {
+        const plan = attachment.planContent
         if (typeof plan === 'string' && plan.length > 0) {
           return plan
         }

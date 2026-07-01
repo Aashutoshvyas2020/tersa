@@ -242,7 +242,7 @@ export function isToolFromMcpServer(
  * @param tool The tool to check
  * @returns True if the tool is from an MCP server
  */
-export function isMcpTool(tool: Tool): boolean {
+export function isMcpTool(tool: Pick<Tool, 'name' | 'isMcp'>): boolean {
   return tool.name?.startsWith('mcp__') || tool.isMcp === true
 }
 

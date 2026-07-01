@@ -47,6 +47,9 @@ export function validateXaaIdpCallbackParams(
 
 export function shouldCompleteXaaIdpCallback(
   result: XaaIdpCallbackValidationResult,
-): boolean {
+): result is Exclude<
+  XaaIdpCallbackValidationResult,
+  { type: 'state_mismatch' }
+> {
   return result.type !== 'state_mismatch'
 }
