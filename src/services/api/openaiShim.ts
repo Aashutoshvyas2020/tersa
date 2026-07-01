@@ -1020,15 +1020,16 @@ async function* anthropicSsePassthrough(
   _model: string,
   signal?: AbortSignal,
 ): AsyncGenerator<AnthropicStreamEvent> {
-  const reader = response.body?.getReader()
-  if (!reader) return
+  const body = response.body
+  if (!body) return
+  const reader = body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
 
   // Read helper that properly cleans up abort listeners (mirrors codexShim.ts pattern).
-  function readWithAbort(): Promise<ReadableStreamReadResult<Uint8Array>> {
+  function readWithAbort(): ReturnType<typeof reader.read> {
     if (!signal) return reader.read()
-    return new Promise((resolve, reject) => {
+    return new Promise<Awaited<ReturnType<typeof reader.read>>>((resolve, reject) => {
       const onAbort = () => reject(new DOMException('Aborted', 'AbortError'))
       signal.addEventListener('abort', onAbort, { once: true })
       reader.read().then(
@@ -1081,8 +1082,9 @@ async function* geminiSseToAnthropic(
   model: string,
   signal?: AbortSignal,
 ): AsyncGenerator<AnthropicStreamEvent> {
-  const reader = response.body?.getReader()
-  if (!reader) return
+  const body = response.body
+  if (!body) return
+  const reader = body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
   const messageId = makeMessageId()
@@ -1093,9 +1095,9 @@ async function* geminiSseToAnthropic(
   let usage: Partial<AnthropicUsage> | undefined
   let finishReason: string | undefined
 
-  function readWithAbort(): Promise<ReadableStreamReadResult<Uint8Array>> {
+  function readWithAbort(): ReturnType<typeof reader.read> {
     if (!signal) return reader.read()
-    return new Promise((resolve, reject) => {
+    return new Promise<Awaited<ReturnType<typeof reader.read>>>((resolve, reject) => {
       const onAbort = () => reject(new DOMException('Aborted', 'AbortError'))
       signal.addEventListener('abort', onAbort, { once: true })
       reader.read().then(
@@ -1297,8 +1299,9 @@ async function* openaiStreamToAnthropic(
     },
   }
 
-  const reader = response.body?.getReader()
-  if (!reader) return
+  const body = response.body
+  if (!body) return
+  const reader = body.getReader()
 
   const decoder = new TextDecoder()
   let buffer = ''
@@ -1313,8 +1316,8 @@ async function* openaiStreamToAnthropic(
    * Respects the caller's AbortSignal — clears the idle timer on abort
    * so the rejection reason is AbortError, not a spurious idle timeout.
    */
-  async function readWithTimeout(): Promise<ReadableStreamReadResult<Uint8Array>> {
-    return new Promise((resolve, reject) => {
+  function readWithTimeout(): ReturnType<typeof reader.read> {
+    return new Promise<Awaited<ReturnType<typeof reader.read>>>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         const elapsed = Math.round((Date.now() - lastDataTime) / 1000)
         reject(new Error(
@@ -2678,7 +2681,6 @@ class OpenAIShimMessages {
       )
     }
 
-    let response: Response | undefined
     const provider = request.baseUrl.includes('nvidia') ? 'nvidia-nim'
       : request.baseUrl.includes('minimax') ? 'minimax'
       : request.baseUrl.includes('xiaomimimo') || request.baseUrl.includes('mimo-v2') ? 'xiaomi-mimo'
@@ -2687,6 +2689,7 @@ class OpenAIShimMessages {
       : 'openai'
     const { correlationId, startTime } = logApiCallStart(provider, request.resolvedModel)
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      let response: Response | null = null
       try {
         response = await fetchWithProxyRetry(
           requestUrl,
@@ -2721,6 +2724,8 @@ class OpenAIShimMessages {
 
         throwClassifiedTransportError(error, requestUrl, failure)
       }
+
+      if (!response) continue
 
       if (response.ok) {
         let tokensIn = 0
@@ -2766,7 +2771,7 @@ class OpenAIShimMessages {
           const responsesUrl = `${request.baseUrl}/responses`
           const responsesBody = buildResponsesBody()
 
-          let responsesResponse: Response
+          let responsesResponse: Response | null = null
           try {
             responsesResponse = await fetchWithProxyRetry(responsesUrl, {
               method: 'POST',
@@ -2776,6 +2781,10 @@ class OpenAIShimMessages {
             })
           } catch (error) {
             throwClassifiedTransportError(error, responsesUrl)
+          }
+
+          if (!responsesResponse) {
+            throw new Error('Unreachable: responses request did not return')
           }
 
           if (responsesResponse.ok) {

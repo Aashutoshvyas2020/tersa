@@ -13,6 +13,7 @@ import { Box, Text, useInput, useTerminalFocus, useTheme } from '../ink.js';
 import { useKeybinding } from '../keybindings/useKeybinding.js';
 import { logEvent } from '../services/analytics/index.js';
 import type { LogOption, SerializedMessage } from '../types/logs.js';
+import { errorMessage } from '../utils/errors.js';
 import { formatLogMetadata, truncateToWidth } from '../utils/format.js';
 import { getWorktreePaths } from '../utils/getWorktreePaths.js';
 import { getBranch } from '../utils/git.js';
@@ -31,16 +32,10 @@ import { TagTabs } from './TagTabs.js';
 import TextInput from './TextInput.js';
 import { type TreeNode, TreeSelect } from './ui/TreeSelect.js';
 type AgenticSearchState = {
-  status: 'idle';
-} | {
-  status: 'searching';
-} | {
-  status: 'results';
+  status: 'idle' | 'searching' | 'results' | 'error';
   results: LogOption[];
   query: string;
-} | {
-  status: 'error';
-  message: string;
+  message?: string;
 };
 export type LogSelectorProps = {
   logs: LogOption[];
@@ -80,6 +75,14 @@ type Snippet = {
   before: string;
   match: string;
   after: string;
+};
+type DeepSearchResults = {
+  query: string;
+  results: Array<{
+    log: LogOption;
+    score: number | undefined;
+    searchableText: string;
+  }>;
 };
 function formatSnippet({
   before,
@@ -190,7 +193,7 @@ export function LogSelector(t0) {
   }
   const highlightColor = t5;
   const isAgenticSearchEnabled = false;
-  const [currentBranch, setCurrentBranch] = React.useState(null);
+  const [currentBranch, setCurrentBranch] = React.useState<string | null>(null);
   const [branchFilterEnabled, setBranchFilterEnabled] = React.useState(false);
   const [showAllWorktrees, setShowAllWorktrees] = React.useState(false);
   const [hasMultipleWorktrees, setHasMultipleWorktrees] = React.useState(false);
@@ -211,25 +214,27 @@ export function LogSelector(t0) {
   } else {
     t7 = $[6];
   }
-  const [expandedGroupSessionIds, setExpandedGroupSessionIds] = React.useState(t7);
-  const [focusedNode, setFocusedNode] = React.useState(null);
+  const [expandedGroupSessionIds, setExpandedGroupSessionIds] = React.useState<Set<string>>(t7);
+  const [focusedNode, setFocusedNode] = React.useState<LogTreeNode | null>(null);
   const [focusedIndex, setFocusedIndex] = React.useState(1);
-  const [viewMode, setViewMode] = React.useState("list");
-  const [previewLog, setPreviewLog] = React.useState(null);
-  const prevFocusedIdRef = React.useRef(null);
+  const [viewMode, setViewMode] = React.useState<'list' | 'search' | 'rename' | 'preview'>("list");
+  const [previewLog, setPreviewLog] = React.useState<LogOption | null>(null);
+  const prevFocusedIdRef = React.useRef<string | null>(null);
   const [selectedTagIndex, setSelectedTagIndex] = React.useState(0);
   let t8;
   if ($[7] === Symbol.for("react.memo_cache_sentinel")) {
     t8 = {
-      status: "idle"
+      status: "idle",
+      results: [],
+      query: ""
     };
     $[7] = t8;
   } else {
     t8 = $[7];
   }
-  const [agenticSearchState, setAgenticSearchState] = React.useState(t8);
+  const [agenticSearchState, setAgenticSearchState] = React.useState<AgenticSearchState>(t8);
   const [isAgenticSearchOptionFocused, setIsAgenticSearchOptionFocused] = React.useState(false);
-  const agenticSearchAbortRef = React.useRef(null);
+  const agenticSearchAbortRef = React.useRef<AbortController | null>(null);
   const t9 = viewMode === "search" && agenticSearchState.status !== "searching";
   let t10;
   let t11;
@@ -299,7 +304,7 @@ export function LogSelector(t0) {
     t16 = $[16];
   }
   React.useEffect(t15, t16);
-  const [deepSearchResults, setDeepSearchResults] = React.useState(null);
+  const [deepSearchResults, setDeepSearchResults] = React.useState<DeepSearchResults | null>(null);
   const [isSearching, setIsSearching] = React.useState(false);
   let t17;
   let t18;
@@ -796,7 +801,9 @@ export function LogSelector(t0) {
       const abortController = new AbortController();
       agenticSearchAbortRef.current = abortController;
       setAgenticSearchState({
-        status: "searching"
+        status: "searching",
+        results: [],
+        query: searchQuery
       });
       logEvent("tengu_agentic_search_started", {
         query_length: searchQuery.length
@@ -823,7 +830,9 @@ export function LogSelector(t0) {
         }
         setAgenticSearchState({
           status: "error",
-          message: error instanceof Error ? error.message : "Search failed"
+          results: [],
+          query: searchQuery,
+          message: errorMessage(error) || "Search failed"
         });
         logEvent("tengu_agentic_search_error", {
           query_length: searchQuery.length
@@ -844,7 +853,9 @@ export function LogSelector(t0) {
       if (agenticSearchState.status !== "idle" && agenticSearchState.status !== "searching") {
         if (agenticSearchState.status === "results" && agenticSearchState.query !== searchQuery || agenticSearchState.status === "error") {
           setAgenticSearchState({
-            status: "idle"
+            status: "idle",
+            results: [],
+            query: ""
           });
         }
       }
@@ -968,7 +979,9 @@ export function LogSelector(t0) {
     t44 = () => {
       agenticSearchAbortRef.current?.abort();
       setAgenticSearchState({
-        status: "idle"
+        status: "idle",
+        results: [],
+        query: ""
       });
       logEvent("tengu_agentic_search_cancelled", {});
     };
