@@ -39,7 +39,7 @@ const TypeOverrideMap: Record<string, string> = {
     'Record<string, unknown>',
   UUIDPlaceholder: 'string',
   NonNullableUsagePlaceholder:
-    'Record<string, number>',
+    "import('./sdkUtilityTypes.js').NonNullableUsage",
 }
 
 // Materialize placeholder schemas once so we can detect them by identity (===)

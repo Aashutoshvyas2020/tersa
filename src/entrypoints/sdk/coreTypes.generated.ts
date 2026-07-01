@@ -1657,7 +1657,7 @@ export type SDKResultSuccess = {
   result: string
   stop_reason: string | null
   total_cost_usd: number
-  usage: Record<string, number>
+  usage: import('./sdkUtilityTypes.js').NonNullableUsage
   modelUsage: Record<string, {
     inputTokens: number
     outputTokens: number
@@ -1688,7 +1688,7 @@ export type SDKResultError = {
   num_turns: number
   stop_reason: string | null
   total_cost_usd: number
-  usage: Record<string, number>
+  usage: import('./sdkUtilityTypes.js').NonNullableUsage
   modelUsage: Record<string, {
     inputTokens: number
     outputTokens: number
@@ -1710,66 +1710,7 @@ export type SDKResultError = {
   session_id: string
 }
 
-export type SDKResultMessage = ({
-  type: "result"
-  subtype: "success"
-  duration_ms: number
-  duration_api_ms: number
-  is_error: boolean
-  num_turns: number
-  result: string
-  stop_reason: string | null
-  total_cost_usd: number
-  usage: Record<string, number>
-  modelUsage: Record<string, {
-    inputTokens: number
-    outputTokens: number
-    cacheReadInputTokens: number
-    cacheCreationInputTokens: number
-    webSearchRequests: number
-    costUSD: number
-    contextWindow: number
-    maxOutputTokens: number
-  }>
-  permission_denials: {
-    tool_name: string
-    tool_use_id: string
-    tool_input: Record<string, unknown>
-  }[]
-  structured_output?: unknown
-  fast_mode_state?: "off" | "cooldown" | "on"
-  uuid: string
-  session_id: string
-}) | ({
-  type: "result"
-  subtype: "error_during_execution" | "error_max_turns" | "error_max_budget_usd" | "error_max_structured_output_retries"
-  duration_ms: number
-  duration_api_ms: number
-  is_error: boolean
-  num_turns: number
-  stop_reason: string | null
-  total_cost_usd: number
-  usage: Record<string, number>
-  modelUsage: Record<string, {
-    inputTokens: number
-    outputTokens: number
-    cacheReadInputTokens: number
-    cacheCreationInputTokens: number
-    webSearchRequests: number
-    costUSD: number
-    contextWindow: number
-    maxOutputTokens: number
-  }>
-  permission_denials: {
-    tool_name: string
-    tool_use_id: string
-    tool_input: Record<string, unknown>
-  }[]
-  errors: string[]
-  fast_mode_state?: "off" | "cooldown" | "on"
-  uuid: string
-  session_id: string
-})
+export type SDKResultMessage = SDKResultSuccess | SDKResultError
 
 export type SDKSystemMessage = {
   type: "system"
@@ -2069,66 +2010,7 @@ export type SDKMessage = ({
   uuid: string
   session_id: string
   isReplay: true
-}) | (({
-  type: "result"
-  subtype: "success"
-  duration_ms: number
-  duration_api_ms: number
-  is_error: boolean
-  num_turns: number
-  result: string
-  stop_reason: string | null
-  total_cost_usd: number
-  usage: Record<string, number>
-  modelUsage: Record<string, {
-    inputTokens: number
-    outputTokens: number
-    cacheReadInputTokens: number
-    cacheCreationInputTokens: number
-    webSearchRequests: number
-    costUSD: number
-    contextWindow: number
-    maxOutputTokens: number
-  }>
-  permission_denials: {
-    tool_name: string
-    tool_use_id: string
-    tool_input: Record<string, unknown>
-  }[]
-  structured_output?: unknown
-  fast_mode_state?: "off" | "cooldown" | "on"
-  uuid: string
-  session_id: string
-}) | ({
-  type: "result"
-  subtype: "error_during_execution" | "error_max_turns" | "error_max_budget_usd" | "error_max_structured_output_retries"
-  duration_ms: number
-  duration_api_ms: number
-  is_error: boolean
-  num_turns: number
-  stop_reason: string | null
-  total_cost_usd: number
-  usage: Record<string, number>
-  modelUsage: Record<string, {
-    inputTokens: number
-    outputTokens: number
-    cacheReadInputTokens: number
-    cacheCreationInputTokens: number
-    webSearchRequests: number
-    costUSD: number
-    contextWindow: number
-    maxOutputTokens: number
-  }>
-  permission_denials: {
-    tool_name: string
-    tool_use_id: string
-    tool_input: Record<string, unknown>
-  }[]
-  errors: string[]
-  fast_mode_state?: "off" | "cooldown" | "on"
-  uuid: string
-  session_id: string
-})) | ({
+}) | SDKResultMessage | ({
   type: "system"
   subtype: "init"
   agents?: string[]
