@@ -45,7 +45,7 @@ function convertAssistantMessage(msg: SDKAssistantMessage): AssistantMessage {
 function convertStreamEvent(msg: SDKPartialAssistantMessage): StreamEvent {
   return {
     type: 'stream_event',
-    event: msg.event,
+    event: msg.event as unknown as StreamEvent['event'],
   }
 }
 

@@ -1,3 +1,4 @@
+import type { BetaRawMessageStreamEvent } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import type { UUID } from 'crypto'
 
 /**
@@ -23,6 +24,7 @@ export type UserMessage = MessageRecord
 export type NormalizedUserMessage = MessageRecord
 export type SystemMessage = MessageRecord
 export type SystemAPIErrorMessage = MessageRecord
+export type SystemApiMetricsMessage = MessageRecord
 export type SystemAwaySummaryMessage = MessageRecord
 export type SystemBridgeStatusMessage = MessageRecord
 export type SystemCompactBoundaryMessage = {
@@ -44,7 +46,30 @@ export type SystemMemorySavedMessage = MessageRecord
 export type SystemMicrocompactBoundaryMessage = MessageRecord
 export type SystemPermissionRetryMessage = MessageRecord
 export type SystemScheduledTaskFireMessage = MessageRecord
-export type SystemStopHookSummaryMessage = MessageRecord
+export type SystemStopHookSummaryMessage = {
+  type: 'system'
+  subtype: 'stop_hook_summary'
+  hookCount: number
+  hookInfos: StopHookInfo[]
+  hookErrors: string[]
+  preventedContinuation: boolean
+  stopReason?: string
+  hasOutput: boolean
+  level: SystemMessageLevel
+  timestamp: string
+  uuid: UUID
+  toolUseID?: string
+  hookLabel?: string
+  totalDurationMs?: number
+  [key: string]: any
+}
+export type SystemAgentsKilledMessage = {
+  type: 'system'
+  subtype: 'agents_killed'
+  timestamp: string
+  uuid: UUID
+  isMeta: false
+}
 export type SystemThinkingMessage = MessageRecord
 export type SystemTurnDurationMessage = MessageRecord
 export type TombstoneMessage = MessageRecord
@@ -52,6 +77,40 @@ export type ToolUseSummaryMessage = MessageRecord
 export type HookResultMessage = MessageRecord
 export type GroupedToolUseMessage = MessageRecord
 export type CollapsedReadSearchGroup = MessageRecord
+export type CollapsibleMessage =
+  | {
+      type: 'assistant'
+      message: { content: any[]; [key: string]: any }
+      [key: string]: any
+    }
+  | {
+      type: 'user'
+      message: { content: any[]; [key: string]: any }
+      [key: string]: any
+    }
+  | {
+      type: 'grouped_tool_use'
+      messages: Array<{ message: { content: any[]; [key: string]: any } }>
+      toolName: string
+      [key: string]: any
+    }
+export type MessageOrigin =
+  | { kind: 'human' }
+  | { kind: 'task-notification' }
+  | { kind: 'coordinator' }
+  | { kind: 'channel'; server: string }
+export type StopHookInfo = {
+  command: string
+  promptText?: string
+  durationMs?: number
+}
+export type StreamEvent = {
+  type: 'stream_event'
+  event: BetaRawMessageStreamEvent
+}
+export type RequestStartEvent = {
+  type: 'stream_request_start'
+}
 export type CompactMetadata = {
   trigger: 'manual' | 'auto'
   preTokens: number

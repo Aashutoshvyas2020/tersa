@@ -190,11 +190,12 @@ export class RemoteSessionManager {
     const { request_id, request: inner } = request
 
     if (inner.subtype === 'can_use_tool') {
+      const permissionRequest = inner as SDKControlPermissionRequest
       logForDebugging(
-        `[RemoteSessionManager] Permission request for tool: ${inner.tool_name}`,
+        `[RemoteSessionManager] Permission request for tool: ${permissionRequest.tool_name}`,
       )
-      this.pendingPermissionRequests.set(request_id, inner)
-      this.callbacks.onPermissionRequest(inner, request_id)
+      this.pendingPermissionRequests.set(request_id, permissionRequest)
+      this.callbacks.onPermissionRequest(permissionRequest, request_id)
     } else {
       // Send an error response for unrecognized subtypes so the server
       // doesn't hang waiting for a reply that never comes.
