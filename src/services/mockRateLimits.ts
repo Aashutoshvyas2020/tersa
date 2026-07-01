@@ -8,9 +8,8 @@
 // Always validate against actual API responses before relying on this for production features.
 
 import { setMockBillingAccessOverride } from '../utils/billing.js'
+import type { SubscriptionType } from './oauth/types.js'
 import type { OverageDisabledReason } from './tersaAiLimits.js'
-
-type SubscriptionType = string
 
 type MockHeaders = {
   'anthropic-ratelimit-unified-status'?:

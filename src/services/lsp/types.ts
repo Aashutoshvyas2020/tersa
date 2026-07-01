@@ -14,10 +14,9 @@ export type LspServerConfig = {
 }
 
 export type ScopedLspServerConfig = LspServerConfig & {
-  name: string
-  pluginName: string
-  pluginPath: string
+  scope: 'dynamic'
+  source: string
   [key: string]: unknown
 }
 
-export type LspServerState = 'stopped' | 'starting' | 'running' | 'stopping' | 'failed'
+export type LspServerState = 'stopped' | 'starting' | 'running' | 'stopping' | 'error'

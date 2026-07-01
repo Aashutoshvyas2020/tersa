@@ -35,7 +35,7 @@ export function MCPSettings(t0) {
   } else {
     t1 = $[0];
   }
-  const [viewState, setViewState] = React.useState(t1);
+  const [viewState, setViewState] = React.useState<MCPViewState>(t1 as MCPViewState);
   let t2;
   if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
     t2 = [];
@@ -43,7 +43,7 @@ export function MCPSettings(t0) {
   } else {
     t2 = $[1];
   }
-  const [servers, setServers] = React.useState(t2);
+  const [servers, setServers] = React.useState(t2 as ServerInfo[]);
   let t3;
   if ($[2] !== agentDefinitions.allAgents) {
     t3 = extractAgentMcpServers(agentDefinitions.allAgents);

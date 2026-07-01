@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type ToolProgressRecord = Record<string, any>
-export type ShellProgress = ToolProgressRecord
-export type BashProgress = ToolProgressRecord
-export type PowerShellProgress = ToolProgressRecord
-export type AgentToolProgress = ToolProgressRecord
-export type MCPProgress = ToolProgressRecord
-export type REPLToolProgress = ToolProgressRecord
-export type SkillToolProgress = ToolProgressRecord
-export type TaskOutputProgress = ToolProgressRecord
-export type WebSearchProgress = ToolProgressRecord
-export type SdkWorkflowProgress = ToolProgressRecord
-export type ToolProgressData = ToolProgressRecord
+export type ToolProgressRecord = any
+export type ShellProgress = any
+export type BashProgress = any
+export type PowerShellProgress = any
+export type AgentToolProgress = any
+export type MCPProgress = any
+export type REPLToolProgress = any
+export type SkillToolProgress = any
+export type TaskOutputProgress = any
+export type WebSearchProgress = any
+export type SdkWorkflowProgress = any
+export type ToolProgressData = any

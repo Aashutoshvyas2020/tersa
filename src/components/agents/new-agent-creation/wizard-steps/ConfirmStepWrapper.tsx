@@ -26,12 +26,13 @@ export function ConfirmStepWrapper({
   const [saveError, setSaveError] = useState<string | null>(null);
   const setAppState = useSetAppState();
   const saveAgent = useCallback(async (openInEditor: boolean): Promise<void> => {
-    if (!wizardData?.finalAgent) return;
+    const agent = wizardData.finalAgent;
+    const location = wizardData.location;
+    if (!agent || !location) return;
     try {
-      await saveAgentToFile(wizardData.location!, wizardData.finalAgent.agentType, wizardData.finalAgent.whenToUse, wizardData.finalAgent.tools, wizardData.finalAgent.getSystemPrompt(), true, wizardData.finalAgent.color, wizardData.finalAgent.model, wizardData.finalAgent.memory);
+      await saveAgentToFile(location, agent.agentType, agent.whenToUse, agent.tools, agent.getSystemPrompt(), true, agent.color, agent.model, agent.memory);
       setAppState(state => {
-        if (!wizardData.finalAgent) return state;
-        const allAgents = state.agentDefinitions.allAgents.concat(wizardData.finalAgent);
+        const allAgents = state.agentDefinitions.allAgents.concat(agent);
         return {
           ...state,
           agentDefinitions: {
@@ -43,25 +44,25 @@ export function ConfirmStepWrapper({
       });
       if (openInEditor) {
         const filePath = getNewAgentFilePath({
-          source: wizardData.location!,
-          agentType: wizardData.finalAgent.agentType
+          source: location,
+          agentType: agent.agentType
         });
         await editFileInEditor(filePath);
       }
       logEvent('tengu_agent_created', {
-        agent_type: wizardData.finalAgent.agentType,
+        agent_type: agent.agentType,
         generation_method: wizardData.wasGenerated ? 'generated' : 'manual',
-        source: wizardData.location!,
-        tool_count: wizardData.finalAgent.tools?.length ?? 'all',
-        has_custom_model: !!wizardData.finalAgent.model,
-        has_custom_color: !!wizardData.finalAgent.color,
-        has_memory: !!wizardData.finalAgent.memory,
-        memory_scope: wizardData.finalAgent.memory ?? 'none',
+        source: location,
+        tool_count: agent.tools?.length ?? 'all',
+        has_custom_model: !!agent.model,
+        has_custom_color: !!agent.color,
+        has_memory: !!agent.memory,
+        memory_scope: agent.memory ?? 'none',
         ...(openInEditor ? {
           opened_in_editor: true
         } : {})
       } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS);
-      const message = openInEditor ? `Created agent: ${chalk.bold(wizardData.finalAgent.agentType)} and opened in editor. ` + `If you made edits, restart to load the latest version.` : `Created agent: ${chalk.bold(wizardData.finalAgent.agentType)}`;
+      const message = openInEditor ? `Created agent: ${chalk.bold(agent.agentType)} and opened in editor. ` + `If you made edits, restart to load the latest version.` : `Created agent: ${chalk.bold(agent.agentType)}`;
       onComplete(message);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save agent');

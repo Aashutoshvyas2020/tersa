@@ -140,9 +140,7 @@ async function createFork(customTitle?: string): Promise<{
 
     serializedMessages.push(serialized)
     lines.push(jsonStringify(forkedEntry))
-    if (entry.type !== 'progress') {
-      parentUuid = entry.uuid
-    }
+    parentUuid = entry.uuid
   }
 
   // Append content-replacement entry (if any) with the fork's sessionId.

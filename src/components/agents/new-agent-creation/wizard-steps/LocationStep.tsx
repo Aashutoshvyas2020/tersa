@@ -3,26 +3,25 @@ import { join } from 'path';
 import React, { type ReactNode } from 'react';
 import { Box } from '../../../../ink.js';
 import { getClaudeConfigHomeDir } from '../../../../utils/envUtils.js';
-import type { SettingSource } from '../../../../utils/settings/constants.js';
+import type { AgentCreationSource, AgentWizardData } from '../types.js';
 import { ConfigurableShortcutHint } from '../../../ConfigurableShortcutHint.js';
 import { Select } from '../../../CustomSelect/select.js';
 import { Byline } from '../../../design-system/Byline.js';
 import { KeyboardShortcutHint } from '../../../design-system/KeyboardShortcutHint.js';
 import { useWizard } from '../../../wizard/index.js';
 import { WizardDialogLayout } from '../../../wizard/WizardDialogLayout.js';
-import type { AgentWizardData } from '../types.js';
 export function LocationStep() {
   const $ = _c(11);
   const {
     goNext,
     updateWizardData,
     cancel
-  } = useWizard();
+  } = useWizard<AgentWizardData>();
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t0 = {
       label: "Project (.tersa/agents/)",
-      value: "projectSettings" as SettingSource
+      value: "projectSettings" as AgentCreationSource
     };
     $[0] = t0;
   } else {
@@ -30,7 +29,7 @@ export function LocationStep() {
   }
   const locationOptions = [t0, {
     label: `Personal (${join(getClaudeConfigHomeDir(), 'agents')})`,
-    value: "userSettings" as SettingSource
+    value: "userSettings" as AgentCreationSource
   }];
   let t2;
   if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
@@ -43,7 +42,7 @@ export function LocationStep() {
   if ($[3] !== goNext || $[4] !== updateWizardData) {
     t3 = value => {
       updateWizardData({
-        location: value as SettingSource
+        location: value as AgentCreationSource
       });
       goNext();
     };

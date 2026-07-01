@@ -37,7 +37,7 @@ export function ConfirmStep(t0) {
   const {
     goBack,
     wizardData
-  } = useWizard();
+  } = useWizard<AgentWizardData>();
   let t1;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t1 = {
@@ -69,6 +69,10 @@ export function ConfirmStep(t0) {
   }
   const handleKeyDown = t2;
   const agent = wizardData.finalAgent;
+  const location = wizardData.location;
+  if (!agent || !location) {
+    return <WizardDialogLayout subtitle="Agent configuration is incomplete"><Text color="error">Go back and complete the required agent fields.</Text></WizardDialogLayout>;
+  }
   let T0;
   let T1;
   let t10;
@@ -88,7 +92,7 @@ export function ConfirmStep(t0) {
   let t7;
   let t8;
   let t9;
-  if ($[4] !== agent || $[5] !== existingAgents || $[6] !== handleKeyDown || $[7] !== tools || $[8] !== wizardData.location) {
+  if ($[4] !== agent || $[5] !== existingAgents || $[6] !== handleKeyDown || $[7] !== tools || $[8] !== location) {
     const validation = validateAgent(agent, tools, existingAgents);
     let t20;
     if ($[28] !== agent) {
@@ -153,13 +157,13 @@ export function ConfirmStep(t0) {
       t24 = $[38];
     }
     let t25;
-    if ($[39] !== agent.agentType || $[40] !== wizardData.location) {
+    if ($[39] !== agent.agentType || $[40] !== location) {
       t25 = getNewRelativeAgentFilePath({
-        source: wizardData.location,
+        source: location,
         agentType: agent.agentType
       });
       $[39] = agent.agentType;
-      $[40] = wizardData.location;
+      $[40] = location;
       $[41] = t25;
     } else {
       t25 = $[41];
@@ -248,7 +252,7 @@ export function ConfirmStep(t0) {
     $[5] = existingAgents;
     $[6] = handleKeyDown;
     $[7] = tools;
-    $[8] = wizardData.location;
+    $[8] = location;
     $[9] = T0;
     $[10] = T1;
     $[11] = t10;

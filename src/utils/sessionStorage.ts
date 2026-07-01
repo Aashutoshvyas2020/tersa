@@ -1935,7 +1935,8 @@ function applyPreservedSegmentRelinks(
         tailIndex: entryIndex.get(lastSeg.tailUuid),
         headIndex: entryIndex.get(lastSeg.headUuid),
         anchorIndex: entryIndex.get(lastSeg.anchorUuid),
-        lastSeenType,
+        lastSeenType:
+          lastSeenType as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         breakParentInTranscript: Boolean(
           breakParentUuid && messages.has(breakParentUuid),
         ),
@@ -2715,7 +2716,6 @@ function countVisibleMessages(transcript: TranscriptMessage[]): number {
         break
       case 'attachment':
       case 'system':
-      case 'progress':
         // These message types are not counted as visible conversation turns
         break
     }
@@ -3872,16 +3872,16 @@ export async function loadTranscriptFile(
     const progressBridge = new Map<UUID, UUID | null>()
 
     forEachParsedJSONLBufferEntry<Entry>(buf, entry => {
-      // Legacy progress check runs before the Entry-typed else-if chain —
-      // progress is not in the Entry union, so checking it after TypeScript
-      // has narrowed `entry` intersects to `never`.
-      if (isLegacyProgressEntry(entry)) {
+      // Legacy progress is intentionally outside Entry; inspect the raw value
+      // separately so the typed metadata/transcript chain keeps narrowing.
+      const rawEntry: unknown = entry
+      if (isLegacyProgressEntry(rawEntry)) {
         // Chain-resolve through consecutive progress entries so a later
         // message pointing at the tail of a progress run bridges to the
         // nearest non-progress ancestor in one lookup.
-        const parent = entry.parentUuid
+        const parent = rawEntry.parentUuid
         progressBridge.set(
-          entry.uuid,
+          rawEntry.uuid,
           parent && progressBridge.has(parent)
             ? (progressBridge.get(parent) ?? null)
             : parent,
@@ -4734,7 +4734,7 @@ export async function findUnresolvedToolUse(
     const transcriptPath = getTranscriptPath()
     const { messages } = await loadTranscriptFile(transcriptPath)
 
-    let toolUseMessage = null
+    let toolUseMessage: AssistantMessage | null = null
 
     // Find the tool use but make sure there's not also a result
     for (const message of messages.values()) {

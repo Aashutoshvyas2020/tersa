@@ -5,7 +5,12 @@ import type { AgentId } from './ids.js'
 import type { Message } from './message.js'
 import type { QueueOperationMessage } from './messageQueueTypes.js'
 
-export type SerializedMessage = Message & {
+type SerializedMessageBase<T extends 'user' | 'assistant' | 'attachment' | 'system'> = {
+  type: T
+  uuid: UUID
+  message?: any
+  content?: any
+  isMeta?: boolean
   cwd: string
   userType: string
   entrypoint?: string // CLAUDE_CODE_ENTRYPOINT — distinguishes cli/sdk-ts/sdk-py/etc.
@@ -14,7 +19,14 @@ export type SerializedMessage = Message & {
   version: string
   gitBranch?: string
   slug?: string // Session slug for files like plans (used for resume)
+  [key: string]: any
 }
+
+export type SerializedMessage =
+  | SerializedMessageBase<'user'>
+  | SerializedMessageBase<'assistant'>
+  | SerializedMessageBase<'attachment'>
+  | SerializedMessageBase<'system'>
 
 export type LogOption = {
   date: string

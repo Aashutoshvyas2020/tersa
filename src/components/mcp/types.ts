@@ -1,57 +1,59 @@
-export type MCPServerStatus =
-  | 'connected'
-  | 'connecting'
-  | 'disconnected'
-  | 'failed'
-  | 'needs-auth'
-  | string
+import type {
+  ConfigScope,
+  MCPServerConnection,
+  McpClaudeAIProxyServerConfig,
+  McpHTTPServerConfig,
+  McpSSEServerConfig,
+  McpStdioServerConfig,
+} from '../../services/mcp/types.js'
 
-export type BaseServerInfo = {
+type BaseServerInfo<
+  TTransport extends string,
+  TConfig,
+> = {
   name: string
-  status?: MCPServerStatus
-  type?: string
-  scope?: string
-  tools?: unknown[]
-  error?: string
-  [key: string]: unknown
+  client: MCPServerConnection
+  scope: ConfigScope
+  transport: TTransport
+  config: TConfig
 }
 
-export type StdioServerInfo = BaseServerInfo & {
-  type?: 'stdio'
-  command?: string
-  args?: string[]
-  env?: Record<string, string>
+export type StdioServerInfo = BaseServerInfo<'stdio', McpStdioServerConfig>
+
+export type SSEServerInfo = BaseServerInfo<'sse', McpSSEServerConfig> & {
+  isAuthenticated?: boolean
 }
 
-export type HTTPServerInfo = BaseServerInfo & {
-  type?: 'http'
-  url?: string
-  headers?: Record<string, string>
+export type HTTPServerInfo = BaseServerInfo<'http', McpHTTPServerConfig> & {
+  isAuthenticated?: boolean
 }
 
-export type SSEServerInfo = BaseServerInfo & {
-  type?: 'sse'
-  url?: string
-  headers?: Record<string, string>
-}
-
-export type ClaudeAIServerInfo = BaseServerInfo & {
-  type?: 'claude.ai'
-  url?: string
-}
-
-export type AgentMcpServerInfo = BaseServerInfo & {
-  type?: 'agent'
-  agentName?: string
+export type ClaudeAIServerInfo = BaseServerInfo<
+  'claudeai-proxy',
+  McpClaudeAIProxyServerConfig
+> & {
+  isAuthenticated?: boolean
 }
 
 export type ServerInfo =
   | StdioServerInfo
-  | HTTPServerInfo
   | SSEServerInfo
+  | HTTPServerInfo
   | ClaudeAIServerInfo
-  | AgentMcpServerInfo
+
+export type AgentMcpServerInfo = {
+  name: string
+  sourceAgents: string[]
+  transport: 'stdio' | 'sse' | 'http' | 'ws'
+  command?: string
+  url?: string
+  needsAuth: boolean
+  isAuthenticated?: boolean
+}
 
 export type MCPViewState =
-  | { type: string; server?: ServerInfo; [key: string]: unknown }
-  | string
+  | { type: 'list'; defaultTab?: string }
+  | { type: 'server-menu'; server: ServerInfo }
+  | { type: 'server-tools'; server: ServerInfo }
+  | { type: 'server-tool-detail'; server: ServerInfo; toolIndex: number }
+  | { type: 'agent-server-menu'; agentServer: AgentMcpServerInfo }
