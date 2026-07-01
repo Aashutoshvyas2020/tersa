@@ -65,6 +65,8 @@ import {
 import { getOrCreateUserID } from '../../utils/config.js'
 import {
   CAPPED_DEFAULT_MAX_TOKENS,
+  COMPACT_MAX_OUTPUT_TOKENS,
+  getContextWindowForModel,
   getModelMaxOutputTokens,
   getSonnet1mExpTreatmentEnabled,
 } from '../../utils/context.js'
@@ -121,6 +123,7 @@ import {
   getLastApiCompletionTimestamp,
   getPromptCache1hAllowlist,
   getPromptCache1hEligible,
+  getSdkBetas,
   getSessionId,
   getThinkingClearLatched,
   setAfkModeHeaderLatched,
@@ -950,15 +953,23 @@ function getPreviousRequestIdFromMessages(
 }
 
 function isMedia(
-  block: BetaContentBlockParam,
+  block: unknown,
 ): block is BetaImageBlockParam | BetaRequestDocumentBlock {
-  return block.type === 'image' || block.type === 'document'
+  return (
+    typeof block === 'object' &&
+    block !== null &&
+    'type' in block &&
+    (block.type === 'image' || block.type === 'document')
+  )
 }
 
-function isToolResult(
-  block: BetaContentBlockParam,
-): block is BetaToolResultBlockParam {
-  return block.type === 'tool_result'
+function isToolResult(block: unknown): block is BetaToolResultBlockParam {
+  return (
+    typeof block === 'object' &&
+    block !== null &&
+    'type' in block &&
+    block.type === 'tool_result'
+  )
 }
 
 /**
@@ -1205,14 +1216,12 @@ async function* queryModel(
       isModelSupportedForCacheEditing,
       getCachedMCConfig,
     } = await import('../compact/cachedMicrocompact.js')
-    const betas = await import('src/constants/betas.js')
-    cacheEditingBetaHeader = betas.CACHE_EDITING_BETA_HEADER
     const featureEnabled = isCachedMicrocompactEnabled()
     const modelSupported = isModelSupportedForCacheEditing(options.model)
     cachedMCEnabled = featureEnabled && modelSupported
-    const config = getCachedMCConfig()
+    getCachedMCConfig()
     logForDebugging(
-      `Cached MC gate: enabled=${featureEnabled} modelSupported=${modelSupported} model=${options.model} supportedModels=${jsonStringify(config?.supportedModels)}`,
+      `Cached MC gate: enabled=${featureEnabled} modelSupported=${modelSupported} model=${options.model}`,
     )
   }
 
@@ -1286,7 +1295,7 @@ async function* queryModel(
       cacheWeight: 0.4,
       freshWeight: 0.6,
       maxTotalTokens: Math.min(
-        getContextWindowForModel(model, getSdkBetas()) - COMPACT_MAX_OUTPUT_TOKENS,
+        getContextWindowForModel(options.model, getSdkBetas()) - COMPACT_MAX_OUTPUT_TOKENS,
         200000
       ),
     })

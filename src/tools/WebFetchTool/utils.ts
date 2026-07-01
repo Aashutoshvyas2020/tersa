@@ -331,12 +331,16 @@ export async function getWithPermittedRedirects(
           }
         }
         const arrayBuffer = await fetchResponse.arrayBuffer()
+        const headers: Record<string, string> = {}
+        fetchResponse.headers.forEach((value, key) => {
+          headers[key] = value
+        })
         // Build an AxiosResponse-like shape so downstream code stays happy
         return {
           data: new Uint8Array(arrayBuffer),
           status: fetchResponse.status,
           statusText: fetchResponse.statusText,
-          headers: Object.fromEntries(fetchResponse.headers.entries()),
+          headers,
           config: axiosConfig,
           request: undefined,
         } as unknown as AxiosResponse<ArrayBuffer>
@@ -494,7 +498,14 @@ export async function getURLMarkdownContent(
   // This lets GC reclaim up to MAX_HTTP_CONTENT_LENGTH (10MB) before Turndown
   // builds its DOM tree (which can be 3-5x the HTML size).
   ;(response as { data: unknown }).data = null
-  const contentType = response.headers['content-type'] ?? ''
+  const rawContentType = response.headers['content-type']
+  const contentType = Array.isArray(rawContentType)
+    ? (rawContentType[0] ?? '')
+    : typeof rawContentType === 'string'
+      ? rawContentType
+      : rawContentType == null
+        ? ''
+        : String(rawContentType)
 
   // Binary content: save raw bytes to disk with a proper extension so Claude
   // can inspect the file later. We still fall through to the utf-8 decode +

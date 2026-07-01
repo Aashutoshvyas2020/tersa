@@ -467,7 +467,19 @@ export function MCPRemoteServerMenu({
         <Text dimColor>This may take a few moments.</Text>
       </Box>;
   }
-  const menuOptions = [];
+  const menuOptions: Array<{
+    label: string;
+    value:
+      | 'tools'
+      | 'auth'
+      | 'reauth'
+      | 'clear-auth'
+      | 'claudeai-auth'
+      | 'claudeai-clear-auth'
+      | 'reconnectMcpServer'
+      | 'toggle-enabled'
+      | 'back';
+  }> = [];
 
   // If server is disabled, show Enable first as the primary action
   if (server.client.type === 'disabled') {

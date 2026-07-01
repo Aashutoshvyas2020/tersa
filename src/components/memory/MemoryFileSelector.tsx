@@ -42,7 +42,7 @@ type Props = {
   onSelect: (path: string) => void;
   onCancel: () => void;
 };
-export function MemoryFileSelector(t0) {
+export function MemoryFileSelector(t0: Props) {
   const $ = _c(58);
   const {
     onSelect,
@@ -66,7 +66,7 @@ export function MemoryFileSelector(t0) {
     content: "",
     exists: false
   }])];
-  const depths = new Map();
+  const depths = new Map<string, number>();
   const memoryOptions = allMemoryFiles.map(file => {
     const displayPath = getDisplayPath(file.path);
     const existsLabel = file.exists ? "" : " (new)";
@@ -112,7 +112,7 @@ export function MemoryFileSelector(t0) {
       description
     };
   });
-  const folderOptions = [];
+  const folderOptions: typeof memoryOptions = [];
   const agentDefinitions = useAppState(_temp3);
   if (isAutoMemoryEnabled()) {
     let t1;
@@ -127,7 +127,7 @@ export function MemoryFileSelector(t0) {
       t1 = $[0];
     }
     folderOptions.push(t1);
-    if (feature("TEAMMEM") && teamMemPaths.isTeamMemoryEnabled()) {
+    if (feature("TEAMMEM") && teamMemPaths?.isTeamMemoryEnabled()) {
       let t2;
       if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
         t2 = {
@@ -166,7 +166,7 @@ export function MemoryFileSelector(t0) {
   const [autoDreamOn, setAutoDreamOn] = useState(isAutoDreamEnabled);
   const [showDreamRow] = useState(isAutoMemoryEnabled);
   const isDreamRunning = useAppState(_temp6);
-  const [lastDreamAt, setLastDreamAt] = useState(null);
+  const [lastDreamAt, setLastDreamAt] = useState<number | null>(null);
   let t2;
   if ($[4] !== showDreamRow) {
     t2 = () => {
@@ -200,7 +200,7 @@ export function MemoryFileSelector(t0) {
     t4 = $[11];
   }
   const dreamStatus = t4;
-  const [focusedToggle, setFocusedToggle] = useState(null);
+  const [focusedToggle, setFocusedToggle] = useState<number | null>(null);
   const toggleFocused = focusedToggle !== null;
   const lastToggleIndex = showDreamRow ? 1 : 0;
   let t5;
