@@ -1,13 +1,13 @@
-import { rmSync, renameSync, existsSync, readFileSync, writeFileSync } from 'fs'
+import { rmSync, renameSync, existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { getProjectsDir } from './envUtils.js'
 import { sanitizePath } from './sessionStoragePortable.js'
 import { getFsImplementation } from './fsOperations.js'
-import { create, insert, search, type Orama, remove, getByID } from '@orama/orama'
+import { create, insert, search, type AnyOrama, remove, getByID } from '@orama/orama'
 import { persist, restore } from '@orama/plugin-data-persistence'
 import { AsyncLocalStorage } from 'async_hooks'
-import { SQLiteProvider } from './storage/SQLiteProvider.js'
 import { JSONProvider } from './storage/JSONProvider.js'
+import { SQLiteProvider } from './storage/SQLiteProvider.js'
 import { writeFileSyncAndFlush_DEPRECATED } from './file.js'
 
 export interface Entity {
@@ -43,11 +43,11 @@ const mutationLock = new AsyncLocalStorage<boolean>()
 let mutationQueue: Promise<any> = Promise.resolve()
 
 let projectGraph: KnowledgeGraph | null = null
-let oramaDb: Orama<any> | null = null
+let oramaDb: AnyOrama | null = null
 let oramaInitPromise: Promise<void> | null = null
 
-// Storage Providers (Cached per project directory to handle CWD changes)
-const providerCache = new Map<string, { sqlite: SQLiteProvider; json: JSONProvider }>()
+// One durable source of truth per project. Orama remains a derived search index.
+const providerCache = new Map<string, JSONProvider>()
 
 function sleepSync(ms: number): void {
   const shared = new SharedArrayBuffer(4)
@@ -103,24 +103,40 @@ const ORAMA_SCHEMA = {
   attributes: 'string',
 } as const
 
-function getProviders(): { sqlite: SQLiteProvider; json: JSONProvider } {
+function getProvider(): JSONProvider {
   const cwd = getFsImplementation().cwd()
   const projectDir = join(getProjectsDir(), sanitizePath(cwd))
-  
-  let providers = providerCache.get(projectDir)
-  if (!providers) {
-    providers = {
-      sqlite: new SQLiteProvider(projectDir),
-      json: new JSONProvider(projectDir)
-    }
-    providerCache.set(projectDir, providers)
+
+  let provider = providerCache.get(projectDir)
+  if (!provider) {
+    provider = new JSONProvider(projectDir)
+    providerCache.set(projectDir, provider)
   }
-  
-  return providers
+
+  return provider
+}
+
+async function migrateLegacySqliteIfNeeded(cwd: string): Promise<void> {
+  const json = getProvider()
+  if (json.loadGraph()) return
+
+  const projectDir = join(getProjectsDir(), sanitizePath(cwd))
+  if (!existsSync(join(projectDir, 'knowledge.db'))) return
+
+  const sqlite = new SQLiteProvider(projectDir)
+  try {
+    await sqlite.init()
+    const legacyGraph = sqlite.isReady ? sqlite.loadGraph() : null
+    if (legacyGraph && !json.saveGraph(legacyGraph)) {
+      throw new Error('Failed to migrate legacy knowledge graph')
+    }
+  } finally {
+    sqlite.close()
+  }
 }
 
 /**
- * Serializes all Knowledge Graph mutations (SQLite, JSON & Orama) to prevent race conditions.
+ * Serializes all knowledge-graph and Orama mutations to prevent race conditions.
  * Uses AsyncLocalStorage to support re-entrant calls without deadlocking.
  */
 async function enqueueMutation<T>(fn: () => T | Promise<T>): Promise<T> {
@@ -181,22 +197,17 @@ async function updateOramaSyncMetadata(cwd: string, graph: KnowledgeGraph): Prom
 }
 
 /**
- * Initializes the Knowledge Subsystem (SQLite & Orama).
- * Self-healing: Prioritizes SQLite for speed, fallbacks to JSON if needed.
+ * Initializes the knowledge subsystem.
+ * JSON is durable state; Orama is the derived search index.
  */
 export async function initOrama(cwd: string): Promise<void> {
-  const providers = getProviders()
-
   const performInit = async () => {
-    // 1. Initialize SQLite (Runtime-safe)
-    await providers.sqlite.init()
-
-    // 2. Load the base graph state if not already loaded
+    await migrateLegacySqliteIfNeeded(cwd)
     if (!projectGraph) {
       loadProjectGraph(cwd)
     }
 
-    // 3. Initialize Orama
+    // Orama is a derived search index over the JSON source of truth.
     if (oramaDb) return
 
     const path = getOramaPersistencePath(cwd)
@@ -265,62 +276,35 @@ export async function saveOrama(cwd: string): Promise<void> {
   if (!oramaDb) return
   const path = getOramaPersistencePath(cwd)
   try {
-    const data = await persist(oramaDb, 'binary')
-    // Atomic write with flush using established project utility
-    writeFileSyncAndFlush_DEPRECATED(path, data as Buffer)
+    const data = await persist(oramaDb, 'binary', 'node')
+    const serialized =
+      typeof data === 'string'
+        ? data
+        : Buffer.isBuffer(data)
+          ? data.toString('hex')
+          : Buffer.from(data).toString('hex')
+    writeFileSyncAndFlush_DEPRECATED(path, serialized)
   } catch (e) {
     console.error('Failed to save Orama DB:', e)
   }
 }
 
-/**
- * Self-healing loader: Prioritizes the latest data by comparing
- * timestamps between JSON (Audit Log) and SQLite (Working Store).
- * Note: If SQLite is not yet initialized, it only uses JSON.
- */
-export function loadProjectGraph(cwd: string): KnowledgeGraph {
-  const { sqlite, json } = getProviders()
-  
-  const graphFromJson = json.loadGraph()
-  const graphFromSqlite = sqlite.isReady ? sqlite.loadGraph() : null
-  
-  // Deterministic Choice: pick the one with the higher lastUpdateTime.
-  // In case of equality, the JSON Audit Log wins as the ultimate Source of Truth.
-  if (graphFromJson && graphFromSqlite) {
-    if (graphFromSqlite.lastUpdateTime > graphFromJson.lastUpdateTime) {
-      projectGraph = graphFromSqlite
-      json.saveGraph(graphFromSqlite)
-    } else {
-      projectGraph = graphFromJson
-      sqlite.saveGraph(graphFromJson)
-    }
-  } else if (graphFromJson) {
-    projectGraph = graphFromJson
-    if (sqlite.isReady) sqlite.saveGraph(graphFromJson)
-  } else if (graphFromSqlite) {
-    projectGraph = graphFromSqlite
-    json.saveGraph(graphFromSqlite)
-  } else {
-    // Default initial state
-    projectGraph = {
-      entities: {},
-      relations: [],
-      summaries: [],
-      rules: [],
-      lastUpdateTime: Date.now(),
-    }
+/** Load the durable JSON graph. Orama is rebuilt if its index is stale. */
+export function loadProjectGraph(_cwd: string): KnowledgeGraph {
+  projectGraph = getProvider().loadGraph() ?? {
+    entities: {},
+    relations: [],
+    summaries: [],
+    rules: [],
+    lastUpdateTime: Date.now(),
   }
-
   return projectGraph
 }
 
-export function saveProjectGraph(cwd: string): void {
-  if (!projectGraph) return
-  const { sqlite, json } = getProviders()
-  
-  // Dual-Write strategy
-  json.saveGraph(projectGraph)
-  if (sqlite.isReady) sqlite.saveGraph(projectGraph)
+export function saveProjectGraph(_cwd: string): void {
+  if (projectGraph && !getProvider().saveGraph(projectGraph)) {
+    throw new Error('Failed to save knowledge graph')
+  }
 }
 
 export function getGlobalGraph(): KnowledgeGraph {
@@ -677,7 +661,7 @@ export function getGlobalGraphSummary(): string {
 
 export function resetGlobalGraph(): void {
   const cwd = getFsImplementation().cwd()
-  const { sqlite, json } = getProviders()
+  const json = getProvider()
   const emptyGraph: KnowledgeGraph = {
     entities: {},
     relations: [],
@@ -686,11 +670,8 @@ export function resetGlobalGraph(): void {
     lastUpdateTime: Date.now(),
   }
   
-  const sqliteCleared = sqlite.clear()
-  sqlite.close()
-  const jsonResetSucceeded = sqliteCleared
-    ? (json.delete() || json.saveGraph(emptyGraph))
-    : json.saveGraph(emptyGraph)
+
+  const jsonResetSucceeded = json.saveGraph(emptyGraph)
 
   if (!jsonResetSucceeded) {
     throw new Error('Failed to reset knowledge graph JSON state')
@@ -702,7 +683,7 @@ export function resetGlobalGraph(): void {
     join(projectDir, 'knowledge.db-wal'),
     join(projectDir, 'knowledge.db-shm'),
   ]) {
-    removePathWithRetry(sqlitePath, { requireMissingAfterCleanup: !sqliteCleared })
+    removePathWithRetry(sqlitePath, { requireMissingAfterCleanup: true })
   }
   
   const oramaPath = getOramaPersistencePath(cwd)
@@ -717,12 +698,7 @@ export function resetGlobalGraph(): void {
 export function clearMemoryOnly(): void {
   const cwd = getFsImplementation().cwd()
   const projectDir = join(getProjectsDir(), sanitizePath(cwd))
-  const providers = providerCache.get(projectDir)
-  
   projectGraph = null
   oramaDb = null
-  if (providers) {
-    providers.sqlite.close()
-    providerCache.delete(projectDir)
-  }
+  providerCache.delete(projectDir)
 }

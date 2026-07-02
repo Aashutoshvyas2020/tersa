@@ -15,6 +15,7 @@ import { join } from 'path'
 import { acquireEnvMutex, releaseEnvMutex } from '../entrypoints/sdk/shared.js'
 import { getProjectsDir, setClaudeConfigHomeDirForTesting } from './envUtils.js'
 import { sanitizePath } from './sessionStoragePortable.js'
+import { SQLiteProvider } from './storage/SQLiteProvider.js'
 
 describe('KnowledgeGraph Global Persistence & RAG', () => {
   const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
@@ -74,6 +75,38 @@ describe('KnowledgeGraph Global Persistence & RAG', () => {
         releaseEnvMutex()
       }
     }
+  })
+
+  it('migrates legacy SQLite state when JSON is missing', async () => {
+    const projectDir = join(getProjectsDir(), sanitizePath(cwd))
+    const jsonPath = getProjectGraphPath(cwd)
+    rmSync(jsonPath, { force: true })
+
+    const sqlite = new SQLiteProvider(projectDir)
+    await sqlite.init()
+    sqlite.saveGraph({
+      entities: {
+        legacy: {
+          id: 'legacy',
+          type: 'tool',
+          name: 'legacy-memory',
+          attributes: { source: 'sqlite' },
+        },
+      },
+      relations: [],
+      summaries: [],
+      rules: [],
+      lastUpdateTime: Date.now(),
+    })
+    sqlite.close()
+
+    clearMemoryOnly()
+    const { initOrama } = await import('./knowledgeGraph.js')
+    await initOrama(cwd)
+
+    const migrated = loadProjectGraph(cwd)
+    expect(migrated.entities.legacy?.name).toBe('legacy-memory')
+    expect(existsSync(jsonPath)).toBe(true)
   })
 
   it('persists entities across loads', async () => {
