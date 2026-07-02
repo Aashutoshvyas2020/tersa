@@ -19,12 +19,12 @@ type PackJsonEntry = {
 export function buildPackInstallVerificationPlan(version: string): string[] {
   return [
     'bun run verify:tersa:release',
-    'npm pack --dry-run',
+    'npm pack --dry-run --json',
     'npm pack',
     `npm install -g ./tersa-cli-${version}.tgz`,
     'tersa --version',
     'tersa --help',
-    'bun run scripts/tersa-tui-canary.ts --startup-only --binary tersa',
+    'bun run scripts/tersa-tui-canary.ts --binary tersa',
   ]
 }
 
@@ -36,7 +36,18 @@ export function buildNpmDryRunVerificationPlan(): string[] {
     'npm install -g ./tersa-cli-<version>.tgz',
     'tersa --version',
     'tersa --help',
-    'bun run scripts/tersa-tui-canary.ts --startup-only --binary tersa',
+    'bun run scripts/tersa-tui-canary.ts --binary tersa',
+  ]
+}
+
+export function buildPlatformSmokeVerificationPlan(): string[] {
+  return [
+    'bun run build',
+    'npm pack --dry-run --json',
+    'npm pack --json',
+    'npm install -g ./tersa-cli-<version>.tgz',
+    'tersa --version',
+    'tersa --help',
   ]
 }
 
@@ -55,16 +66,69 @@ export function parsePackJsonOutput(output: string): PackJsonEntry[] {
   return JSON.parse(output.slice(jsonStart)) as PackJsonEntry[]
 }
 
+function packedPaths(entries: PackJsonEntry[]): Set<string> {
+  return new Set(entries.flatMap(entry => entry.files?.map(file => file.path) ?? []))
+}
+
 export function findPackedForbiddenFiles(
   entries: PackJsonEntry[],
   forbiddenPaths: string[],
 ): string[] {
-  const packed = new Set(entries.flatMap(entry => entry.files?.map(file => file.path) ?? []))
+  const packed = packedPaths(entries)
   return forbiddenPaths.filter(path => packed.has(path))
 }
 
+export function findMissingPackedFiles(
+  entries: PackJsonEntry[],
+  requiredPaths: string[],
+): string[] {
+  const packed = packedPaths(entries)
+  return requiredPaths.filter(path => !packed.has(path))
+}
+
+const FORBIDDEN_PACKED_PATHS = ['bin/import-specifier.test.mjs']
+const REQUIRED_PACKED_PATHS = [
+  'src/entrypoints/sdk.d.ts',
+  'src/entrypoints/sdk/coreTypes.generated.ts',
+]
+
+function verifyPackedContents(entries: PackJsonEntry[]): void {
+  const forbidden = findPackedForbiddenFiles(entries, FORBIDDEN_PACKED_PATHS)
+  if (forbidden.length > 0) {
+    throw new Error(`Forbidden files in npm package: ${forbidden.join(', ')}`)
+  }
+
+  const missing = findMissingPackedFiles(entries, REQUIRED_PACKED_PATHS)
+  if (missing.length > 0) {
+    throw new Error(`Required files missing from npm package: ${missing.join(', ')}`)
+  }
+}
+
 function run(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env): string {
-  const result = spawnSync('bash', ['-lc', command], {
+  const result = spawnSync(command, {
+    cwd,
+    env,
+    encoding: 'utf8',
+    shell: true,
+    stdio: ['inherit', 'pipe', 'pipe'],
+  })
+  if (result.stdout) process.stdout.write(result.stdout)
+  if (result.stderr) process.stderr.write(result.stderr)
+  if (result.status !== 0) {
+    throw new Error(
+      `Command failed (${result.status ?? result.signal ?? 'unknown'}): ${command}`,
+    )
+  }
+  return result.stdout ?? ''
+}
+
+function runExecutable(
+  executable: string,
+  args: string[],
+  cwd: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const result = spawnSync(executable, args, {
     cwd,
     env,
     encoding: 'utf8',
@@ -73,7 +137,9 @@ function run(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env)
   if (result.stdout) process.stdout.write(result.stdout)
   if (result.stderr) process.stderr.write(result.stderr)
   if (result.status !== 0) {
-    process.exit(result.status ?? 1)
+    throw new Error(
+      `Command failed (${result.status ?? result.signal ?? 'unknown'}): ${executable} ${args.join(' ')}`,
+    )
   }
   return result.stdout ?? ''
 }
@@ -96,20 +162,38 @@ function packTarball(cwd: string): string {
   return filename
 }
 
-function verifyInstalledTarball(cwd: string, tarball: string): void {
+export function resolveInstalledBin(
+  prefix: string,
+  platformName: NodeJS.Platform = process.platform,
+): string {
+  return platformName === 'win32'
+    ? resolve(prefix, 'tersa.cmd')
+    : resolve(prefix, 'bin', 'tersa')
+}
+
+function verifyInstalledTarball(
+  cwd: string,
+  tarball: string,
+  runInteractiveCanary = true,
+): void {
   const prefix = mkdtempSync(join(tmpdir(), 'tersa-pack-'))
   const env = { ...process.env, npm_config_prefix: prefix }
 
   try {
-    run(`npm install -g ./${tarball}`, cwd, env)
-    const bin = resolve(prefix, 'bin', 'tersa')
-    run(`${JSON.stringify(bin)} --version`, cwd, env)
-    run(`${JSON.stringify(bin)} --help`, cwd, env)
-    run(
-      `bun run scripts/tersa-tui-canary.ts --startup-only --binary ${JSON.stringify(bin)}`,
-      cwd,
-      env,
-    )
+    const npmExecutable = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+    const bunExecutable = process.platform === 'win32' ? 'bun.exe' : 'bun'
+    runExecutable(npmExecutable, ['install', '-g', `./${tarball}`], cwd, env)
+    const bin = resolveInstalledBin(prefix)
+    runExecutable(bin, ['--version'], cwd, env)
+    runExecutable(bin, ['--help'], cwd, env)
+    if (runInteractiveCanary) {
+      runExecutable(
+        bunExecutable,
+        ['run', 'scripts/tersa-tui-canary.ts', '--binary', bin],
+        cwd,
+        env,
+      )
+    }
   } finally {
     rmSync(prefix, { recursive: true, force: true })
   }
@@ -118,15 +202,27 @@ function verifyInstalledTarball(cwd: string, tarball: string): void {
 if (import.meta.main) {
   const cwd = process.cwd()
   const npmDryRun = process.argv.includes('--npm-dry-run')
+  const platformSmoke = process.argv.includes('--platform-smoke')
   const version = JSON.parse(readFileSync(resolve(cwd, 'package.json'), 'utf8')).version as string
+
+  if (platformSmoke) {
+    run('bun run build', cwd)
+    const dryRun = parsePackJsonOutput(run('npm pack --dry-run --json', cwd))
+    verifyPackedContents(dryRun)
+    const tarball = packTarball(cwd)
+    try {
+      verifyInstalledTarball(cwd, tarball, false)
+      console.log(`PASS: platform package smoke verified (${tarball})`)
+    } finally {
+      rmSync(resolve(cwd, tarball), { force: true })
+    }
+    process.exit(0)
+  }
 
   if (npmDryRun) {
     run('bun run build', cwd)
     const dryRun = parsePackJsonOutput(run('npm pack --dry-run --json', cwd))
-    const forbidden = findPackedForbiddenFiles(dryRun, ['bin/import-specifier.test.mjs'])
-    if (forbidden.length > 0) {
-      throw new Error(`Forbidden files in npm package: ${forbidden.join(', ')}`)
-    }
+    verifyPackedContents(dryRun)
     const tarball = packTarball(cwd)
     try {
       verifyInstalledTarball(cwd, tarball)
@@ -140,7 +236,8 @@ if (import.meta.main) {
   const commit = run('git rev-parse HEAD', cwd).trim()
   const bunVersion = run('bun --version', cwd).trim()
   run('bun run verify:tersa:release', cwd)
-  run('npm pack --dry-run', cwd)
+  const dryRun = parsePackJsonOutput(run('npm pack --dry-run --json', cwd))
+  verifyPackedContents(dryRun)
   const tarball = packTarball(cwd)
 
   verifyInstalledTarball(cwd, tarball)
@@ -185,9 +282,9 @@ tersa
 /doctor
 \`\`\`
 
-## Experimental TUI Canary
+## TUI Canary
 
-The tester package gate runs a startup-only PTY canary against the installed binary so packaging is not blocked by the slower experimental full-flow canary. To run the full canary manually:
+The tester package gate runs the complete PTY interaction canary against the installed binary. To run the same canary manually:
 
 \`\`\`bash
 bun run test:tersa:interactive -- --binary tersa
@@ -219,7 +316,7 @@ Include the Tersa version, commit SHA, OS, Node version, Bun version if used, te
 - The package was verified on ${platform()} ${release()} ${arch()} only.
 - Some usage and token counters may be estimated depending on provider support.
 - OAuth behavior can vary by provider account and local credential state.
-- Full-flow PTY canary coverage is experimental and opt-in; packaging runs the startup-only canary by default.
+- Packaging runs the complete PTY interaction canary against the installed tarball.
 - No Tersa tests remain quarantined in this tester build.
 `,
   )

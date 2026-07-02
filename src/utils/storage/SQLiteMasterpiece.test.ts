@@ -16,7 +16,7 @@ import { getProjectsDir, setClaudeConfigHomeDirForTesting } from '../envUtils.js
 import { sanitizePath } from '../sessionStoragePortable.js'
 import { getFsImplementation } from '../fsOperations.js'
 
-describe('SQLite Masterpiece: Edge Cases & Multi-Project Isolation', () => {
+describe('Knowledge Graph: Edge Cases & Multi-Project Isolation', () => {
   const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
   const originalConsoleError = console.error
   const originalConsoleWarn = console.warn
@@ -162,7 +162,7 @@ describe('SQLite Masterpiece: Edge Cases & Multi-Project Isolation', () => {
     await addGlobalEntity('type', 'base', { val: '0' })
     const baseTime = getGlobalGraph().lastUpdateTime
 
-    // 2. Manually make JSON newer than SQLite (simulating failed SQL write / manual edit)
+    // 2. Manually make JSON newer (simulating a durable external edit)
     clearMemoryOnly()
     const futureTime = baseTime + 10000
     const graph = getGlobalGraph()
@@ -170,7 +170,7 @@ describe('SQLite Masterpiece: Edge Cases & Multi-Project Isolation', () => {
     graph.entities[Object.keys(graph.entities)[0]].attributes.val = 'newer-json'
     writeFileSync(jsonPath, JSON.stringify(graph, null, 2))
 
-    // 3. Load should pick the future JSON and heal SQLite
+    // 3. Load should pick the future JSON
     clearMemoryOnly()
     // Need to trigger init to see the new JSON
     await initOrama(cwd)
@@ -196,27 +196,24 @@ describe('SQLite Masterpiece: Edge Cases & Multi-Project Isolation', () => {
     expect(error).toBeDefined()
   })
 
-  it('recovers from corrupted SQLite header (SHORT_READ/Disk Error)', async () => {
-    expectRecoveryLogsForCurrentTest = true
+  it('prefers valid JSON over a corrupted legacy SQLite file', async () => {
     const cwd = getFsImplementation().cwd()
     const projectDir = join(getProjectsDir(), sanitizePath(cwd))
+    const jsonPath = join(projectDir, 'knowledge_graph.json')
     const sqlitePath = join(projectDir, 'knowledge.db')
 
-    // 1. Add valid data
     await addGlobalEntity('type', 'survivor', { status: 'alive' })
-    expect(existsSync(sqlitePath)).toBe(true)
+    expect(existsSync(jsonPath)).toBe(true)
 
-    // 2. Corrupt SQLite file header
-    clearMemoryOnly()
     writeFileSync(sqlitePath, Buffer.from('NOT_SQLITE_BINARY'))
-
-    // 3. System should detect error during init, delete corrupted db, and rebuild from JSON
+    clearMemoryOnly()
     await initOrama(cwd)
+
     const graph = getGlobalGraph()
     expect(Object.values(graph.entities).some(e => e.name === 'survivor')).toBe(
       true,
     )
-    expect(existsSync(sqlitePath)).toBe(true) // Recreated
+    expect(existsSync(jsonPath)).toBe(true)
   })
 
   it('handles incremental updates (UPSERT strategy)', async () => {
@@ -228,7 +225,7 @@ describe('SQLite Masterpiece: Edge Cases & Multi-Project Isolation', () => {
     // 2. Update same entity with same name/type
     await addGlobalEntity('type', name, { step: '2', added: 'yes' })
 
-    // 3. Verify SQLite merge (no duplicates, merged attributes)
+    // 3. Verify the JSON-backed graph has no duplicates and merged attributes
     clearMemoryOnly()
     await initOrama(getFsImplementation().cwd())
     const graph = getGlobalGraph()

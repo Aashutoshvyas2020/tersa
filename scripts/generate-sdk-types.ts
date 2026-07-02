@@ -39,7 +39,7 @@ const TypeOverrideMap: Record<string, string> = {
     'Record<string, unknown>',
   UUIDPlaceholder: 'string',
   NonNullableUsagePlaceholder:
-    "import('./sdkUtilityTypes.js').NonNullableUsage",
+    '{ input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }',
 }
 
 // Materialize placeholder schemas once so we can detect them by identity (===)
@@ -268,8 +268,10 @@ function convert(schema: any, depth = 0): string {
         .map(v => JSON.stringify(v))
         .join(' | ')
     }
-    case 'array':
-      return `${convert(def.element, depth)}[]`
+    case 'array': {
+      const element = convert(def.element, depth)
+      return `${needsArrayElementParens(element) ? `(${element})` : element}[]`
+    }
     case 'tuple': {
       const items = (def.items as any[]).map(t => convert(t, depth))
       return `[${items.join(', ')}]`
@@ -352,6 +354,10 @@ function isOptional(schema: any): boolean {
 
 function needsParens(ts: string): boolean {
   return ts.includes('\n') || ts.includes(' & ')
+}
+
+function needsArrayElementParens(ts: string): boolean {
+  return ts.includes(' | ') || ts.includes(' & ')
 }
 
 // ---------------------------------------------------------------------------

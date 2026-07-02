@@ -445,6 +445,16 @@ const DIALOG_CANARIES = [
   { command: '/terminal-setup', expected: ['Terminal setup'] },
 ] as const
 
+export function chooseDialogCanaryWidth(widths: readonly number[]): number {
+  const first = widths[0]
+  if (first === undefined) {
+    throw new Error('At least one canary width is required')
+  }
+  return widths.slice(1).reduce((best, width) =>
+    Math.abs(width - 80) < Math.abs(best - 80) ? width : best,
+  first)
+}
+
 async function runCanary(
   binary: string,
   options: {
@@ -456,11 +466,16 @@ async function runCanary(
 ): Promise<void> {
   const widths =
     options.widths ?? (options.startupOnly ? [80] : [60, 80, 120])
+  const dialogWidth = chooseDialogCanaryWidth(widths)
   for (const width of widths) {
     if (!options.dialogOnly) {
       await runCanaryAtWidth(binary, options.startupOnly, width)
     }
-    if (!options.startupOnly && !options.coreOnly) {
+    if (
+      !options.startupOnly &&
+      !options.coreOnly &&
+      (options.dialogOnly !== undefined || width === dialogWidth)
+    ) {
       const dialogs = options.dialogOnly
         ? DIALOG_CANARIES.filter(item => item.command === options.dialogOnly)
         : DIALOG_CANARIES

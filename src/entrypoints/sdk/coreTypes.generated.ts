@@ -238,7 +238,7 @@ export type PermissionDecisionClassification = "user_temporary" | "user_permanen
 export type PermissionResult = ({
   behavior: "allow"
   updatedInput?: Record<string, unknown>
-  updatedPermissions?: ({
+  updatedPermissions?: (({
     type: "addRules"
     rules: {
       toolName: string
@@ -274,7 +274,7 @@ export type PermissionResult = ({
     type: "removeDirectories"
     directories: string[]
     destination: "userSettings" | "projectSettings" | "localSettings" | "session" | "cliArg"
-  })[]
+  }))[]
   toolUseID?: string
   decisionClassification?: "user_temporary" | "user_permanent" | "user_reject"
 }) | ({
@@ -504,7 +504,7 @@ export type PermissionRequestHookInput = {
   hook_event_name: "PermissionRequest"
   tool_name: string
   tool_input: unknown
-  permission_suggestions?: ({
+  permission_suggestions?: (({
     type: "addRules"
     rules: {
       toolName: string
@@ -540,7 +540,7 @@ export type PermissionRequestHookInput = {
     type: "removeDirectories"
     directories: string[]
     destination: "userSettings" | "projectSettings" | "localSettings" | "session" | "cliArg"
-  })[]
+  }))[]
 }
 
 export type SetupHookInput = {
@@ -892,7 +892,7 @@ export type HookInput = ({
   hook_event_name: "PermissionRequest"
   tool_name: string
   tool_input: unknown
-  permission_suggestions?: ({
+  permission_suggestions?: (({
     type: "addRules"
     rules: {
       toolName: string
@@ -928,7 +928,7 @@ export type HookInput = ({
     type: "removeDirectories"
     directories: string[]
     destination: "userSettings" | "projectSettings" | "localSettings" | "session" | "cliArg"
-  })[]
+  }))[]
 }) | ({
   session_id: string
   transcript_path: string
@@ -1138,7 +1138,7 @@ export type PermissionRequestHookSpecificOutput = {
   decision: ({
     behavior: "allow"
     updatedInput?: Record<string, unknown>
-    updatedPermissions?: ({
+    updatedPermissions?: (({
       type: "addRules"
       rules: {
         toolName: string
@@ -1174,7 +1174,7 @@ export type PermissionRequestHookSpecificOutput = {
       type: "removeDirectories"
       directories: string[]
       destination: "userSettings" | "projectSettings" | "localSettings" | "session" | "cliArg"
-    })[]
+    }))[]
   }) | ({
     behavior: "deny"
     message?: string
@@ -1257,7 +1257,7 @@ export type SyncHookJSONOutput = {
     decision: ({
       behavior: "allow"
       updatedInput?: Record<string, unknown>
-      updatedPermissions?: ({
+      updatedPermissions?: (({
         type: "addRules"
         rules: {
           toolName: string
@@ -1293,7 +1293,7 @@ export type SyncHookJSONOutput = {
         type: "removeDirectories"
         directories: string[]
         destination: "userSettings" | "projectSettings" | "localSettings" | "session" | "cliArg"
-      })[]
+      }))[]
     }) | ({
       behavior: "deny"
       message?: string
@@ -1367,7 +1367,7 @@ export type HookJSONOutput = ({
     decision: ({
       behavior: "allow"
       updatedInput?: Record<string, unknown>
-      updatedPermissions?: ({
+      updatedPermissions?: (({
         type: "addRules"
         rules: {
           toolName: string
@@ -1403,7 +1403,7 @@ export type HookJSONOutput = ({
         type: "removeDirectories"
         directories: string[]
         destination: "userSettings" | "projectSettings" | "localSettings" | "session" | "cliArg"
-      })[]
+      }))[]
     }) | ({
       behavior: "deny"
       message?: string
@@ -1470,7 +1470,7 @@ export type ModelInfo = {
   displayName: string
   description: string
   supportsEffort?: boolean
-  supportedEffortLevels?: "low" | "medium" | "high" | "max"[]
+  supportedEffortLevels?: ("low" | "medium" | "high" | "max")[]
   supportsAdaptiveThinking?: boolean
   supportsFastMode?: boolean
   supportsAutoMode?: boolean
@@ -1511,7 +1511,7 @@ export type AgentDefinition = {
   disallowedTools?: string[]
   prompt: string
   model?: string
-  mcpServers?: string | (Record<string, ({
+  mcpServers?: (string | (Record<string, ({
     type?: "stdio"
     command: string
     args?: string[]
@@ -1527,7 +1527,7 @@ export type AgentDefinition = {
   }) | ({
     type: "sdk"
     name: string
-  })>)[]
+  })>))[]
   criticalSystemReminder_EXPERIMENTAL?: string
   skills?: string[]
   initialPrompt?: string
@@ -1657,7 +1657,7 @@ export type SDKResultSuccess = {
   result: string
   stop_reason: string | null
   total_cost_usd: number
-  usage: import('./sdkUtilityTypes.js').NonNullableUsage
+  usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }
   modelUsage: Record<string, {
     inputTokens: number
     outputTokens: number
@@ -1688,7 +1688,7 @@ export type SDKResultError = {
   num_turns: number
   stop_reason: string | null
   total_cost_usd: number
-  usage: import('./sdkUtilityTypes.js').NonNullableUsage
+  usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }
   modelUsage: Record<string, {
     inputTokens: number
     outputTokens: number
@@ -1710,7 +1710,66 @@ export type SDKResultError = {
   session_id: string
 }
 
-export type SDKResultMessage = SDKResultSuccess | SDKResultError
+export type SDKResultMessage = ({
+  type: "result"
+  subtype: "success"
+  duration_ms: number
+  duration_api_ms: number
+  is_error: boolean
+  num_turns: number
+  result: string
+  stop_reason: string | null
+  total_cost_usd: number
+  usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }
+  modelUsage: Record<string, {
+    inputTokens: number
+    outputTokens: number
+    cacheReadInputTokens: number
+    cacheCreationInputTokens: number
+    webSearchRequests: number
+    costUSD: number
+    contextWindow: number
+    maxOutputTokens: number
+  }>
+  permission_denials: {
+    tool_name: string
+    tool_use_id: string
+    tool_input: Record<string, unknown>
+  }[]
+  structured_output?: unknown
+  fast_mode_state?: "off" | "cooldown" | "on"
+  uuid: string
+  session_id: string
+}) | ({
+  type: "result"
+  subtype: "error_during_execution" | "error_max_turns" | "error_max_budget_usd" | "error_max_structured_output_retries"
+  duration_ms: number
+  duration_api_ms: number
+  is_error: boolean
+  num_turns: number
+  stop_reason: string | null
+  total_cost_usd: number
+  usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }
+  modelUsage: Record<string, {
+    inputTokens: number
+    outputTokens: number
+    cacheReadInputTokens: number
+    cacheCreationInputTokens: number
+    webSearchRequests: number
+    costUSD: number
+    contextWindow: number
+    maxOutputTokens: number
+  }>
+  permission_denials: {
+    tool_name: string
+    tool_use_id: string
+    tool_input: Record<string, unknown>
+  }[]
+  errors: string[]
+  fast_mode_state?: "off" | "cooldown" | "on"
+  uuid: string
+  session_id: string
+})
 
 export type SDKSystemMessage = {
   type: "system"
@@ -2010,7 +2069,66 @@ export type SDKMessage = ({
   uuid: string
   session_id: string
   isReplay: true
-}) | SDKResultMessage | ({
+}) | (({
+  type: "result"
+  subtype: "success"
+  duration_ms: number
+  duration_api_ms: number
+  is_error: boolean
+  num_turns: number
+  result: string
+  stop_reason: string | null
+  total_cost_usd: number
+  usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }
+  modelUsage: Record<string, {
+    inputTokens: number
+    outputTokens: number
+    cacheReadInputTokens: number
+    cacheCreationInputTokens: number
+    webSearchRequests: number
+    costUSD: number
+    contextWindow: number
+    maxOutputTokens: number
+  }>
+  permission_denials: {
+    tool_name: string
+    tool_use_id: string
+    tool_input: Record<string, unknown>
+  }[]
+  structured_output?: unknown
+  fast_mode_state?: "off" | "cooldown" | "on"
+  uuid: string
+  session_id: string
+}) | ({
+  type: "result"
+  subtype: "error_during_execution" | "error_max_turns" | "error_max_budget_usd" | "error_max_structured_output_retries"
+  duration_ms: number
+  duration_api_ms: number
+  is_error: boolean
+  num_turns: number
+  stop_reason: string | null
+  total_cost_usd: number
+  usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; cache_creation: { ephemeral_1h_input_tokens: number; ephemeral_5m_input_tokens: number }; inference_geo: string; iterations: unknown[]; server_tool_use: { web_search_requests: number; web_fetch_requests: number }; service_tier: "standard" | "priority" | "batch"; speed: "standard" | "fast" }
+  modelUsage: Record<string, {
+    inputTokens: number
+    outputTokens: number
+    cacheReadInputTokens: number
+    cacheCreationInputTokens: number
+    webSearchRequests: number
+    costUSD: number
+    contextWindow: number
+    maxOutputTokens: number
+  }>
+  permission_denials: {
+    tool_name: string
+    tool_use_id: string
+    tool_input: Record<string, unknown>
+  }[]
+  errors: string[]
+  fast_mode_state?: "off" | "cooldown" | "on"
+  uuid: string
+  session_id: string
+})) | ({
   type: "system"
   subtype: "init"
   agents?: string[]

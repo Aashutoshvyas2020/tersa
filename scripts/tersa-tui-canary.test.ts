@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   assertScreen,
   assertStableScreen,
+  chooseDialogCanaryWidth,
   normalizeScreenSnapshot,
 } from './tersa-tui-canary.ts'
 
@@ -39,6 +40,12 @@ describe('tersa tui canary helpers', () => {
     )
 
     expect(result.ok).toBe(true)
+  })
+
+  test('chooses one representative width for dialog coverage', () => {
+    expect(chooseDialogCanaryWidth([60, 80, 120])).toBe(80)
+    expect(chooseDialogCanaryWidth([50, 100])).toBe(100)
+    expect(chooseDialogCanaryWidth([60])).toBe(60)
   })
 
   test('startup assertions accept lowercase dashed model rendering', () => {

@@ -4,14 +4,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'bun:test'
 
-import { getSkillDirCommands, clearSkillCaches } from './loadSkillsDir.ts'
-import {
-  acquireSharedMutationLock,
-  releaseSharedMutationLock,
-} from '../test/sharedMutationLock.js'
+import { loadSkillsFromSkillsDir } from './loadSkillsDir.ts'
 
 function writeSkill(rootDir: string, skillPath: string): void {
-  const skillDir = join(rootDir, '.claude', 'skills', ...skillPath.split('/'))
+  const skillDir = join(rootDir, ...skillPath.split('/'))
   mkdirSync(skillDir, { recursive: true })
   writeFileSync(
     join(skillDir, 'SKILL.md'),
@@ -21,31 +17,23 @@ function writeSkill(rootDir: string, skillPath: string): void {
 }
 
 test('loads flat and nested skills with colon namespaces', async () => {
-  await acquireSharedMutationLock('loadSkillsDir.test.ts')
-  const configDir = mkdtempSync(join(tmpdir(), 'tersa-skills-'))
-  const cwd = join(configDir, 'workspace')
-  const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'tersa-skills-'))
 
   try {
-    mkdirSync(cwd, { recursive: true })
-    writeSkill(configDir, 'flat-skill')
-    writeSkill(configDir, 'git/commit')
-    writeSkill(configDir, 'frontend/react/form')
+    writeSkill(fixtureRoot, 'flat-skill')
+    writeSkill(fixtureRoot, 'git/commit')
+    writeSkill(fixtureRoot, 'frontend/react/form')
 
-    process.env.CLAUDE_CONFIG_DIR = configDir
-    clearSkillCaches()
-
-    const skills = await getSkillDirCommands(cwd)
-    const fixtureSkillsRoot = join(configDir, '.claude', 'skills')
-    const promptSkills = skills.filter(
-      (
-        skill,
-      ): skill is Extract<(typeof skills)[number], { type: 'prompt' }> & {
-        skillRoot: string
-      } =>
-        skill.type === 'prompt' &&
-        skill.skillRoot?.startsWith(fixtureSkillsRoot) === true,
-    )
+    const loaded = await loadSkillsFromSkillsDir(fixtureRoot, 'userSettings')
+    const promptSkills = loaded
+      .map(entry => entry.skill)
+      .filter(
+        (
+          skill,
+        ): skill is Extract<(typeof loaded)[number]['skill'], { type: 'prompt' }> & {
+          skillRoot: string
+        } => skill.type === 'prompt' && typeof skill.skillRoot === 'string',
+      )
     const skillNames = promptSkills.map(skill => skill.name).sort()
 
     assert.deepEqual(skillNames, [
@@ -56,10 +44,7 @@ test('loads flat and nested skills with colon namespaces', async () => {
 
     const nestedSkill = promptSkills.find(skill => skill.name === 'git:commit')
     assert.ok(nestedSkill)
-    assert.equal(
-      nestedSkill.skillRoot,
-      join(configDir, '.claude', 'skills', 'git', 'commit'),
-    )
+    assert.equal(nestedSkill.skillRoot, join(fixtureRoot, 'git', 'commit'))
 
     const deepSkill = promptSkills.find(
       skill => skill.name === 'frontend:react:form',
@@ -67,19 +52,9 @@ test('loads flat and nested skills with colon namespaces', async () => {
     assert.ok(deepSkill)
     assert.equal(
       deepSkill.skillRoot,
-      join(configDir, '.claude', 'skills', 'frontend', 'react', 'form'),
+      join(fixtureRoot, 'frontend', 'react', 'form'),
     )
   } finally {
-    try {
-      if (originalConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR
-      } else {
-        process.env.CLAUDE_CONFIG_DIR = originalConfigDir
-      }
-      clearSkillCaches()
-      rmSync(configDir, { recursive: true, force: true })
-    } finally {
-      releaseSharedMutationLock()
-    }
+    rmSync(fixtureRoot, { recursive: true, force: true })
   }
-}, 20_000)
+})

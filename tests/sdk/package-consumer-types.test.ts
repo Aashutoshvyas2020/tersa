@@ -10,7 +10,7 @@
  * - Self-referential type wrappers
  */
 import { afterAll, describe, expect, test } from 'bun:test'
-import { execFileSync, execSync } from 'child_process'
+import { execSync, spawnSync } from 'child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync, cpSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
@@ -93,12 +93,20 @@ function setupConsumerProject(name: string): string {
 
 /** Compile consumer.ts in the given tmpDir. Returns stdout (empty = success). */
 function tsc(tmpDir: string): string {
-  return execFileSync(process.execPath, [TSC_BIN, '-p', 'tsconfig.json', '--pretty', 'false'], {
-    cwd: tmpDir,
-    encoding: 'utf-8',
-    timeout: 60000,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  }).trim()
+  const result = spawnSync(
+    process.execPath,
+    [TSC_BIN, '-p', 'tsconfig.json', '--pretty', 'false'],
+    {
+      cwd: tmpDir,
+      encoding: 'utf-8',
+      timeout: 60000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    },
+  )
+  if (result.status !== 0) {
+    throw new Error(`${result.stdout ?? ''}${result.stderr ?? ''}`.trim())
+  }
+  return (result.stdout ?? '').trim()
 }
 
 function ensureBuildArtifacts(): void {

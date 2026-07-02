@@ -1,192 +1,88 @@
-import { describe, expect, it, beforeEach, afterEach, afterAll } from 'bun:test'
-import {
-  addGlobalEntity,
-  resetGlobalGraph,
-  clearMemoryOnly,
-  getGlobalGraph,
-  initOrama
-} from '../knowledgeGraph.js'
-import { mkdtempSync, rmSync, existsSync, renameSync } from 'fs'
-import { tmpdir } from 'os'
-import { join } from 'path'
-import { acquireEnvMutex, releaseEnvMutex } from '../../entrypoints/sdk/shared.js'
-import { getProjectsDir, setClaudeConfigHomeDirForTesting } from '../envUtils.js'
-import { getFsImplementation, setFsImplementation } from '../fsOperations.js'
-import { sanitizePath } from '../sessionStoragePortable.js'
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import type { KnowledgeGraph } from '../knowledgeGraph.js'
 import { SQLiteProvider } from './SQLiteProvider.js'
 
-describe('SQLite Storage Layer', () => {
-  const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
-  const originalCwd = process.cwd()
-  const originalFs = getFsImplementation()
-  const configDir = mkdtempSync(join(tmpdir(), 'tersa-sqlite-'))
-  let workspaceDir = ''
-  const removeDirWithRetry = (dir: string) => {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        rmSync(dir, { recursive: true, force: true })
-        return
-      } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code
-        if (code !== 'EBUSY' && code !== 'EPERM') {
-          throw error
-        }
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25 * (attempt + 1))
-      }
-    }
-
-    try {
-      rmSync(dir, { recursive: true, force: true })
-    } catch (error) {
-      const code = (error as NodeJS.ErrnoException).code
-      if (code !== 'EBUSY' && code !== 'EPERM') {
-        throw error
-      }
-    }
+function graphWith(name: string): KnowledgeGraph {
+  const timestamp = Date.now()
+  return {
+    entities: {
+      [name]: {
+        id: name,
+        type: 'tool',
+        name,
+        attributes: { status: 'durable' },
+      },
+    },
+    relations: [],
+    summaries: [],
+    rules: [],
+    lastUpdateTime: timestamp,
   }
+}
 
-  const removeFileWithRetry = (filePath: string) => {
-    const renamedPath = `${filePath}.deleted`
+describe('legacy SQLite knowledge-graph provider', () => {
+  let projectDir = ''
+  let provider: SQLiteProvider | undefined
 
-    for (let attempt = 0; attempt < 12; attempt++) {
-      try {
-        rmSync(filePath, { force: true })
-        if (!existsSync(filePath)) {
-          return
-        }
-      } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code
-        if (code !== 'EBUSY' && code !== 'EPERM') {
-          throw error
-        }
-      }
-
-      try {
-        if (existsSync(filePath)) {
-          renameSync(filePath, renamedPath)
-          return
-        }
-      } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code
-        if (code !== 'EBUSY' && code !== 'EPERM' && code !== 'ENOENT') {
-          throw error
-        }
-      }
-
-      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50 * (attempt + 1))
-    }
-
-    if (existsSync(filePath)) {
-      throw new Error(`Timed out removing locked SQLite file: ${filePath}`)
-    }
-  }
-
-  beforeEach(async () => {
-    await acquireEnvMutex()
-    workspaceDir = mkdtempSync(join(tmpdir(), 'tersa-sqlite-cwd-'))
-    process.chdir(workspaceDir)
-    setFsImplementation({
-      ...originalFs,
-      cwd: () => workspaceDir,
-    })
-    process.env.CLAUDE_CONFIG_DIR = configDir
-    setClaudeConfigHomeDirForTesting(configDir)
-    resetGlobalGraph()
+  beforeEach(() => {
+    projectDir = mkdtempSync(join(tmpdir(), 'tersa-legacy-sqlite-'))
   })
 
   afterEach(() => {
-    try {
-      resetGlobalGraph()
-      clearMemoryOnly()
-      if (originalConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR
-      } else {
-        process.env.CLAUDE_CONFIG_DIR = originalConfigDir
-      }
-      process.chdir(originalCwd)
-      setFsImplementation(originalFs)
-      setClaudeConfigHomeDirForTesting(undefined)
-      if (workspaceDir) {
-        removeDirWithRetry(workspaceDir)
-        workspaceDir = ''
-      }
-    } finally {
-      releaseEnvMutex()
-    }
+    provider?.close()
+    provider = undefined
+    rmSync(projectDir, { recursive: true, force: true })
   })
 
-  afterAll(() => {
-    removeDirWithRetry(configDir)
+  it('persists and reloads a legacy graph for JSON migration', async () => {
+    provider = new SQLiteProvider(projectDir)
+    await provider.init()
+    expect(provider.isReady).toBe(true)
+
+    const expected = graphWith('legacy-memory')
+    provider.saveGraph(expected)
+    expect(existsSync(join(projectDir, 'knowledge.db'))).toBe(true)
+    provider.close()
+
+    provider = new SQLiteProvider(projectDir)
+    await provider.init()
+    const loaded = provider.loadGraph()
+
+    expect(loaded?.entities['legacy-memory']).toEqual(
+      expected.entities['legacy-memory'],
+    )
+    expect(loaded?.lastUpdateTime).toBe(expected.lastUpdateTime)
   })
 
-  it('persists data in SQLite database', async () => {
-    const sqlitePath = join(getProjectsDir(), sanitizePath(workspaceDir), 'knowledge.db')
-    
-    // 1. Add data
-    await addGlobalEntity('tool', 'sqlite-test', { status: 'durable' })
-    expect(existsSync(sqlitePath)).toBe(true)
-
-    // 2. Simulate process restart (clear memory cache)
-    clearMemoryOnly()
-
-    // 3. Load should come from SQLite (hydrated by JSON)
-    const graph = getGlobalGraph()
-    const entity = Object.values(graph.entities).find(e => e.name === 'sqlite-test')
-    expect(entity).toBeDefined()
-    expect(entity?.attributes.status).toBe('durable')
-  })
-
-  it('self-heals SQLite from JSON if DB is deleted', async () => {
-    const sqlitePath = join(getProjectsDir(), sanitizePath(workspaceDir), 'knowledge.db')
-    const jsonPath = join(getProjectsDir(), sanitizePath(workspaceDir), 'knowledge_graph.json')
-
-    // 1. Add data to both
-    await addGlobalEntity('tool', 'self-heal-test', { val: 'safe' })
-    expect(existsSync(sqlitePath)).toBe(true)
-    expect(existsSync(jsonPath)).toBe(true)
-
-    // 2. Delete SQLite DB but keep JSON
-    clearMemoryOnly()
-    removeFileWithRetry(sqlitePath)
-    expect(existsSync(sqlitePath)).toBe(false)
-
-    // 3. Requesting the graph should trigger hydration from JSON into a NEW SQLite DB
-    // In the async architecture, we must await initialization to trigger the rebuild.
-    await initOrama(workspaceDir)
-    const graph = getGlobalGraph()
-    const entity = Object.values(graph.entities).find(e => e.name === 'self-heal-test')
-    expect(entity).toBeDefined()
-    expect(entity?.attributes.val).toBe('safe')
-    
-    // 4. Verify SQLite was recreated
-    expect(existsSync(sqlitePath)).toBe(true)
-  })
-
-  it('handles large transactions (Stress Test)', async () => {
-    const count = 100
-    
-    // Add 100 entities sequentially (mutation queue)
-    for (let i = 0; i < count; i++) {
-      await addGlobalEntity('bulk', `item_${i}`, { index: String(i) })
-    }
-
-    clearMemoryOnly()
-    const graph = getGlobalGraph()
-    expect(Object.keys(graph.entities).length).toBe(count)
-  })
-
-  it('clears a closed on-disk database without an existing provider handle', async () => {
-    const projectDir = join(getProjectsDir(), sanitizePath(workspaceDir))
+  it('recreates a corrupt legacy database as an empty valid database', async () => {
     const sqlitePath = join(projectDir, 'knowledge.db')
+    writeFileSync(sqlitePath, Buffer.from('NOT_SQLITE_BINARY'))
 
-    await addGlobalEntity('tool', 'closed-handle-test', { status: 'persisted' })
+    const originalError = console.error
+    console.error = () => {}
+    try {
+      provider = new SQLiteProvider(projectDir)
+      await provider.init()
+    } finally {
+      console.error = originalError
+    }
+
+    expect(provider?.isReady).toBe(true)
     expect(existsSync(sqlitePath)).toBe(true)
+    expect(provider?.loadGraph()).toBeNull()
+  })
 
-    clearMemoryOnly()
+  it('clears a closed on-disk legacy database', async () => {
+    provider = new SQLiteProvider(projectDir)
+    await provider.init()
+    provider.saveGraph(graphWith('to-clear'))
+    provider.close()
 
     const closedProvider = new SQLiteProvider(projectDir)
     expect(closedProvider.clear()).toBe(true)
-
     await closedProvider.init()
     expect(closedProvider.loadGraph()).toBeNull()
     closedProvider.close()

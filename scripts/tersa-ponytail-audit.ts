@@ -42,7 +42,6 @@ const unexpected = repoSizeReport.orphanedSources.filter(
 export const ponytailAuditReport = {
   scannedFiles: repoSizeReport.scannedFiles,
   unusedDependencies: repoSizeReport.unusedDependencies,
-  groupAudits: [],
   intentionalRoots: [...intentionalRoots].sort(),
   protectedUpstreamOrphans,
   unexpected,

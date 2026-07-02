@@ -6,13 +6,19 @@ import { ponytailAuditReport } from './tersa-ponytail-audit.js'
 export const RELEASE_GATE_STEPS = [
   'bun run build',
   'bun run typecheck:tersa:baseline',
+  'bun run typecheck:production',
+  'bun test tests/sdk/package-consumer-types.test.ts',
   'bun run smoke:tersa',
   'bun run doctor:runtime',
+  'bun run verify:privacy',
   'bun run audit:branding:tersa',
   'bun run audit:release:tersa',
+  'bun audit',
   'bun run benchmark:tokens:tersa',
   'bun run test:tersa',
+  'bun run test:full',
   'bun run test:tersa:quarantined',
+  'bun run test:tersa:interactive',
 ] as const
 
 const DEV_GATE_STEPS = [
@@ -121,10 +127,6 @@ if (import.meta.main) {
     console.log(JSON.stringify({
       scannedFiles: ponytailAuditReport.scannedFiles,
       unusedDependencies: ponytailAuditReport.unusedDependencies,
-      cleanupGroups: ponytailAuditReport.groupAudits.length,
-      cleanupComplete: ponytailAuditReport.groupAudits.every(
-        group => group.cleanupComplete,
-      ),
       unexpectedOrphans: ponytailAuditReport.unexpected,
     }, null, 2))
     if (result.ok && ponytailAuditReport.safeToProceed) {
@@ -132,9 +134,11 @@ if (import.meta.main) {
       process.exit(0)
     }
     if (!ponytailAuditReport.safeToProceed) {
-      result.issues.push('Ponytail repository audit failed')
+      console.error('FAIL: Ponytail repository audit failed')
     }
-    console.error(`FAIL: forbidden release surface strings: ${result.violations.join(', ')}`)
+    if (!result.ok) {
+      console.error(`FAIL: forbidden release surface strings: ${result.violations.join(', ')}`)
+    }
     process.exit(1)
   }
 

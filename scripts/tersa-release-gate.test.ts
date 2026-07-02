@@ -18,6 +18,23 @@ describe('tersa release gate', () => {
     expect(plan.interactive.commands).toEqual([
       'bun run test:tersa:interactive',
     ])
+    expect(plan.release.commands).toEqual([
+      'bun run build',
+      'bun run typecheck:tersa:baseline',
+      'bun run typecheck:production',
+      'bun test tests/sdk/package-consumer-types.test.ts',
+      'bun run smoke:tersa',
+      'bun run doctor:runtime',
+      'bun run verify:privacy',
+      'bun run audit:branding:tersa',
+      'bun run audit:release:tersa',
+      'bun audit',
+      'bun run benchmark:tokens:tersa',
+      'bun run test:tersa',
+      'bun run test:full',
+      'bun run test:tersa:quarantined',
+      'bun run test:tersa:interactive',
+    ])
     expect(plan.release.commands).toEqual(RELEASE_GATE_STEPS)
   })
 

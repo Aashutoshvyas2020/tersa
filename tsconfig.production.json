@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "skipLibCheck": false
+  },
+  "include": [
+    "src/entrypoints/sdk.d.ts",
+    "src/entrypoints/sdk/coreTypes.generated.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

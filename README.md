@@ -79,7 +79,7 @@ If the install later reports `ripgrep not found`, install ripgrep system-wide an
 
 ```bash
 tersa --version
-npm view tersa dist-tags
+npm view tersa-cli dist-tags
 npm install -g tersa-cli@latest
 ```
 
@@ -163,6 +163,7 @@ Advanced and source-build guides:
 
 | Provider | Setup Path | Notes |
 | --- | --- | --- |
+| Anthropic | `tersa auth login`, `/provider`, or env vars | Supports Anthropic account authentication and API-key configurations |
 | OpenAI-compatible | `/provider` or env vars | Works with OpenAI, OpenRouter, DeepSeek, Groq, Mistral, LM Studio, and other compatible `/v1` servers |
 | Hicap | `/provider` or OpenAI-compatible env vars | Uses `api-key` auth, discovers models from unauthenticated `/models`, and supports Responses mode for `gpt-` models |
 | Gemini | `/provider` or env vars | Supports API key only |
@@ -189,6 +190,8 @@ Advanced and source-build guides:
 ## Provider Notes
 
 Tersa supports multiple providers, but behavior is not identical across all of them.
+
+The release gate performs a live Codex OAuth reachability and lightweight generation check when stored credentials are available. Other provider routes are covered by contract and unit tests; real requests require credentials for those services and may incur provider charges.
 
 - Anthropic-specific features may not exist on other providers
 - Tool quality depends heavily on the selected model
@@ -283,10 +286,10 @@ Helpful commands:
 
 Tersa uses Bun's built-in test runner for unit tests.
 
-Run the full unit suite:
+Run the full deterministic unit suite:
 
 ```bash
-bun test
+bun run test:full
 ```
 
 Generate unit test coverage:
@@ -315,12 +318,17 @@ Use focused test runs when you only touch one area:
 
 Recommended contributor validation before opening a PR:
 
+- `bun install --frozen-lockfile`
+- `bun run typecheck:production`
 - `bun run build`
-- `bun run smoke`
-- `bun run test:coverage` for broader unit coverage when your change affects shared runtime or provider logic
+- `bun run test:full`
+- `bun run smoke:tersa`
 - focused `bun test ...` runs for the files and flows you changed
 
+For release-affecting changes, run `bun run verify:tersa:release` and `bun run release:npm:dry-run`.
+
 Coverage output is written to `coverage/lcov.info`, and Tersa also generates a git-activity-style heatmap at `coverage/index.html`.
+
 ## Repository Structure
 
 - `src/` - core CLI/runtime
@@ -354,7 +362,7 @@ For larger changes, open an issue first so the scope is clear before implementat
 
 Tersa is an independent community project and is not affiliated with, endorsed by, or sponsored by Anthropic.
 
-Tersa originated from the Tersa codebase and has since been substantially modified to support multiple providers and open use. "Tersa" and "Tersa" are trademarks of Anthropic PBC. See [LICENSE](LICENSE) for details.
+Tersa was derived from an upstream open-source coding-agent project and has since been substantially modified for multi-provider and open use. Third-party product names and trademarks belong to their respective owners. See [LICENSE](LICENSE) for details.
 
 ## License
 
