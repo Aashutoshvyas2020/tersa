@@ -179,7 +179,7 @@ Marketplace removal must migrate this plugin to a direct source record before ma
 
 Before Phase 1, the release workflow, release-please package target, Docker smoke image, and lockfile root package identity were normalized to the Tersa repository and `tersa-cli` npm package. Historical release notes are intentionally outside this branding pass.
 
-The local git remotes still target `Gitlawb/openclaude` and `Aashutoshvyas2020/openclaude`. The public `Gitlawb/tersa` destination was not discoverable during verification. The GitHub repository must be renamed or created first, then both local remotes must be updated before the release workflow can run from the intended repository.
+The local git remotes still target `Gitlawb/openclaude` and `Aashutoshvyas2020/openclaude`. The public `Aashutoshvyas2020/tersa` destination was not discoverable during verification. The GitHub repository must be renamed or created first, then both local remotes must be updated before the release workflow can run from the intended repository.
 
 Verification after normalization:
 
@@ -196,8 +196,8 @@ Verification after normalization:
 
 Phase 1 must not start until all of the following are true:
 
-- The GitHub repository has been renamed or recreated as `Gitlawb/tersa`.
-- Local `origin` points to `https://github.com/Gitlawb/tersa.git`.
+- The GitHub repository has been renamed or recreated as `Aashutoshvyas2020/tersa`.
+- Local `origin` points to `https://github.com/Aashutoshvyas2020/tersa.git`.
 - The personal fork either exists as `Aashutoshvyas2020/tersa` and the `fork` remote is updated, or the obsolete fork remote is removed.
 - The entire current working tree is committed as a pre-removal checkpoint.
 - Cleanup work begins on a new branch created from that checkpoint.

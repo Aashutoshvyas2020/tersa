@@ -58,7 +58,7 @@ export function getWebFetchUserAgent(): string {
   const supportUrl =
     getAPIProvider() === 'firstParty'
       ? 'https://support.anthropic.com/'
-      : 'https://github.com/Gitlawb/tersa'
+      : 'https://github.com/Aashutoshvyas2020/tersa'
   return `Claude-User (${getClaudeCodeUserAgent()}; +${supportUrl})`
 }
 

@@ -23,7 +23,7 @@ tersa
 Use Bun `1.3.13` or newer for source builds on Windows. Older Bun versions can fail during `bun run build`.
 
 ```bash
-git clone https://github.com/Gitlawb/tersa.git
+git clone https://github.com/Aashutoshvyas2020/tersa.git
 cd tersa
 
 bun install

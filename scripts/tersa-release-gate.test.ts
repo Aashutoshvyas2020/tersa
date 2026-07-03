@@ -20,7 +20,6 @@ describe('tersa release gate', () => {
     ])
     expect(plan.release.commands).toEqual([
       'bun run build',
-      'bun run typecheck:tersa:baseline',
       'bun run typecheck:production',
       'bun test tests/sdk/package-consumer-types.test.ts',
       'bun run smoke:tersa',

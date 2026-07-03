@@ -111,6 +111,11 @@ export function assertStableScreen(
   return { ok: errors.length === 0, errors }
 }
 
+export function isLiveProcessRow(row: string): boolean {
+  const [, , status] = row.trim().split(/\s+/, 3)
+  return Boolean(status) && !status.includes('Z') && !status.includes('E')
+}
+
 function assertNoLeaks(): void {
   const result = spawnSync(
     'pgrep',
@@ -124,12 +129,14 @@ function assertNoLeaks(): void {
     .filter(pid => pid !== String(process.pid))
   const rows = pids
     .map(pid => {
-      const ps = spawnSync('ps', ['-p', pid, '-o', 'pid=,ppid=,command='], {
-        encoding: 'utf8',
-      })
+      const ps = spawnSync(
+        'ps',
+        ['-p', pid, '-o', 'pid=,ppid=,stat=,command='],
+        { encoding: 'utf8' },
+      )
       return { pid, row: (ps.stdout ?? '').trim() }
     })
-    .filter(item => item.row)
+    .filter(item => isLiveProcessRow(item.row))
     .filter(item => !item.row.includes('pgrep -f'))
     .filter(item => !item.row.includes('bun run scripts/tersa-tui-canary.ts'))
   if (rows.length > 0) {
@@ -139,19 +146,24 @@ function assertNoLeaks(): void {
     spawnSync('sleep', ['0.3'], { encoding: 'utf8' })
     const survivors = rows
       .map(({ pid }) => {
-        const ps = spawnSync('ps', ['-p', pid, '-o', 'pid=,ppid=,command='], {
-          encoding: 'utf8',
-        })
+        const ps = spawnSync(
+          'ps',
+          ['-p', pid, '-o', 'pid=,ppid=,stat=,command='],
+          { encoding: 'utf8' },
+        )
         const row = (ps.stdout ?? '').trim()
-        if (row) {
+        if (isLiveProcessRow(row)) {
           spawnSync('kill', ['-9', pid], { encoding: 'utf8' })
           spawnSync('sleep', ['0.1'], { encoding: 'utf8' })
-          const retry = spawnSync('ps', ['-p', pid, '-o', 'pid=,ppid=,command='], {
-            encoding: 'utf8',
-          })
-          return (retry.stdout ?? '').trim()
+          const retry = spawnSync(
+            'ps',
+            ['-p', pid, '-o', 'pid=,ppid=,stat=,command='],
+            { encoding: 'utf8' },
+          )
+          const retryRow = (retry.stdout ?? '').trim()
+          return isLiveProcessRow(retryRow) ? retryRow : ''
         }
-        return row
+        return ''
       })
       .filter(Boolean)
     if (survivors.length > 0) {

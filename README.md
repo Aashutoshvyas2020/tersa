@@ -4,9 +4,9 @@ Tersa is an open-source coding-agent CLI for cloud and local model providers.
 
 Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat, and other supported backends while keeping one terminal-first workflow: prompts, tools, agents, MCP, slash commands, and streaming output.
 
-[![PR Checks](https://github.com/Gitlawb/tersa/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/Gitlawb/tersa/actions/workflows/pr-checks.yml)
-[![Release](https://img.shields.io/github/v/tag/Gitlawb/tersa?label=release&color=0ea5e9)](https://github.com/Gitlawb/tersa/tags)
-[![Discussions](https://img.shields.io/badge/discussions-open-7c3aed)](https://github.com/Gitlawb/tersa/discussions)
+[![PR Checks](https://github.com/Aashutoshvyas2020/tersa/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/Aashutoshvyas2020/tersa/actions/workflows/pr-checks.yml)
+[![Release](https://img.shields.io/github/v/tag/Aashutoshvyas2020/tersa?label=release&color=0ea5e9)](https://github.com/Aashutoshvyas2020/tersa/tags)
+[![Discussions](https://img.shields.io/badge/discussions-open-7c3aed)](https://github.com/Aashutoshvyas2020/tersa/discussions)
 [![Security Policy](https://img.shields.io/badge/security-policy-0f766e)](SECURITY.md)
 [![License](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 
@@ -343,8 +343,8 @@ If you believe you found a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Community
 
-- Use [GitHub Discussions](https://github.com/Gitlawb/tersa/discussions) for Q&A, ideas, and community conversation
-- Use [GitHub Issues](https://github.com/Gitlawb/tersa/issues) for confirmed bugs and actionable feature work
+- Use [GitHub Discussions](https://github.com/Aashutoshvyas2020/tersa/discussions) for Q&A, ideas, and community conversation
+- Use [GitHub Issues](https://github.com/Aashutoshvyas2020/tersa/issues) for confirmed bugs and actionable feature work
 
 ## Contributing
 

@@ -4,6 +4,7 @@ import {
   assertScreen,
   assertStableScreen,
   chooseDialogCanaryWidth,
+  isLiveProcessRow,
   normalizeScreenSnapshot,
 } from './tersa-tui-canary.ts'
 
@@ -46,6 +47,12 @@ describe('tersa tui canary helpers', () => {
     expect(chooseDialogCanaryWidth([60, 80, 120])).toBe(80)
     expect(chooseDialogCanaryWidth([50, 100])).toBe(100)
     expect(chooseDialogCanaryWidth([60])).toBe(60)
+  })
+
+  test('does not treat zombie or exiting process rows as live leaks', () => {
+    expect(isLiveProcessRow('123 1 Z+ inactive')).toBe(false)
+    expect(isLiveProcessRow('124 1 ?E inactive')).toBe(false)
+    expect(isLiveProcessRow('125 1 S+ active')).toBe(true)
   })
 
   test('startup assertions accept lowercase dashed model rendering', () => {

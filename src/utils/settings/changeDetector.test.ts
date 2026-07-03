@@ -58,6 +58,19 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+async function waitFor(
+  predicate: () => boolean,
+  timeoutMs = 1000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  while (!predicate()) {
+    if (Date.now() >= deadline) {
+      throw new Error('Timed out waiting for settings change fanout')
+    }
+    await sleep(5)
+  }
+}
+
 beforeEach(async () => {
   await acquireSharedMutationLock('utils/settings/changeDetector.test.ts')
   installMocks()
@@ -112,7 +125,7 @@ describe('settings change detector fanout batching', () => {
     detector._handleDeleteForTesting(pathsBySource.userSettings!)
     detector._handleDeleteForTesting(pathsBySource.projectSettings!)
 
-    await sleep(30)
+    await waitFor(() => resetSettingsCache.mock.calls.length === 1)
 
     expect(resetSettingsCache).toHaveBeenCalledTimes(1)
     expect(emitted).toEqual(['userSettings', 'projectSettings'])

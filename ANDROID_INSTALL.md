@@ -42,7 +42,7 @@ node --version  # should be v20+
 ### Step 3 — Clone Tersa
 
 ```bash
-git clone https://github.com/Gitlawb/tersa.git
+git clone https://github.com/Aashutoshvyas2020/tersa.git
 cd tersa
 npm install
 npm link

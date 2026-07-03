@@ -50,9 +50,10 @@ bun run doctor:runtime
 bun run smoke:tersa
 ```
 
-Release verification uses `typecheck:tersa:baseline` for TypeScript. Current
-repo-wide TypeScript debt is recorded in `scripts/tersa-typecheck-baseline.json`;
-new TypeScript error signatures fail the gate.
+Release verification uses the strict production SDK typecheck plus a successful
+bundle, full test suite, installed-package smoke test, and interactive macOS PTY
+canary. The inherited full-source tree is available only through
+`bun run typecheck:legacy`; it is not part of the shipped package gate.
 
 `test:tersa:quarantined` is an explicit empty quarantine report for this tester
 build. It must list every excluded test with path, owner, reproduction command,
@@ -62,24 +63,20 @@ Current quarantine list:
 
 - None.
 
-## Public NPM Publish (deferred)
+## Public NPM Publish
 
-Public publication is outside the controlled tester release gate. Before any later public publish, run the local package gate first:
+Before publishing, run the local package gate:
 
 ```bash
-bun run typecheck:tersa:baseline
-bun run build
-npm pack --dry-run --json
-bun run package:tersa:tester
+bun run typecheck
+bun run verify:tersa:release
 bun run release:npm:dry-run
 ```
 
-First public publish:
-
-```bash
-npm login
-npm publish --access public
-```
+Publication is performed by `.github/workflows/release.yml` after a matching
+`v<package-version>` tag is pushed. The workflow reruns the complete macOS gate,
+uses npm trusted publishing, verifies the `latest` tag, and creates the GitHub
+release.
 
 After publish:
 

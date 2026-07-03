@@ -33,7 +33,7 @@ beforeAll(async () => {
     DISPLAY_VERSION: '0.0.0-test',
     BUILD_TIME: new Date().toISOString(),
     ISSUES_EXPLAINER:
-      'report the issue at https://github.com/Gitlawb/tersa/issues',
+      'report the issue at https://github.com/Aashutoshvyas2020/tersa/issues',
     PACKAGE_URL: 'tersa-cli',
     NATIVE_PACKAGE_URL: undefined,
   }

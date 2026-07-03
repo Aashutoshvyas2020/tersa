@@ -97,7 +97,7 @@ export function HelpV2({ onClose, commands }: Props): React.ReactNode {
         </Tabs>
         <Box marginTop={1} flexDirection={columns < 60 ? 'column' : 'row'}>
           <Text dimColor>
-            Docs: <Link url="https://github.com/Gitlawb/tersa" />
+            Docs: <Link url="https://github.com/Aashutoshvyas2020/tersa" />
           </Text>
           <Box flexGrow={1} />
           <Text dimColor>

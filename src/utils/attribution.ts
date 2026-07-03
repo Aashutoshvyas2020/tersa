@@ -40,7 +40,7 @@ export type AttributionTexts = {
 }
 
 const DEFAULT_PR_ATTRIBUTION =
-  '🤖 Generated with [Tersa](https://github.com/Gitlawb/tersa)'
+  '🤖 Generated with [Tersa](https://github.com/Aashutoshvyas2020/tersa)'
 
 function sanitizeCoAuthorNamePart(value: string): string {
   return value
@@ -437,7 +437,7 @@ export async function getEnhancedPRAttribution(
     memoryAccessCount > 0
       ? `, ${memoryAccessCount} ${memoryAccessCount === 1 ? 'memory' : 'memories'} recalled`
       : ''
-  const summary = `🤖 Generated with [Tersa](https://github.com/Gitlawb/tersa) (${claudePercent}% ${promptCount}-shotted by ${shortModelName}${memSuffix})`
+  const summary = `🤖 Generated with [Tersa](https://github.com/Aashutoshvyas2020/tersa) (${claudePercent}% ${promptCount}-shotted by ${shortModelName}${memSuffix})`
 
   // Append trailer lines for squash-merge survival. Only for allowlisted repos
   // (INTERNAL_MODEL_REPOS) and only in builds with COMMIT_ATTRIBUTION enabled —

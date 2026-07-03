@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 import { coerce } from 'semver'
 
 export const TERSA_RELEASES_URL =
-  'https://github.com/Gitlawb/tersa/releases'
+  'https://github.com/Aashutoshvyas2020/tersa/releases'
 
 export function normalizePublicVersion(version: string): string {
   const trimmedVersion = version.trim()

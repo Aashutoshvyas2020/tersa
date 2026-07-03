@@ -70,7 +70,7 @@ const originalClientType = getClientType()
 const originalMainLoopModelOverride = getMainLoopModelOverride()
 
 const defaultPrAttribution =
-  '🤖 Generated with [Tersa](https://github.com/Gitlawb/tersa)'
+  '🤖 Generated with [Tersa](https://github.com/Aashutoshvyas2020/tersa)'
 
 function useSettings(settings: SettingsJson): void {
   testSettings = settings

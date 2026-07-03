@@ -1,7 +1,7 @@
 {
   "name": "tersa-cli",
-  "version": "0.16.2",
-  "description": "Tersa opens coding-agent workflows to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
+  "version": "0.16.3",
+  "description": "Tersa opens coding-agent workflows to any LLM \u2014 OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
   "type": "module",
   "bin": {
     "tersa": "bin/tersa"
@@ -51,10 +51,8 @@
     "test:coverage:ui": "bun run scripts/render-coverage-heatmap.ts",
     "security:pr-scan": "bun run scripts/pr-intent-scan.ts",
     "test:provider-recommendation": "bun test src/utils/providerRecommendation.test.ts src/utils/providerProfile.test.ts",
-    "typecheck": "tsc --noEmit",
-    "typecheck:tersa:baseline": "bun run scripts/tersa-typecheck-baseline.ts",
+    "typecheck": "bun run typecheck:production",
     "typecheck:production": "node node_modules/typescript/bin/tsc -p tsconfig.production.json --pretty false",
-    "typecheck:tersa:baseline:update": "bun run scripts/tersa-typecheck-baseline.ts --update",
     "smoke": "bun run build && node dist/cli.mjs --version",
     "smoke:tersa": "bun run scripts/tersa-cli-smoke.ts -- node dist/cli.mjs",
     "audit:branding:tersa": "bun run scripts/tersa-branding-audit.ts package.json README.md docs/tester-builds.md src/entrypoints/cli.tsx src/components/LogoV2 src/components/StartupScreen.ts src/services/notifier.ts bin",
@@ -66,7 +64,7 @@
     "test:tersa:focused": "TERSA_CAVE_MODE=1 bun test --max-concurrency=1 scripts/tersa-branding-audit.test.ts scripts/tersa-cli-smoke.test.ts scripts/tersa-token-benchmarks.test.ts src/commands.test.ts src/components/ModelPicker.layout.test.ts src/utils/modes/registry.test.ts src/utils/suggestions/dollarInvocationSuggestions.test.ts src/commands/help/index.test.ts src/commands/model/model.test.tsx src/commands/modes/index.test.ts src/commands/permissions/index.test.ts src/commands/provider/provider.test.tsx src/commands/status/index.test.ts src/commands/statusline.test.ts src/components/HelpV2/General.test.tsx src/components/StartupScreen.test.ts src/services/api/codexOAuth.test.ts src/services/api/openaiUsageLimit.test.ts src/services/api/quotaErrorMessage.test.ts src/utils/caveMode/structuredCompression.test.ts src/utils/internalPromptCompression.test.ts src/utils/forkedAgent.skillCompression.test.ts",
     "test:tersa:interactive": "bun run scripts/tersa-tui-canary.ts --binary node dist/cli.mjs",
     "test:tersa:quarantined": "bun run scripts/tersa-quarantine-report.ts",
-    "test:tersa": "TERSA_CAVE_MODE=1 bun test --max-concurrency=1 scripts/tersa-branding-audit.test.ts scripts/tersa-cli-smoke.test.ts scripts/tersa-package-verify.test.ts scripts/tersa-release-gate.test.ts scripts/tersa-token-benchmarks.test.ts scripts/tersa-tui-canary.test.ts scripts/tersa-typecheck-baseline.test.ts src/utils/caveMode/structuredCompression.test.ts src/utils/caveMode/toolCompression.test.ts src/utils/caveMode/queryPipeline.test.ts src/utils/caveMode/rtkRewrite.test.ts src/services/tools/toolExecution.test.ts src/utils/modes/config.test.ts src/utils/modes/overlap.test.ts src/utils/modes/registry.test.ts src/commands.test.ts src/components/ModelPicker.layout.test.ts src/utils/suggestions/dollarInvocationSuggestions.test.ts src/commands/help/index.test.ts src/commands/model/model.test.tsx src/commands/modes/index.test.ts src/commands/permissions/index.test.ts src/commands/provider/provider.test.tsx src/commands/status/index.test.ts src/commands/statusline.test.ts src/utils/tersaPaths.test.ts src/utils/tersaInstallSurfaces.test.ts src/components/HelpV2/General.test.tsx src/components/StartupScreen.test.ts src/services/api/codexOAuth.test.ts src/services/api/openaiUsageLimit.test.ts src/services/api/quotaErrorMessage.test.ts src/utils/internalPromptCompression.test.ts src/utils/forkedAgent.skillCompression.test.ts scripts/tersa-bin-heap.test.ts",
+    "test:tersa": "TERSA_CAVE_MODE=1 bun test --max-concurrency=1 scripts/tersa-branding-audit.test.ts scripts/tersa-cli-smoke.test.ts scripts/tersa-package-verify.test.ts scripts/tersa-release-gate.test.ts scripts/tersa-token-benchmarks.test.ts scripts/tersa-tui-canary.test.ts src/utils/caveMode/structuredCompression.test.ts src/utils/caveMode/toolCompression.test.ts src/utils/caveMode/queryPipeline.test.ts src/utils/caveMode/rtkRewrite.test.ts src/services/tools/toolExecution.test.ts src/utils/modes/config.test.ts src/utils/modes/overlap.test.ts src/utils/modes/registry.test.ts src/commands.test.ts src/components/ModelPicker.layout.test.ts src/utils/suggestions/dollarInvocationSuggestions.test.ts src/commands/help/index.test.ts src/commands/model/model.test.tsx src/commands/modes/index.test.ts src/commands/permissions/index.test.ts src/commands/provider/provider.test.tsx src/commands/status/index.test.ts src/commands/statusline.test.ts src/utils/tersaPaths.test.ts src/utils/tersaInstallSurfaces.test.ts src/components/HelpV2/General.test.tsx src/components/StartupScreen.test.ts src/services/api/codexOAuth.test.ts src/services/api/openaiUsageLimit.test.ts src/services/api/quotaErrorMessage.test.ts src/utils/internalPromptCompression.test.ts src/utils/forkedAgent.skillCompression.test.ts scripts/tersa-bin-heap.test.ts",
     "test:research": "bun test research/evals/run-honest-bench.test.ts",
     "verify:tersa:dev": "bun run scripts/tersa-release-gate.ts dev",
     "verify:tersa:interactive": "bun run scripts/tersa-release-gate.ts interactive",
@@ -84,7 +82,8 @@
     "doctor:report": "bun run scripts/system-check.ts --out reports/doctor-runtime.json",
     "hardening:check": "bun run smoke && bun run doctor:runtime",
     "hardening:strict": "bun run typecheck && bun run hardening:check",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "typecheck:legacy": "tsc --noEmit"
   },
   "dependencies": {
     "@alcalzone/ansi-tokenize": "0.3.0",
@@ -165,7 +164,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gitlawb/tersa.git"
+    "url": "git+https://github.com/Aashutoshvyas2020/tersa.git"
   },
   "keywords": [
     "claude-code",
