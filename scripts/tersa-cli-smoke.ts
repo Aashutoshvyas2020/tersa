@@ -59,6 +59,15 @@ export function validateHelpOutput(
   return { ok: errors.length === 0, errors }
 }
 
+export function parseCliSmokeTarget(args: string[]): {
+  runner: string
+  entryArgs: string[]
+} {
+  const target = args[0] === '--' ? args.slice(1) : args
+  const [runner = '', ...entryArgs] = target
+  return { runner, entryArgs }
+}
+
 export function runCliSmoke(
   runner: string,
   entryArgs: string[],
@@ -86,13 +95,12 @@ export function runCliSmoke(
 }
 
 if (import.meta.main) {
-  const target = process.argv.slice(2)
-  if (target.length === 0) {
+  const { runner, entryArgs } = parseCliSmokeTarget(process.argv.slice(2))
+  if (!runner) {
     console.error('Usage: bun run scripts/tersa-cli-smoke.ts -- <runner> <entry> [args...]')
     process.exit(1)
   }
 
-  const [runner, ...entryArgs] = target
   const result = runCliSmoke(runner, entryArgs)
   const failures = [
     ...result.version.errors.map(error => `version: ${error}`),

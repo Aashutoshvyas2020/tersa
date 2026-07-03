@@ -1,11 +1,19 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  parseCliSmokeTarget,
   validateHelpOutput,
   validateVersionOutput,
 } from './tersa-cli-smoke.ts'
 
 describe('tersa cli smoke validators', () => {
+  test('ignores a literal argument separator before the executable', () => {
+    expect(parseCliSmokeTarget(['--', 'node', 'dist/cli.mjs'])).toEqual({
+      runner: 'node',
+      entryArgs: ['dist/cli.mjs'],
+    })
+  })
+
   test('accept tersa-branded version output', () => {
     const result = validateVersionOutput('0.16.1 (Tersa)')
     expect(result).toEqual({ ok: true, errors: [] })
