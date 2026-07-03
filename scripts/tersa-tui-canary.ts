@@ -215,10 +215,8 @@ export function assertScreen(
   }
 }
 
-export function startupExpectationForWidth(width: number): ExpectStep {
-  return width < 80
-    ? { expect: '[Hh]igh', regex: true }
-    : { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true }
+export function startupExpectationForWidth(_width: number): ExpectStep {
+  return { expect: '[Hh]igh', regex: true }
 }
 
 async function runCanaryAtWidth(
@@ -324,7 +322,7 @@ exit 0
     if (result.status !== 0) {
       throw new Error(`PTY canary failed at width ${width}\n${output}`)
     }
-    assertScreen(output, width, `startup ${width}`, ['5.4', 'mini'], {
+    assertScreen(output, width, `startup ${width}`, ['high'], {
       checkDuplicates: false,
     })
 

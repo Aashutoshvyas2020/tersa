@@ -50,13 +50,17 @@ describe('tersa tui canary helpers', () => {
     expect(chooseDialogCanaryWidth([60])).toBe(60)
   })
 
-  test('uses a visible startup marker for narrow terminals', () => {
+  test('uses the always-visible effort marker for responsive startup layouts', () => {
     expect(startupExpectationForWidth(60)).toEqual({
       expect: '[Hh]igh',
       regex: true,
     })
     expect(startupExpectationForWidth(80)).toEqual({
-      expect: '[Gg][Pp][Tt]-5\\.4.*mini',
+      expect: '[Hh]igh',
+      regex: true,
+    })
+    expect(startupExpectationForWidth(120)).toEqual({
+      expect: '[Hh]igh',
       regex: true,
     })
   })
