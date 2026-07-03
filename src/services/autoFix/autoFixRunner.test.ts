@@ -6,6 +6,7 @@ import {
 } from './autoFixRunner.js'
 
 const TEST_CWD = process.cwd()
+const TEST_TIMEOUT_MS = 10_000
 
 describe('runAutoFixCheck', () => {
   test('returns success when lint command exits 0', async () => {
@@ -18,7 +19,7 @@ describe('runAutoFixCheck', () => {
     expect(result.hasErrors).toBe(false)
     expect(result.lintOutput).toContain('all clean')
     expect(result.testOutput).toBeUndefined()
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('returns errors when lint command exits non-zero', async () => {
     const result = await runAutoFixCheck({
@@ -30,7 +31,7 @@ describe('runAutoFixCheck', () => {
     expect(result.hasErrors).toBe(true)
     expect(result.lintOutput).toContain('unused var')
     expect(result.lintExitCode).toBe(1)
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('returns errors when test command exits non-zero', async () => {
     const result = await runAutoFixCheck({
@@ -42,7 +43,7 @@ describe('runAutoFixCheck', () => {
     expect(result.hasErrors).toBe(true)
     expect(result.testOutput).toContain('FAIL test_foo')
     expect(result.testExitCode).toBe(1)
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('runs both lint and test commands', async () => {
     const result = await runAutoFixCheck({
@@ -55,7 +56,7 @@ describe('runAutoFixCheck', () => {
     expect(result.hasErrors).toBe(false)
     expect(result.lintOutput).toContain('lint ok')
     expect(result.testOutput).toContain('test ok')
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('skips test if lint fails', async () => {
     const result = await runAutoFixCheck({
@@ -68,7 +69,7 @@ describe('runAutoFixCheck', () => {
     expect(result.hasErrors).toBe(true)
     expect(result.lintOutput).toContain('lint error')
     expect(result.testOutput).toBeUndefined()
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('handles timeout gracefully', async () => {
     const result = await runAutoFixCheck({
@@ -79,7 +80,7 @@ describe('runAutoFixCheck', () => {
     })
     expect(result.hasErrors).toBe(true)
     expect(result.timedOut).toBe(true)
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('returns success with no commands configured', async () => {
     const result = await runAutoFixCheck({
@@ -88,7 +89,7 @@ describe('runAutoFixCheck', () => {
       cwd: TEST_CWD,
     })
     expect(result.hasErrors).toBe(false)
-  })
+  }, TEST_TIMEOUT_MS)
 
   test('formats error summary for AI consumption', async () => {
     const result = await runAutoFixCheck({
@@ -101,5 +102,5 @@ describe('runAutoFixCheck', () => {
     const summary = result.errorSummary
     expect(summary).toContain('Lint errors')
     expect(summary).toContain('no-unused-vars')
-  })
+  }, TEST_TIMEOUT_MS)
 })
