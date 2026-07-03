@@ -365,6 +365,7 @@ async function runDialogCanaryAtWidth(
   const baseCommand = shellCommandForBinary(binary)
   const command = `stty cols ${width} rows 34; ${baseCommand} --model gpt-5.4-mini --effort high`
   const firstExpected = expectedText[0] ?? commandName
+  const startupExpectation = startupExpectationForWidth(width)
   const expectScript = `
 set timeout 10
 after 30000 { puts stderr "wall timeout waiting for ${expectLiteral(commandName)}"; exit 2 }
@@ -397,7 +398,7 @@ proc expect_with_terminal_responses {text label} {
 spawn -noecho bash -lc "$env(TERSA_TUI_CANARY_COMMAND)"
 set child_pid [exp_pid]
 expect {
-  -re {[Gg][Pp][Tt]-5\.4.*mini} {}
+  -re {${startupExpectation.expect}} {}
   timeout { puts stderr "timeout waiting for startup"; exit 2 }
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }
