@@ -12,9 +12,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  CLAUDE_CODE_USE_OPENAI: "0"
-
 jobs:
   validate:
     if: ${{ github.repository == 'Aashutoshvyas2020/tersa' }}

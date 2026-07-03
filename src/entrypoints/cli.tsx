@@ -1,4 +1,5 @@
 import { feature } from 'bun:bundle';
+import { isHelpInvocation } from './cliFastPaths.js'
 import {
   applyProfileEnvToProcessEnv,
   buildStartupEnvFromProfile,
@@ -86,6 +87,13 @@ async function main(): Promise<void> {
     // biome-ignore lint/suspicious/noConsole:: intentional console output
     console.log(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (Tersa)`);
     return;
+  }
+
+  // Help must not require provider credentials or initialize the default route.
+  if (isHelpInvocation(args)) {
+    const { main: cliMain } = await import('../main.js')
+    await cliMain()
+    return
   }
 
   // --provider: set provider env vars early so saved-profile resolution,
