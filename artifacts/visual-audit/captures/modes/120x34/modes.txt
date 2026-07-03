@@ -1,0 +1,34 @@
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /modes                                                                                                                
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Modes                                                                                                                 
+  Profile: minimal                                                                                                      
+                                                                                                                        
+  > [on]  Cave Mode · full                                                                                              
+      Reduce context usage during repository work.                                                                      
+                                                                                                                        
+    [on]  Karpathy Mode · full                                                                                          
+      Assumptions explicit. Simplicity first. Surgical diffs. Proof before done.                                        
+                                                                                                                        
+    [off] Superpowers Mode · full                                                                                       
+      Structured execution: clarify, plan, test, verify, review.                                                        
+                                                                                                                        
+    [off] GSD Mode · full                                                                                               
+      Phase-driven execution with checkpoints, state, and unblock-first reporting.                                      
+                                                                                                                        
+    [off] Designer Mode · full                                                                                          
+      High-taste UI guidance: structure first, avoid slop, keep systems legible.                                        
+                                                                                                                        
+    [off] Efficiency Mode · full                                                                                        
+      Prefer the smallest correct implementation. Avoid unnecessary code, abstractions, dependencies, and               
+  architecture.                                                                                                         
+                                                                                                                        
+                                                                                                                        
+  ↑/↓ select · Enter/Space toggle · Esc close                                                                           
+                                                                                                                        

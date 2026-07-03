@@ -1,0 +1,1026 @@
+{
+  "generatedAt": "2026-07-03T03:42:29.798Z",
+  "commit": "2ea55d8ebce9fad536e0cc517f8fdd8803039550",
+  "commands": [
+    {
+      "name": "add-dir",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Add a new working directory",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "agents",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Manage agent configurations",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "branch",
+      "aliases": [
+        "fork"
+      ],
+      "type": "local-jsx",
+      "description": "Create a branch of the current conversation at this point",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "btw",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Ask a quick side question without interrupting the main conversation",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "cache-probe",
+      "aliases": [],
+      "type": "local",
+      "description": "Send identical requests to test prompt caching (results in debug log)",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "cache-stats",
+      "aliases": [],
+      "type": "local",
+      "description": "Show per-turn and session cache hit/miss stats (works across all providers)",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "clear",
+      "aliases": [
+        "reset",
+        "new"
+      ],
+      "type": "local",
+      "description": "Clear conversation history and free up context",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "commit-message",
+      "aliases": [],
+      "type": "local",
+      "description": "Configure commit attribution text",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "compact",
+      "aliases": [],
+      "type": "local",
+      "description": "Clear conversation history but keep a summary in context. Optional: /compact [instructions for summarization]",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "config",
+      "aliases": [
+        "settings"
+      ],
+      "type": "local-jsx",
+      "description": "Open config panel",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "context",
+      "aliases": [],
+      "type": "local",
+      "description": "Show current context usage",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "copy",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Copy Claude's last response to clipboard (or /copy N for the Nth-latest)",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "diff",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "View uncommitted changes and per-turn diffs",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "doctor",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Diagnose and verify your Tersa installation and settings",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "effort",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Set effort level for model usage",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "exit",
+      "aliases": [
+        "quit"
+      ],
+      "type": "local-jsx",
+      "description": "Exit the REPL",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "export",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Export the current conversation to a file or clipboard",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "fast",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Toggle fast mode (Opus 4.6 only)",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "heapdump",
+      "aliases": [],
+      "type": "local",
+      "description": "Dump the JS heap to ~/Desktop",
+      "hidden": true,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "help",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Show help and available commands",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "hooks",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "View hook configurations for tool events",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "knowledge",
+      "aliases": [],
+      "type": "local",
+      "description": "Manage native Knowledge Graph",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "logo",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Change the startup logo color scheme (current: Tersa blue (default))",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "mcp",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Manage MCP servers",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "memory",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Edit Claude memory files",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "model",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Set the AI model for Tersa (currently GPT-5.4 mini)",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "modes",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Configure built-in Tersa modes",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "output-style",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Deprecated: use /config to change output style",
+      "hidden": true,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "passes",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Share a free week of Claude Code with friends",
+      "hidden": true,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "permissions",
+      "aliases": [
+        "allowed-tools"
+      ],
+      "type": "local-jsx",
+      "description": "Manage allow & deny tool permission rules",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "plan",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Enable plan mode or view the current session plan",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "plugin",
+      "aliases": [
+        "plugins",
+        "marketplace"
+      ],
+      "type": "local-jsx",
+      "description": "Manage Tersa plugins",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "provider",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Manage API provider profiles",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "reload-plugins",
+      "aliases": [],
+      "type": "local",
+      "description": "Activate pending plugin changes in the current session",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "rename",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Rename the current conversation",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "request-size",
+      "aliases": [],
+      "type": "local",
+      "description": "Show estimated request context load and top contributors",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "resume",
+      "aliases": [
+        "continue"
+      ],
+      "type": "local-jsx",
+      "description": "Resume a previous conversation",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "rewind",
+      "aliases": [
+        "checkpoint"
+      ],
+      "type": "local",
+      "description": "Restore the code and/or conversation to a previous point",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "skills",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "List available skills",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "status",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Show Tersa status including version, model, account, API connectivity, and tool statuses",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "statusline",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Configure Tersa's status line UI",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "tasks",
+      "aliases": [
+        "bashes"
+      ],
+      "type": "local-jsx",
+      "description": "List and manage background tasks",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "terminal-setup",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Enable Option+Enter key binding for newlines and visual bell",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "theme",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Change the theme or prompt bar color",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "usage",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Show usage, cost, and activity stats",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "vim",
+      "aliases": [],
+      "type": "local",
+      "description": "Toggle between Vim and Normal editing modes",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    },
+    {
+      "name": "wiki",
+      "aliases": [],
+      "type": "local-jsx",
+      "description": "Initialize and inspect the Tersa project wiki",
+      "hidden": false,
+      "enabled": true,
+      "availability": []
+    }
+  ],
+  "keybindings": [
+    {
+      "context": "Global",
+      "bindings": [
+        {
+          "key": "ctrl+c",
+          "action": "app:interrupt"
+        },
+        {
+          "key": "ctrl+d",
+          "action": "app:exit"
+        },
+        {
+          "key": "ctrl+l",
+          "action": "app:redraw"
+        },
+        {
+          "key": "ctrl+t",
+          "action": "app:toggleTodos"
+        },
+        {
+          "key": "ctrl+o",
+          "action": "app:toggleTranscript"
+        },
+        {
+          "key": "ctrl+shift+o",
+          "action": "app:toggleTeammatePreview"
+        },
+        {
+          "key": "ctrl+r",
+          "action": "history:search"
+        }
+      ]
+    },
+    {
+      "context": "Chat",
+      "bindings": [
+        {
+          "key": "escape",
+          "action": "chat:cancel"
+        },
+        {
+          "key": "ctrl+x ctrl+k",
+          "action": "chat:killAgents"
+        },
+        {
+          "key": "shift+tab",
+          "action": "chat:cycleMode"
+        },
+        {
+          "key": "meta+p",
+          "action": "chat:modelPicker"
+        },
+        {
+          "key": "meta+o",
+          "action": "chat:fastMode"
+        },
+        {
+          "key": "meta+t",
+          "action": "chat:thinkingToggle"
+        },
+        {
+          "key": "enter",
+          "action": "chat:submit"
+        },
+        {
+          "key": "up",
+          "action": "history:previous"
+        },
+        {
+          "key": "down",
+          "action": "history:next"
+        },
+        {
+          "key": "ctrl+_",
+          "action": "chat:undo"
+        },
+        {
+          "key": "ctrl+shift+-",
+          "action": "chat:undo"
+        },
+        {
+          "key": "ctrl+x ctrl+e",
+          "action": "chat:externalEditor"
+        },
+        {
+          "key": "ctrl+g",
+          "action": "chat:externalEditor"
+        },
+        {
+          "key": "ctrl+s",
+          "action": "chat:stash"
+        },
+        {
+          "key": "ctrl+v",
+          "action": "chat:imagePaste"
+        }
+      ]
+    },
+    {
+      "context": "Autocomplete",
+      "bindings": [
+        {
+          "key": "tab",
+          "action": "autocomplete:accept"
+        },
+        {
+          "key": "escape",
+          "action": "autocomplete:dismiss"
+        },
+        {
+          "key": "up",
+          "action": "autocomplete:previous"
+        },
+        {
+          "key": "down",
+          "action": "autocomplete:next"
+        }
+      ]
+    },
+    {
+      "context": "Settings",
+      "bindings": [
+        {
+          "key": "escape",
+          "action": "confirm:no"
+        },
+        {
+          "key": "up",
+          "action": "select:previous"
+        },
+        {
+          "key": "down",
+          "action": "select:next"
+        },
+        {
+          "key": "k",
+          "action": "select:previous"
+        },
+        {
+          "key": "j",
+          "action": "select:next"
+        },
+        {
+          "key": "ctrl+p",
+          "action": "select:previous"
+        },
+        {
+          "key": "ctrl+n",
+          "action": "select:next"
+        },
+        {
+          "key": "space",
+          "action": "select:accept"
+        },
+        {
+          "key": "enter",
+          "action": "settings:close"
+        },
+        {
+          "key": "/",
+          "action": "settings:search"
+        },
+        {
+          "key": "r",
+          "action": "settings:retry"
+        }
+      ]
+    },
+    {
+      "context": "Confirmation",
+      "bindings": [
+        {
+          "key": "y",
+          "action": "confirm:yes"
+        },
+        {
+          "key": "n",
+          "action": "confirm:no"
+        },
+        {
+          "key": "enter",
+          "action": "confirm:yes"
+        },
+        {
+          "key": "escape",
+          "action": "confirm:no"
+        },
+        {
+          "key": "up",
+          "action": "confirm:previous"
+        },
+        {
+          "key": "down",
+          "action": "confirm:next"
+        },
+        {
+          "key": "tab",
+          "action": "confirm:nextField"
+        },
+        {
+          "key": "space",
+          "action": "confirm:toggle"
+        },
+        {
+          "key": "shift+tab",
+          "action": "confirm:cycleMode"
+        },
+        {
+          "key": "ctrl+e",
+          "action": "confirm:toggleExplanation"
+        },
+        {
+          "key": "ctrl+d",
+          "action": "permission:toggleDebug"
+        }
+      ]
+    },
+    {
+      "context": "Tabs",
+      "bindings": [
+        {
+          "key": "tab",
+          "action": "tabs:next"
+        },
+        {
+          "key": "shift+tab",
+          "action": "tabs:previous"
+        },
+        {
+          "key": "right",
+          "action": "tabs:next"
+        },
+        {
+          "key": "left",
+          "action": "tabs:previous"
+        }
+      ]
+    },
+    {
+      "context": "Transcript",
+      "bindings": [
+        {
+          "key": "ctrl+e",
+          "action": "transcript:toggleShowAll"
+        },
+        {
+          "key": "ctrl+c",
+          "action": "transcript:exit"
+        },
+        {
+          "key": "escape",
+          "action": "transcript:exit"
+        },
+        {
+          "key": "q",
+          "action": "transcript:exit"
+        }
+      ]
+    },
+    {
+      "context": "HistorySearch",
+      "bindings": [
+        {
+          "key": "ctrl+r",
+          "action": "historySearch:next"
+        },
+        {
+          "key": "escape",
+          "action": "historySearch:accept"
+        },
+        {
+          "key": "tab",
+          "action": "historySearch:accept"
+        },
+        {
+          "key": "ctrl+c",
+          "action": "historySearch:cancel"
+        },
+        {
+          "key": "enter",
+          "action": "historySearch:execute"
+        }
+      ]
+    },
+    {
+      "context": "Task",
+      "bindings": [
+        {
+          "key": "ctrl+b",
+          "action": "task:background"
+        }
+      ]
+    },
+    {
+      "context": "ThemePicker",
+      "bindings": [
+        {
+          "key": "ctrl+t",
+          "action": "theme:toggleSyntaxHighlighting"
+        }
+      ]
+    },
+    {
+      "context": "Scroll",
+      "bindings": [
+        {
+          "key": "pageup",
+          "action": "scroll:pageUp"
+        },
+        {
+          "key": "pagedown",
+          "action": "scroll:pageDown"
+        },
+        {
+          "key": "wheelup",
+          "action": "scroll:lineUp"
+        },
+        {
+          "key": "wheeldown",
+          "action": "scroll:lineDown"
+        },
+        {
+          "key": "ctrl+home",
+          "action": "scroll:top"
+        },
+        {
+          "key": "ctrl+end",
+          "action": "scroll:bottom"
+        },
+        {
+          "key": "ctrl+shift+c",
+          "action": "selection:copy"
+        },
+        {
+          "key": "cmd+c",
+          "action": "selection:copy"
+        }
+      ]
+    },
+    {
+      "context": "Help",
+      "bindings": [
+        {
+          "key": "escape",
+          "action": "help:dismiss"
+        }
+      ]
+    },
+    {
+      "context": "Attachments",
+      "bindings": [
+        {
+          "key": "right",
+          "action": "attachments:next"
+        },
+        {
+          "key": "left",
+          "action": "attachments:previous"
+        },
+        {
+          "key": "backspace",
+          "action": "attachments:remove"
+        },
+        {
+          "key": "delete",
+          "action": "attachments:remove"
+        },
+        {
+          "key": "down",
+          "action": "attachments:exit"
+        },
+        {
+          "key": "escape",
+          "action": "attachments:exit"
+        }
+      ]
+    },
+    {
+      "context": "Footer",
+      "bindings": [
+        {
+          "key": "up",
+          "action": "footer:up"
+        },
+        {
+          "key": "ctrl+p",
+          "action": "footer:up"
+        },
+        {
+          "key": "down",
+          "action": "footer:down"
+        },
+        {
+          "key": "ctrl+n",
+          "action": "footer:down"
+        },
+        {
+          "key": "right",
+          "action": "footer:next"
+        },
+        {
+          "key": "left",
+          "action": "footer:previous"
+        },
+        {
+          "key": "enter",
+          "action": "footer:openSelected"
+        },
+        {
+          "key": "escape",
+          "action": "footer:clearSelection"
+        }
+      ]
+    },
+    {
+      "context": "MessageSelector",
+      "bindings": [
+        {
+          "key": "up",
+          "action": "messageSelector:up"
+        },
+        {
+          "key": "down",
+          "action": "messageSelector:down"
+        },
+        {
+          "key": "k",
+          "action": "messageSelector:up"
+        },
+        {
+          "key": "j",
+          "action": "messageSelector:down"
+        },
+        {
+          "key": "ctrl+p",
+          "action": "messageSelector:up"
+        },
+        {
+          "key": "ctrl+n",
+          "action": "messageSelector:down"
+        },
+        {
+          "key": "ctrl+up",
+          "action": "messageSelector:top"
+        },
+        {
+          "key": "shift+up",
+          "action": "messageSelector:top"
+        },
+        {
+          "key": "meta+up",
+          "action": "messageSelector:top"
+        },
+        {
+          "key": "shift+k",
+          "action": "messageSelector:top"
+        },
+        {
+          "key": "ctrl+down",
+          "action": "messageSelector:bottom"
+        },
+        {
+          "key": "shift+down",
+          "action": "messageSelector:bottom"
+        },
+        {
+          "key": "meta+down",
+          "action": "messageSelector:bottom"
+        },
+        {
+          "key": "shift+j",
+          "action": "messageSelector:bottom"
+        },
+        {
+          "key": "enter",
+          "action": "messageSelector:select"
+        }
+      ]
+    },
+    {
+      "context": "DiffDialog",
+      "bindings": [
+        {
+          "key": "escape",
+          "action": "diff:dismiss"
+        },
+        {
+          "key": "left",
+          "action": "diff:previousSource"
+        },
+        {
+          "key": "right",
+          "action": "diff:nextSource"
+        },
+        {
+          "key": "up",
+          "action": "diff:previousFile"
+        },
+        {
+          "key": "down",
+          "action": "diff:nextFile"
+        },
+        {
+          "key": "enter",
+          "action": "diff:viewDetails"
+        }
+      ]
+    },
+    {
+      "context": "ModelPicker",
+      "bindings": [
+        {
+          "key": "left",
+          "action": "modelPicker:decreaseEffort"
+        },
+        {
+          "key": "right",
+          "action": "modelPicker:increaseEffort"
+        },
+        {
+          "key": "r",
+          "action": "modelPicker:refresh"
+        }
+      ]
+    },
+    {
+      "context": "Select",
+      "bindings": [
+        {
+          "key": "up",
+          "action": "select:previous"
+        },
+        {
+          "key": "down",
+          "action": "select:next"
+        },
+        {
+          "key": "j",
+          "action": "select:next"
+        },
+        {
+          "key": "k",
+          "action": "select:previous"
+        },
+        {
+          "key": "ctrl+n",
+          "action": "select:next"
+        },
+        {
+          "key": "ctrl+p",
+          "action": "select:previous"
+        },
+        {
+          "key": "enter",
+          "action": "select:accept"
+        },
+        {
+          "key": "escape",
+          "action": "select:cancel"
+        }
+      ]
+    },
+    {
+      "context": "Plugin",
+      "bindings": [
+        {
+          "key": "space",
+          "action": "plugin:toggle"
+        },
+        {
+          "key": "i",
+          "action": "plugin:install"
+        }
+      ]
+    }
+  ]
+}

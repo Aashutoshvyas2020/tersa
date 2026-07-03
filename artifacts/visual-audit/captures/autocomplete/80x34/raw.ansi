@@ -1,0 +1,31 @@
+[2J[3J[H
+  [38;2;91;194;251mT[38;2;82;177;247mE[38;2;74;161;239mR[38;2;66;145;229mS[38;2;59;130;215mA[0m
+  [38;2;165;186;214mv0.16.3[0m
+
+  [38;2;165;186;214mProvider  [0m[38;2;110;214;255mGitlawb Opengateway[0m
+  [38;2;165;186;214mModel     [0m[38;2;228;238;248mgpt-5.4-mini[0m
+
+  [38;2;110;214;255m* ready[0m[38;2;165;186;214m - cloud - /help[0m
+
+[?2004h[?1004h[?25l]0;✳ Tersa[?2026h
+[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[39m
+❯ [7m [27m
+[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[39m
+[2C[38;2;132;151;184m?[1Cfor[1Cshortcuts[45C●[1Chigh[1C·[1C/effort[39m
+[2C[3A[?2026l[>0q[c[2D[3B[2C[3A/sta[7m [2C[2B[27m[48;2;92;205;255m[38;2;9;16;28m[1m❯ /status             Show Tersa status including version, model, account, …[22m[39m[49m
+[2C[38;2;132;151;184m [1C/statusline[9CConfigure[1CTersa's[1Cstatus[1Cline[1CUI[39m
+[2C[38;2;132;151;184m [1C/cache-stats[8CShow[1Cper-turn[1Cand[1Csession[1Ccache[1Chit/miss[1Cstats[1C(works…[39m
+[2C[38;2;132;151;184m [1C/logo[15CChange[1Cthe[1Cstartup[1Clogo[1Ccolor[1Cscheme[1C(current:[1CTersa[1C…[39m
+[2C[38;2;132;151;184m [1C/usage[14CShow[1Cusage,[1Ccost,[1Cand[1Cactivity[1Cstats[39m
+[2C[38;2;132;151;184m [1C/doctor[13CDiagnose[1Cand[1Cverify[1Cyour[1CTersa[1Cinstallation[1Cand[1Csetti…[39m
+[6C[8A[6D[8B[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[2C[38;2;132;151;184m [1C/status[13CShow[1CTersa[1Cstatus[1Cincluding[1Cversion,[1Cmodel,[1Caccount,[1C…[39m
+[2C[48;2;92;205;255m[38;2;9;16;28m[1m❯ /statusline         Configure Tersa's status line UI[22m[39m                      [49m
+[2C[38;2;132;151;184m [1C/cache-stats[8CShow[1Cper-turn[1Cand[1Csession[1Ccache[1Chit/miss[1Cstats[1C(works…[39m
+[2C[38;2;132;151;184m [1C/logo[15CChange[1Cthe[1Cstartup[1Clogo[1Ccolor[1Cscheme[1C(current:[1CTersa[1C…[39m
+[2C[38;2;132;151;184m [1C/usage[14CShow[1Cusage,[1Ccost,[1Cand[1Cactivity[1Cstats[39m
+[2C[38;2;132;151;184m [1C/doctor[13CDiagnose[1Cand[1Cverify[1Cyour[1CTersa[1Cinstallation[1Cand[1Csetti…[39m
+[6C[8A[6D[8B[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[62C[38;2;132;151;184m●[1Chigh[1C·[1C/effort[39m
+[6C[3A[6D[3B[1A[2K[1A[2K[1A[2K[G❯ [7m [27m
+[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[39m
+[2C[38;2;132;151;184mPress[1CCtrl-C[1Cagain[1Cto[1Cexit[34C●[1Chigh[1C·[1C/effort[39m
+[2C[3A[2D[3B[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[?1006l[?1003l[?1002l[?1000l[>4m[<u[?1004l[?2004l[?25h]9;4;0;]0;

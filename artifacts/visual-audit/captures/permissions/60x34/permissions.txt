@@ -1,0 +1,34 @@
+  s:              denied                         Workspace  
+                                                            
+                                                            
+  Change the current session permission mode.               
+                                                            
+  Standard modes keep safety boundaries intact. Elevated    
+  access is labeled explicitly and always opens a separate  
+   confirmation before it changes this session.             
+                                                            
+    1.STANDARD MODES                                        
+       Prompted or read-only access with safety boundaries  
+        intact.                                             
+    2.Default (current)                                     
+       Standard. Asks before edits, shell commands,         
+       network access, and other risky actions.             
+    3.Accept edits                                          
+       Standard. Workspace file edits are automatic;        
+       shell, network, and broader access still prompt.     
+    4.Plan Mode                                             
+       Standard. Read-only analysis; edits and command      
+       execution are blocked.                               
+    5.ELEVATED ACCESS                                       
+       Reduces or removes approval barriers. Selecting      
+       either mode opens a separate confirmation.           
+    6.[ELEVATED] Bypass Permissions                         
+       ELEVATED. Skips normal permission prompts for        
+       edits, shell, and network actions; hard safety       
+       prompts remain.                                      
+    7.[ELEVATED] Full Access                                
+       ELEVATED · HIGHEST RISK. Skips normal prompts and    
+       hard safety-check prompts for this session.          
+                                                            
+   ←/→ tab switch · ↓ return · Esc cancel                   
+                                                            

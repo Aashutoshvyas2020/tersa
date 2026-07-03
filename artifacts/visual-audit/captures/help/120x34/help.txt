@@ -1,0 +1,34 @@
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /help                                                                                                                 
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Tersa v0.16.3  general   commands   custom                                                                            
+                                                                                                                        
+                                                                                                                        
+  Tersa works in your repository, proposes changes, and runs commands with the permissions you approve.                 
+                                                                                                                        
+  Start here                                                                                                            
+  1. Describe the outcome you want and any constraints.                                                                 
+  2. Review the plan and approve only the permissions it needs.                                                         
+  3. Inspect /diff, run the relevant tests, then commit.                                                                
+                                                                                                                        
+  Essentials                                                                                                            
+  /status        runtime, model, effort, and integrations                                                               
+  /model         change the active model                                                                                
+  /permissions   review or change tool access                                                                           
+  /diff          inspect repository changes                                                                             
+  /modes         configure planning and optimization modes                                                              
+  $<skill>       run an installed skill                                                                                 
+                                                                                                                        
+  Open the Commands tab and type to filter the complete command list.                                                   
+                                                                                                                        
+                                                                                                                        
+  Docs: https://github.com/Aashutoshvyas2020/tersa                                                        Esc to close  
+                                                                                                                        
+                                                                                                                        

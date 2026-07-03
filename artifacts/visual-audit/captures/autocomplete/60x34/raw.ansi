@@ -1,0 +1,28 @@
+[2J[3J[H
+  [38;2;91;194;251mT[38;2;82;177;247mE[38;2;74;161;239mR[38;2;66;145;229mS[38;2;59;130;215mA[0m
+  [38;2;165;186;214mv0.16.3[0m
+
+  [38;2;165;186;214mProvider  [0m[38;2;110;214;255mGitlawb Opengateway[0m
+  [38;2;165;186;214mModel     [0m[38;2;228;238;248mgpt-5.4-mini[0m
+
+  [38;2;110;214;255m* ready[0m[38;2;165;186;214m - cloud - /help[0m
+
+[?2004h[?1004h[?25l]0;✳ Tersa[?2026h
+[38;2;69;97;150m────────────────────────────────────────────────────────────[39m
+❯ [7m [27m
+[38;2;69;97;150m────────────────────────────────────────────────────────────[39m
+[2C[38;2;132;151;184m?[1Cfor[1Cshortcuts[39m
+[2C[38;2;132;151;184m●[1Chigh[1C·[1C/effort[39m
+[2C[4A[?2026l[>0q[c[?2026h[2D[4B[2C[4A/sta[7m [2C[2B[27m[48;2;92;205;255m[38;2;9;16;28m[1m❯ /status             Show Tersa status including versi…[2C[1B[22m[49m[38;2;132;151;184m [1C/statusline         Configure Tersa's status line UI[39m
+[2C[38;2;132;151;184m [1C/cache-stats[8CShow[1Cper-turn[1Cand[1Csession[1Ccache[1Ch…[39m
+[2C[38;2;132;151;184m [1C/logo[15CChange[1Cthe[1Cstartup[1Clogo[1Ccolor[1Csch…[39m
+[2C[38;2;132;151;184m [1C/usage[14CShow[1Cusage,[1Ccost,[1Cand[1Cactivity[1Cst…[39m
+[2C[38;2;132;151;184m [1C/doctor[13CDiagnose[1Cand[1Cverify[1Cyour[1CTersa[1Cin…[39m
+[6C[8A[?2026l[?2026h[6D[8B[2C[6A[38;2;132;151;184m  /status             Show Tersa status including versi…[2C[1B[48;2;92;205;255m[38;2;9;16;28m[1m❯ /statusline         Configure Tersa's status line UI[22m[39m  [49m
+
+
+
+
+[6C[8A[?2026l[?2026h[6D[8B[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[1A[2C[1A[38;2;132;151;184m●[1Chigh · /effort[39m                                        [1B                                                            [1B                                                            [1B                                                            [1B                                                            [1B                                                            [4A[6C[3A[?2026l[?2026h[6D[3B[2C[3A[7m [27m    [2C[2B[38;2;132;151;184mPress Ctrl-C again to exit[39m
+[2C[38;2;132;151;184m●[1Chigh[1C·[1C/effort[39m
+[2C[4A[?2026l[?2026h[2D[4B[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[1A                                                            [1B                                                            [1B                                                            [1B                                                            [1B                                                            [1B                                                            [5A[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?1004l[?2004l[?25h]9;4;0;]0;

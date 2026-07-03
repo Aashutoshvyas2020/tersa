@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /theme                                                                                                                
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Theme                                                                                                                 
+                                                                                                                        
+  Choose the text style that looks best with your terminal                                                              
+                                                                                                                        
+  ❯ 1. Dark mode                                                                                                     ✔  
+    2. Light mode                                                                                                       
+    3. Dark mode (colorblind-friendly)                                                                                  
+    4. Light mode (colorblind-friendly)                                                                                 
+    5. Dark mode (ANSI colors only)                                                                                     
+    6. Light mode (ANSI colors only)                                                                                    
+                                                                                                                        
+  ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌  
+   1  function greet() {                                                                                                
+   2 -  console.log("Hello, World!");                                                                                   
+   2 +  console.log("Hello, Tersa!");                                                                                   
+   3  }                                                                                                                 
+  ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌  
+   Syntax theme: Monokai Extended (ctrl+t to disable)                                                                   
+                                                                                                                        
+  Enter to select · Esc to cancel                                                                                       
+                                                                                                                        

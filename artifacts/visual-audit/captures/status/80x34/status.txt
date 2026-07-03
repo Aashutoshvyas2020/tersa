@@ -1,0 +1,34 @@
+                                                                                
+❯ /status                                                                       
+                                                                                
+────────────────────────────────────────────────────────────────────────────────
+   Status   Config   Usage                                                      
+                                                                                
+  Version: 0.16.3                                                               
+  Session name: /rename to add a name                                           
+  Session ID: 9e688f9b-4e6b-482d-bf4c-1086c477e31c                              
+  cwd: /Users/aashu/tersa                                                       
+  Provider: Gitlawb Opengateway                                                 
+  Model: GPT-5.4 mini                                                           
+  Effort: high                                                                  
+  Endpoint: https://opengateway.gitlawb.com/v1                                  
+                                                                                
+  Setting sources:                                                              
+  Esc to cancel                                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

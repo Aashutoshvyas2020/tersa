@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /model                                                                                                                
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Select model                                                                                                          
+  Switch between Tersa models. Applies to this session and future Tersa sessions. For other/previous model names,       
+  specify with --model.                                                                                                 
+                                                                                                                        
+    1. MiMo V2.5 Pro (via Opengateway)                  Recommended · Provider: Gitlawb Opengateway                     
+    2. MiMo V2 Pro (via Opengateway)                    Provider: Gitlawb Opengateway                                   
+    3. MiMo V2.5 (via Opengateway)                      Provider: Gitlawb Opengateway                                   
+    4. MiMo V2 Omni (via Opengateway)                   Provider: Gitlawb Opengateway                                   
+    5. MiMo V2 Flash (via Opengateway)                  Provider: Gitlawb Opengateway                                   
+    6. Gemini 3.1 Flash Lite Preview (via Opengateway)  Provider: Gitlawb Opengateway                                   
+  ❯ 7. gpt-5.4-mini ✔                                   Current model                                                   
+                                                                                                                        
+  ● High effort ← → to adjust                                                                                           
+                                                                                                                        
+  Enter to confirm · Esc to exit                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        

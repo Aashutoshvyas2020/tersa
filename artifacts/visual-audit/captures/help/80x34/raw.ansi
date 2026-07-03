@@ -1,0 +1,43 @@
+[2J[3J[H
+  [38;2;91;194;251mT[38;2;82;177;247mE[38;2;74;161;239mR[38;2;66;145;229mS[38;2;59;130;215mA[0m
+  [38;2;165;186;214mv0.16.3[0m
+
+  [38;2;165;186;214mProvider  [0m[38;2;110;214;255mGitlawb Opengateway[0m
+  [38;2;165;186;214mModel     [0m[38;2;228;238;248mgpt-5.4-mini[0m
+
+  [38;2;110;214;255m* ready[0m[38;2;165;186;214m - cloud - /help[0m
+
+[?2004h[?1004h[?25l]0;✳ Tersa[?2026h
+[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[39m
+❯ [7m [27m
+[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[39m
+[2C[38;2;132;151;184m?[1Cfor[1Cshortcuts[45C●[1Chigh[1C·[1C/effort[39m
+[2C[3A[?2026l[>0q[c[?2026h[2D[3B[2C[3A/help[7m [27m
+
+
+[7C[3A[?2026l]0;⠂ Tersa[?2026h[7D[3B[4A[48;2;15;24;38m[38;2;34;50;77m❯ [38;2;226;238;250m/help[39m                                                                         [1B[49m        [1B[38;2;96;188;242m────────────────────────────────────────────────────────────────────────────────[2C[1B[1mTersa v0.16.3[22m[39m [48;2;96;188;242m[38;2;9;16;28m[1m general [2C[22m[39m[49mcommands[3Ccustom[18C                
+
+
+[2CTersa[1Cworks[1Cin[1Cyour[1Crepository,[1Cproposes[1Cchanges,[1Cand[1Cruns[1Ccommands[1Cwith[1Cthe
+[3Cpermissions[1Cyou[1Capprove.
+
+[2C[1mStart[1Chere[22m
+[2C[38;2;92;205;255m1.[1C[39mDescribe[1Cthe[1Coutcome[1Cyou[1Cwant[1Cand[1Cany[1Cconstraints.
+[2C[38;2;92;205;255m2.[1C[39mReview[1Cthe[1Cplan[1Cand[1Capprove[1Conly[1Cthe[1Cpermissions[1Cit[1Cneeds.
+[2C[38;2;92;205;255m3.[1C[39mInspect[1C/diff,[1Crun[1Cthe[1Crelevant[1Ctests,[1Cthen[1Ccommit.
+
+[2C[1mEssentials[22m
+[2C[38;2;92;205;255m/status[8C[38;2;132;151;184mruntime,[1Cmodel,[1Ceffort,[1Cand[1Cintegrations[39m
+[2C[38;2;92;205;255m/model[9C[38;2;132;151;184mchange[1Cthe[1Cactive[1Cmodel[39m
+[2C[38;2;92;205;255m/permissions[3C[38;2;132;151;184mreview[1Cor[1Cchange[1Ctool[1Caccess[39m
+[2C[38;2;92;205;255m/diff[10C[38;2;132;151;184minspect[1Crepository[1Cchanges[39m
+[2C[38;2;92;205;255m/modes[9C[38;2;132;151;184mconfigure[1Cplanning[1Cand[1Coptimization[1Cmodes[39m
+[2C[38;2;92;205;255m$<skill>[7C[38;2;132;151;184mrun[1Can[1Cinstalled[1Cskill[39m
+
+[2C[38;2;132;151;184mOpen[1Cthe[1CCommands[1Ctab[1Cand[1Ctype[1Cto[1Cfilter[1Cthe[1Ccomplete[1Ccommand[1Clist.[39m
+
+
+[2C[38;2;132;151;184mDocs:[1Chttps://github.com/Aashutoshvyas2020/tersa[16CEsc[1Cto[1Cclose[39m
+[?2026l]0;✳ Tersa[?2026h[52C[1A[38;2;132;151;184mPress Ctrl-C again to exit[39m
+[?2026l[?2026h[52C[1A              [38;2;132;151;184mEsc to close[39m
+[?2026l]0;⠂ Tersa[?2026h[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[1A[8C[9A                                                                        [1B[38;2;132;151;184m  └  [1C[39mHelp[1Cdialog[1Cdismissed[1B                                                                                [1B[38;2;92;205;255m✶[1CWarping… [39m    [1C         [2C        [3C      [2B[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[1B[38;2;132;151;184m❯ [39m[7m [27m    [1C     [1C  [1C    [1C           [1C        [1C        [1C   [1C    [1C        [1C    [1C   [1B[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[2C[1B[38;2;132;151;184mesc to interrupt[44C● high · /effort[1B[39m                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [16A[2C[3A[?2026l]0;✳ Tersa[?2026h[2D[3B[2K[1A[2K[G[1A[4A[38;2;69;97;150m────────────────────────────────────────────────────────────────────────────────[1B[39m❯ [7m [2B[27m  [38;2;132;151;184m? for shortcuts[45C● high · /effort[1B[39m                                                                                [1B                                                                                [1A[2C[3A[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?1004l[?2004l[?25h]9;4;0;]0;

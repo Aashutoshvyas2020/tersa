@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /terminal-setup                                                                                                       
+  └   Terminal setup preview · Apple Terminal                                                                           
+                                                                                                                        
+      Target: The current default and startup Terminal.app profiles                                                     
+      Changes:                                                                                                          
+      - Enable Use Option as Meta key                                                                                   
+      - Disable the audio bell and keep the visual bell                                                                 
+      Backup: Export Terminal.app preferences to a timestamped Tersa backup before applying changes                     
+      After applying: Restart Terminal.app after setup                                                                  
+                                                                                                                        
+      No settings have been changed.                                                                                    
+      Run /terminal-setup apply to confirm and apply this plan.                                                         
+      Run /terminal-setup undo to restore the most recent Tersa backup.                                                 
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯ /terminal-setup                                                                                                       
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ? for shortcuts                                                                                     ● high · /effort  
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        

@@ -1,0 +1,34 @@
+                                                                                
+  TERSA                                                                         
+  v0.16.3                                                                       
+                                                                                
+  Provider  Gitlawb Opengateway                                                 
+  Model     gpt-5.4-mini                                                        
+                                                                                
+  * ready - cloud - /help                                                       
+                                                                                
+                                                                                
+────────────────────────────────────────────────────────────────────────────────
+❯ /sta                                                                          
+────────────────────────────────────────────────────────────────────────────────
+  ❯ /status             Show Tersa status including version, model, account, …  
+    /statusline         Configure Tersa's status line UI                        
+    /cache-stats        Show per-turn and session cache hit/miss stats (works…  
+    /logo               Change the startup logo color scheme (current: Tersa …  
+    /usage              Show usage, cost, and activity stats                    
+    /doctor             Diagnose and verify your Tersa installation and setti…  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

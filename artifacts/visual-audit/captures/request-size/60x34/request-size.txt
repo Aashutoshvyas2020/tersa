@@ -1,0 +1,34 @@
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /request-size                                             
+                                                            
+────────────────────────────────────────────────────────────
+  Request context size                                      
+                                                            
+  Estimated load                                            
+                                                            
+  25.9k tokens · 101.1KB byte equivalent                    
+  Context estimate only. Serialized JSON and base64 media   
+  may be larger on the wire.                                
+  Contributor names and sizes only; request content is not  
+   shown.                                                   
+                                                            
+  Top contributors                                          
+  1.   Tool schemas                               17.8k     
+                                                            
+      69.7KB                                                
+  2.   System prompt                               7.7k     
+                                                            
+      30.1KB                                                
+  3.   Skills                                       258     
+                                                            
+         1KB                                                
+  3/3 skills included                                       
+  4.   Memory files                                  80     
+                                                            
+   320 bytes                                                
+  1 memory file                                             
+                                                            
+  Esc to close                                              
+                                                            

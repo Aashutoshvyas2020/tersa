@@ -1,0 +1,34 @@
+                                                            
+❯ /config                                                   
+                                                            
+────────────────────────────────────────────────────────────
+   Status   Config   Usage                                  
+                                                            
+                                                            
+  ╭──────────────────────────────────────────────────────╮  
+  │ ⌕ Search settings…                                   │  
+  ╰──────────────────────────────────────────────────────╯  
+                                                            
+  ❯ Auto-compact                              false         
+    Tool history compression                  true          
+    Cache stats display                       compact       
+    Reduce motion                             false         
+    Thinking mode                             true          
+    Rewind code (checkpoints)                 true          
+    Verbose output                            false         
+    Terminal progress bar                     true          
+    Show turn duration                        true          
+    Default permission mode                   Default       
+    Always copy full response (skip /copy     false         
+  picker)                                                   
+    Flicker-free mode                         false         
+    Auto-update channel                  (development       
+                                         build)             
+                                                            
+    Theme                                     Dark mode     
+  ↓ 7 more below                                            
+                                                            
+  Space to change · Enter to save · / to search · Esc to    
+  cancel                                                    
+                                                            
+                                                            

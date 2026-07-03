@@ -1,0 +1,34 @@
+                                                                                
+  TERSA                                                                         
+  v0.16.3                                                                       
+                                                                                
+  Provider  Gitlawb Opengateway                                                 
+  Model     gpt-5.4-mini                                                        
+                                                                                
+  * ready - cloud - /help                                                       
+                                                                                
+                                                                                
+❯ /provider                                                                     
+                                                                                
+────────────────────────────────────────────────────────────────────────────────
+  Provider manager                                                              
+                                                                                
+  Active profile controls base URL, model, and API key used by this session.    
+                                                                                
+  No provider profiles configured yet.                                          
+                                                                                
+  ❯ 1. Add provider         Create a new provider profile                       
+    2. Set active provider  Switch the active provider profile                  
+    3. Edit provider        Update URL, model, or key                           
+    4. Delete provider      Remove a provider profile                           
+    5. Done                 Return to chat                                      
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

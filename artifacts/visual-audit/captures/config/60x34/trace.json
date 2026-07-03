@@ -1,0 +1,72 @@
+{
+  "scenario": "config",
+  "width": 60,
+  "rows": 34,
+  "binary": "node dist/cli.mjs",
+  "exitCode": 0,
+  "events": [
+    {
+      "atMs": 1783052303886,
+      "event": "spawn",
+      "command": "stty cols 60 rows 34; exec node dist/cli.mjs --model gpt-5.4-mini --effort high",
+      "pid": 97338
+    },
+    {
+      "atMs": 1783052304395,
+      "event": "terminal-reply",
+      "label": "primary-device-attributes",
+      "hex": "1b5b3f313b3063"
+    },
+    {
+      "atMs": 1783052304395,
+      "event": "terminal-reply",
+      "label": "terminal-version",
+      "hex": "1b503e7c47686f7374747920312e322e331b5c"
+    },
+    {
+      "atMs": 1783052304520,
+      "event": "input",
+      "label": "/config\r",
+      "hex": "2f636f6e6669670d"
+    },
+    {
+      "atMs": 1783052306317,
+      "event": "checkpoint",
+      "name": "config"
+    },
+    {
+      "atMs": 1783052306317,
+      "event": "input",
+      "label": "\u001b[B",
+      "hex": "1b5b42"
+    },
+    {
+      "atMs": 1783052306881,
+      "event": "checkpoint",
+      "name": "config-down"
+    },
+    {
+      "atMs": 1783052306881,
+      "event": "input",
+      "label": " ",
+      "hex": "20"
+    },
+    {
+      "atMs": 1783052307461,
+      "event": "checkpoint",
+      "name": "config-toggle"
+    },
+    {
+      "atMs": 1783052307666,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    },
+    {
+      "atMs": 1783052307975,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    }
+  ]
+}
