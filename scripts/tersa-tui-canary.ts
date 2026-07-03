@@ -215,6 +215,12 @@ export function assertScreen(
   }
 }
 
+export function startupExpectationForWidth(width: number): ExpectStep {
+  return width < 80
+    ? { expect: '[Hh]igh', regex: true }
+    : { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true }
+}
+
 async function runCanaryAtWidth(
   binary: string,
   startupOnly: boolean,
@@ -223,12 +229,11 @@ async function runCanaryAtWidth(
   const configDir = createCanaryConfigDir()
   const baseCommand = shellCommandForBinary(binary)
   const command = `stty cols ${width} rows 34; ${baseCommand} --model gpt-5.4-mini --effort high`
+  const startupExpectation = startupExpectationForWidth(width)
   const steps = startupOnly
-    ? [
-        { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
-      ] satisfies ExpectStep[]
+    ? [startupExpectation] satisfies ExpectStep[]
     : [
-        { expect: '[Gg][Pp][Tt]-5\\.4.*mini', regex: true },
+        startupExpectation,
         { send: '', waitMs: 5000 },
         { send: '/model\\r', expect: 'Select' },
         { expect: 'gpt-5.4-mini' },

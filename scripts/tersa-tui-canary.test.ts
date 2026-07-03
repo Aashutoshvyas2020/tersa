@@ -6,6 +6,7 @@ import {
   chooseDialogCanaryWidth,
   isLiveProcessRow,
   normalizeScreenSnapshot,
+  startupExpectationForWidth,
 } from './tersa-tui-canary.ts'
 
 describe('tersa tui canary helpers', () => {
@@ -47,6 +48,17 @@ describe('tersa tui canary helpers', () => {
     expect(chooseDialogCanaryWidth([60, 80, 120])).toBe(80)
     expect(chooseDialogCanaryWidth([50, 100])).toBe(100)
     expect(chooseDialogCanaryWidth([60])).toBe(60)
+  })
+
+  test('uses a visible startup marker for narrow terminals', () => {
+    expect(startupExpectationForWidth(60)).toEqual({
+      expect: '[Hh]igh',
+      regex: true,
+    })
+    expect(startupExpectationForWidth(80)).toEqual({
+      expect: '[Gg][Pp][Tt]-5\\.4.*mini',
+      regex: true,
+    })
   })
 
   test('does not treat zombie or exiting process rows as live leaks', () => {
