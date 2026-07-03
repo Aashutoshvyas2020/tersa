@@ -103,3 +103,43 @@ CORE_SCENARIOS = {
         {'send': b'0x', 'settle': 0.4, 'checkpoint': 'vim-delete'},
     ],
 }
+
+
+def command_scenario(command: str, *, settle: float = 1.2) -> list[dict[str, object]]:
+    return [
+        {'wait_for': 'High'},
+        {'send': f'/{command}'.encode() + ENTER, 'settle': settle, 'checkpoint': command},
+    ]
+
+
+CORE_SCENARIOS.update({
+    'add-dir': command_scenario('add-dir'),
+    'agents': command_scenario('agents', settle=1.8),
+    'branch': command_scenario('branch'),
+    'btw': command_scenario('btw'),
+    'cache-probe': command_scenario('cache-probe', settle=2.5),
+    'cache-stats': command_scenario('cache-stats'),
+    'clear': command_scenario('clear'),
+    'commit-message': command_scenario('commit-message'),
+    'compact': command_scenario('compact', settle=2.5),
+    'copy': command_scenario('copy'),
+    'diff': command_scenario('diff', settle=1.8),
+    'doctor': command_scenario('doctor', settle=2.5),
+    'exit': command_scenario('exit'),
+    'export': command_scenario('export'),
+    'fast': command_scenario('fast'),
+    'heapdump': command_scenario('heapdump', settle=2.5),
+    'hooks': command_scenario('hooks', settle=1.8),
+    'knowledge': command_scenario('knowledge', settle=1.8),
+    'logo': command_scenario('logo'),
+    'memory': command_scenario('memory', settle=1.8),
+    'output-style': command_scenario('output-style'),
+    'passes': command_scenario('passes'),
+    'reload-plugins': command_scenario('reload-plugins', settle=1.8),
+    'rename': command_scenario('rename'),
+    'resume': command_scenario('resume', settle=1.8),
+    'rewind': command_scenario('rewind', settle=1.8),
+    'tasks': command_scenario('tasks', settle=1.8),
+    'usage': command_scenario('usage', settle=2.5),
+    'wiki': command_scenario('wiki', settle=1.8),
+})

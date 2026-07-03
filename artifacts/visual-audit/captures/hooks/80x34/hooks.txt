@@ -1,0 +1,34 @@
+                                                                                
+  TERSA                                                                         
+  v0.16.3                                                                       
+                                                                                
+  Provider  Gitlawb Opengateway                                                 
+  Model     gpt-5.4-mini                                                        
+                                                                                
+  * ready - cloud - /help                                                       
+                                                                                
+                                                                                
+❯ /hooks                                                                        
+                                                                                
+────────────────────────────────────────────────────────────────────────────────
+  Hooks                                                                         
+  0 hooks configured                                                            
+                                                                                
+  ℹ This menu is read-only. To add or modify hooks, edit settings.json          
+  directly or ask Tersa. Learn more                                             
+                                                                                
+  ❯ 1.  PreToolUse          Before tool execution                               
+    2.  PostToolUse         After tool execution                                
+    3.  PostToolUseFailure  After tool execution fails                          
+    4.  PermissionDenied    After auto mode classifier denies a tool call       
+  ↓ 5.  Notification        When notifications are sent                         
+                                                                                
+  Enter to confirm · Esc to cancel                                              
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

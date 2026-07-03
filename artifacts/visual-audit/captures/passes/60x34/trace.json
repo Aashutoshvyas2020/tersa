@@ -1,0 +1,50 @@
+{
+  "scenario": "passes",
+  "width": 60,
+  "rows": 34,
+  "binary": "node dist/cli.mjs",
+  "exitCode": 143,
+  "events": [
+    {
+      "atMs": 1783057733059,
+      "event": "spawn",
+      "command": "stty cols 60 rows 34; exec node dist/cli.mjs --model gpt-5.4-mini --effort high",
+      "pid": 15444
+    },
+    {
+      "atMs": 1783057733642,
+      "event": "terminal-reply",
+      "label": "primary-device-attributes",
+      "hex": "1b5b3f313b3063"
+    },
+    {
+      "atMs": 1783057733642,
+      "event": "terminal-reply",
+      "label": "terminal-version",
+      "hex": "1b503e7c47686f7374747920312e322e331b5c"
+    },
+    {
+      "atMs": 1783057733672,
+      "event": "input",
+      "label": "/passes\r",
+      "hex": "2f7061737365730d"
+    },
+    {
+      "atMs": 1783057735112,
+      "event": "checkpoint",
+      "name": "passes"
+    },
+    {
+      "atMs": 1783057735315,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    },
+    {
+      "atMs": 1783057735620,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    }
+  ]
+}

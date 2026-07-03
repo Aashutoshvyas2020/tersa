@@ -1,0 +1,34 @@
+                                                            
+  TERSA                                                     
+  v0.16.3                                                   
+                                                            
+  Provider  Gitlawb Opengateway                             
+  Model     gpt-5.4-mini                                    
+                                                            
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /fast                                                     
+  └   Fast mode unavailable: Fast mode is not available on  
+      third-party providers                                 
+                                                            
+────────────────────────────────────────────────────────────
+❯ /fast                                                     
+────────────────────────────────────────────────────────────
+  ? for shortcuts                                           
+  ● high · /effort                                          
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            

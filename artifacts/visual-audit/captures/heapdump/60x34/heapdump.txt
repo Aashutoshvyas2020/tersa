@@ -1,0 +1,34 @@
+                                                            
+  TERSA                                                     
+  v0.16.3                                                   
+                                                            
+  Provider  Gitlawb Opengateway                             
+  Model     gpt-5.4-mini                                    
+                                                            
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /heapdump                                                 
+  └                                                         
+                                                            
+/var/folders/vt/13x7jl717jl73b7yr3wy95ww0000gn/T/tersa-visua
+l-audit-uejqlhfl/Desktop/c222c08a-ba9d-48bb-afeb-4bde0c55e97
+e.heapsnapshot                                              
+/var/folders/vt/13x7jl717jl73b7yr3wy95ww0000gn/T/tersa-visua
+l-audit-uejqlhfl/Desktop/c222c08a-ba9d-48bb-afeb-4bde0c55e97
+e-diagnostics.json                                          
+                                                            
+                                                            
+────────────────────────────────────────────────────────────
+❯ /heapdump                                                 
+────────────────────────────────────────────────────────────
+  ? for shortcuts                                           
+  ● high · /effort                                          
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            

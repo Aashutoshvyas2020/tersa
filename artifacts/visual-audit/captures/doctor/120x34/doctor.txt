@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /doctor                                                                                                               
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Diagnostics                                                                                                           
+  └ Currently running: development (unknown)                                                                            
+  └ Path: /Users/aashu/tersa                                                                                            
+  └ Invoked: /Users/aashu/tersa/dist/cli.mjs                                                                            
+  └ Config install method: not set                                                                                      
+  └ Search: OK (vendor)                                                                                                 
+  Updates                                                                                                               
+  └ Auto-updates: disabled (development build)                                                                          
+  └ Auto-update channel: latest                                                                                         
+  └ Failed to fetch versions                                                                                            
+  Press Enter to continue…                                                                                              
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        

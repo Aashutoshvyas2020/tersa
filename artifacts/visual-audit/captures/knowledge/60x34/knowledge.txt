@@ -1,0 +1,34 @@
+                                                            
+  TERSA                                                     
+  v0.16.3                                                   
+                                                            
+  Provider  Gitlawb Opengateway                             
+  Model     gpt-5.4-mini                                    
+                                                            
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /knowledge                                                
+  └                                                         
+                                                            
+Knowledge Graph Engine: ENABLED                             
+• Stats: 0 goals, 0 milestones, 0 technical facts learned   
+                                                            
+────────────────────────────────────────────────────────────
+❯ /knowledge                                                
+────────────────────────────────────────────────────────────
+  ? for shortcuts                                           
+  ● high · /effort                                          
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            

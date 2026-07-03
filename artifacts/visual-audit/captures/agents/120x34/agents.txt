@@ -1,0 +1,34 @@
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /agents                                                                                                               
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Agents                                                                                                                
+  No agents found                                                                                                       
+                                                                                                                        
+  Current session agent: none                                                                                           
+                                                                                                                        
+  ❯ Create new agent                                                                                                    
+                                                                                                                        
+  No agents found. Create specialized subagents that Tersa can delegate to.                                             
+                                                                                                                        
+  Each subagent has its own context window, custom system prompt, and specific tools.                                   
+                                                                                                                        
+  Try creating: Code Reviewer, Code Simplifier, Security Reviewer, Tech Lead, or UX Reviewer.                           
+                                                                                                                        
+  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────…  
+                                                                                                                        
+    Built-in (always available):                                                                                        
+      claude-code-guide · haiku                                                                                         
+      Explore · haiku                                                                                                   
+      general-purpose · inherit                                                                                         
+      Plan · inherit                                                                                                    
+      statusline-setup · sonnet                                                                                         
+      verification · inherit                                                                                            
+                                                                                                                        
+  Press ↑↓ to navigate · Enter to select · Esc to go back                                                               
+                                                                                                                        

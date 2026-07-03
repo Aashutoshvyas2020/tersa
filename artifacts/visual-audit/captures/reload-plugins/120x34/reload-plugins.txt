@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /reload-plugins                                                                                                       
+  └   Reloaded: 0 plugins · 0 skills · 6 agents · 0 hooks · 0 plugin MCP servers · 0 plugin LSP servers                 
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯ /reload-plugins                                                                                                       
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ? for shortcuts                                                                                     ● high · /effort  
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        

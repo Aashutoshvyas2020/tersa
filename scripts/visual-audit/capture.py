@@ -33,6 +33,13 @@ SCENARIO_GROUPS = {
         'terminal-setup',
     ],
     'extended-core': ['config', 'theme', 'effort', 'plan', 'mcp', 'plugin', 'vim'],
+    'remaining-commands': [
+        'add-dir', 'agents', 'branch', 'btw', 'cache-probe', 'cache-stats',
+        'clear', 'commit-message', 'compact', 'copy', 'diff', 'doctor', 'exit',
+        'export', 'fast', 'heapdump', 'hooks', 'knowledge', 'logo', 'memory',
+        'output-style', 'passes', 'reload-plugins', 'rename', 'resume', 'rewind',
+        'tasks', 'usage', 'wiki',
+    ],
 }
 
 
@@ -60,6 +67,7 @@ class AuditSession:
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', rows, width, 0, 0))
         env = os.environ.copy()
         env.update({
+            'HOME': self.config_dir.name,
             'CLAUDE_CONFIG_DIR': self.config_dir.name,
             'CLAUDE_CODE_USE_OPENAI': env.get('CLAUDE_CODE_USE_OPENAI', '1'),
             'OPENAI_BASE_URL': 'https://opengateway.gitlawb.com/v1',

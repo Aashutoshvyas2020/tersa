@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /wiki                                                                                                                 
+  └   Tersa wiki is not initialized in this project.                                                                    
+                                                                                                                        
+      Run /wiki init to create /Users/aashu/tersa/.tersa/wiki.                                                          
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯ /wiki                                                                                                                 
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ? for shortcuts                                                                                     ● high · /effort  
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        

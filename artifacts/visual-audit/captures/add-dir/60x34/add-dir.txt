@@ -1,0 +1,34 @@
+                                                            
+  TERSA                                                     
+  v0.16.3                                                   
+                                                            
+  Provider  Gitlawb Opengateway                             
+  Model     gpt-5.4-mini                                    
+                                                            
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /add-dir                                                  
+                                                            
+────────────────────────────────────────────────────────────
+  Add directory to workspace                                
+                                                            
+    Tersa will be able to read files in this directory      
+    and make edits when auto-accept edits is on.            
+                                                            
+    Enter the path to the directory:                        
+                                                            
+    ╭──────────────────────────────────────────────────╮    
+    │ Directory path…                                  │    
+    ╰──────────────────────────────────────────────────╯    
+                                                            
+                                                            
+  Tab to complete · Enter to add · Esc to cancel            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            

@@ -1,0 +1,34 @@
+                                                                                
+  TERSA                                                                         
+  v0.16.3                                                                       
+                                                                                
+  Provider  Gitlawb Opengateway                                                 
+  Model     gpt-5.4-mini                                                        
+                                                                                
+  * ready - cloud - /help                                                       
+                                                                                
+                                                                                
+❯ /heapdump                                                                     
+  └                                                                             
+                                                                                
+/var/folders/vt/13x7jl717jl73b7yr3wy95ww0000gn/T/tersa-visual-audit-e69az5h9/Des
+ktop/d1b5d9f5-3464-4337-b6f7-deee947581f0.heapsnapshot                          
+/var/folders/vt/13x7jl717jl73b7yr3wy95ww0000gn/T/tersa-visual-audit-e69az5h9/Des
+ktop/d1b5d9f5-3464-4337-b6f7-deee947581f0-diagnostics.json                      
+                                                                                
+                                                                                
+────────────────────────────────────────────────────────────────────────────────
+❯ /heapdump                                                                     
+────────────────────────────────────────────────────────────────────────────────
+  ? for shortcuts                                             ● high · /effort  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

@@ -1,0 +1,396 @@
+# Automated Visual Audit Review
+
+- Scenarios: 50
+- PNGs: 177
+- Text frames: 177
+- Findings: 380
+- Severity counts: {'P2': 362, 'INFO': 9, 'P1': 9}
+
+## P1
+
+- `ansi-leak` — `artifacts/visual-audit/captures/modes/120x34/modes.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/modes/60x34/modes.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/modes/80x34/modes.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/permissions/120x34/permissions.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/permissions/60x34/permissions.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/permissions/80x34/permissions.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/statusline/120x34/statusline.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/statusline/60x34/statusline.txt` — Rendered frame contains raw terminal control text
+- `ansi-leak` — `artifacts/visual-audit/captures/statusline/80x34/statusline.txt` — Rendered frame contains raw terminal control text
+
+## P2
+
+- `low-contrast` — `artifacts/visual-audit/captures/add-dir/120x34/add-dir.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/add-dir/120x34/add-dir.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/add-dir/60x34/add-dir.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/add-dir/60x34/add-dir.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/add-dir/80x34/add-dir.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/add-dir/80x34/add-dir.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/agents/120x34/agents.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/agents/120x34/agents.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/agents/60x34/agents.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/agents/60x34/agents.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/agents/80x34/agents.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/agents/80x34/agents.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/120x34/autocomplete-dismissed.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/120x34/autocomplete-dismissed.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/120x34/autocomplete-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/120x34/autocomplete-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/120x34/autocomplete.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/120x34/autocomplete.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/60x34/autocomplete-dismissed.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/60x34/autocomplete-dismissed.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/60x34/autocomplete-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/60x34/autocomplete-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/60x34/autocomplete.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/60x34/autocomplete.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/80x34/autocomplete-dismissed.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/80x34/autocomplete-dismissed.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/80x34/autocomplete-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/80x34/autocomplete-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/autocomplete/80x34/autocomplete.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/autocomplete/80x34/autocomplete.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/branch/120x34/branch.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/branch/120x34/branch.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/branch/60x34/branch.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/branch/60x34/branch.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/branch/80x34/branch.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/branch/80x34/branch.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/btw/120x34/btw.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/btw/120x34/btw.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/btw/60x34/btw.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/btw/60x34/btw.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/btw/80x34/btw.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/btw/80x34/btw.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/cache-probe/120x34/cache-probe.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/cache-probe/120x34/cache-probe.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/cache-probe/60x34/cache-probe.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/cache-probe/60x34/cache-probe.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/cache-probe/80x34/cache-probe.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/cache-probe/80x34/cache-probe.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/cache-stats/120x34/cache-stats.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/cache-stats/120x34/cache-stats.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/cache-stats/60x34/cache-stats.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/cache-stats/60x34/cache-stats.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/cache-stats/60x34/cache-stats.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/cache-stats/80x34/cache-stats.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/cache-stats/80x34/cache-stats.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/clear/120x34/clear.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/clear/120x34/clear.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/clear/60x34/clear.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/clear/60x34/clear.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/clear/80x34/clear.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/clear/80x34/clear.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/commit-message/120x34/commit-message.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/commit-message/120x34/commit-message.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/commit-message/60x34/commit-message.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/commit-message/60x34/commit-message.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/commit-message/80x34/commit-message.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/commit-message/80x34/commit-message.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/compact/120x34/compact.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/compact/120x34/compact.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/compact/60x34/compact.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/compact/60x34/compact.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/compact/80x34/compact.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/compact/80x34/compact.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/120x34/config-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/120x34/config-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/120x34/config-toggle.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/120x34/config-toggle.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/120x34/config.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/120x34/config.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/60x34/config-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/60x34/config-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/60x34/config-toggle.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/60x34/config-toggle.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/60x34/config.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/60x34/config.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/80x34/config-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/80x34/config-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/80x34/config-toggle.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/80x34/config-toggle.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/config/80x34/config.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/config/80x34/config.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/context/120x34/context.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/context/120x34/context.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/context/60x34/context.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/context/60x34/context.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/context/80x34/context.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/context/80x34/context.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/copy/120x34/copy.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/copy/120x34/copy.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/copy/60x34/copy.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/copy/60x34/copy.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/copy/80x34/copy.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/copy/80x34/copy.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/diff/120x34/diff.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/diff/120x34/diff.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/diff/60x34/diff.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/diff/60x34/diff.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/diff/80x34/diff.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/diff/80x34/diff.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/doctor/120x34/doctor.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/doctor/120x34/doctor.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/doctor/60x34/doctor.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/doctor/60x34/doctor.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/doctor/80x34/doctor.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/doctor/80x34/doctor.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/effort/120x34/effort.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/effort/120x34/effort.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/effort/120x34/effort.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/effort/60x34/effort.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/effort/60x34/effort.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/effort/60x34/effort.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/effort/80x34/effort.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/effort/80x34/effort.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/effort/80x34/effort.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/exit/120x34/exit.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/exit/120x34/exit.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/exit/60x34/exit.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/exit/60x34/exit.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/exit/80x34/exit.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/exit/80x34/exit.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/export/120x34/export.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/export/120x34/export.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/export/60x34/export.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/export/60x34/export.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/export/80x34/export.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/export/80x34/export.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/fast/120x34/fast.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/fast/120x34/fast.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/fast/60x34/fast.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/fast/60x34/fast.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/fast/80x34/fast.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/fast/80x34/fast.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/fast/80x34/fast.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/heapdump/120x34/heapdump.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/heapdump/120x34/heapdump.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/heapdump/120x34/heapdump.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/heapdump/60x34/heapdump.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/heapdump/60x34/heapdump.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/heapdump/60x34/heapdump.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/heapdump/80x34/heapdump.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/heapdump/80x34/heapdump.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/heapdump/80x34/heapdump.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/help/120x34/help.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/help/120x34/help.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/help/60x34/help.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/help/60x34/help.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/help/80x34/help.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/help/80x34/help.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/hooks/120x34/hooks.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/hooks/120x34/hooks.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/hooks/60x34/hooks.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/hooks/60x34/hooks.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/hooks/80x34/hooks.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/hooks/80x34/hooks.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/knowledge/120x34/knowledge.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/knowledge/120x34/knowledge.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/knowledge/60x34/knowledge.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/knowledge/60x34/knowledge.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/knowledge/80x34/knowledge.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/knowledge/80x34/knowledge.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/logo/120x34/logo.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/logo/120x34/logo.png` — Frequent foreground colors fall below 3:1 contrast
+- `right-edge-content` — `artifacts/visual-audit/captures/logo/60x34/logo.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/logo/60x34/logo.png` — Frequent foreground colors fall below 3:1 contrast
+- `right-edge-content` — `artifacts/visual-audit/captures/logo/80x34/logo.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/logo/80x34/logo.png` — Frequent foreground colors fall below 3:1 contrast
+- `low-contrast` — `artifacts/visual-audit/captures/mcp/120x34/mcp.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/mcp/120x34/mcp.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/mcp/60x34/mcp.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/mcp/60x34/mcp.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/mcp/80x34/mcp.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/mcp/80x34/mcp.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/memory/120x34/memory.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/memory/120x34/memory.png` — Rendered foreground touches the image boundary
+- `right-edge-content` — `artifacts/visual-audit/captures/memory/60x34/memory.txt` — Non-border content reaches the final terminal column
+- `low-contrast` — `artifacts/visual-audit/captures/memory/60x34/memory.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/memory/60x34/memory.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/memory/80x34/memory.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/memory/80x34/memory.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/model/120x34/model-effort-right.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/model/120x34/model-effort-right.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/model/120x34/model.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/model/120x34/model.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/model/60x34/model-effort-right.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/model/60x34/model-effort-right.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/model/60x34/model.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/model/60x34/model.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/model/80x34/model-effort-right.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/model/80x34/model-effort-right.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/model/80x34/model.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/model/80x34/model.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/modes/120x34/modes.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/modes/120x34/modes.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/modes/60x34/modes.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/modes/60x34/modes.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/modes/80x34/modes.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/modes/80x34/modes.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/output-style/120x34/output-style.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/output-style/120x34/output-style.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/output-style/60x34/output-style.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/output-style/60x34/output-style.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/output-style/80x34/output-style.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/output-style/80x34/output-style.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/passes/120x34/passes.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/passes/120x34/passes.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/passes/60x34/passes.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/passes/60x34/passes.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/passes/80x34/passes.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/passes/80x34/passes.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/permissions/120x34/permissions.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/permissions/120x34/permissions.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/permissions/60x34/permissions.png` — Frequent foreground colors fall below 3:1 contrast
+- `low-contrast` — `artifacts/visual-audit/captures/permissions/80x34/permissions.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/permissions/80x34/permissions.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/plan/120x34/plan.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/plan/120x34/plan.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/plan/60x34/plan.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/plan/60x34/plan.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/plan/80x34/plan.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/plan/80x34/plan.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/plugin/120x34/plugin.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/plugin/120x34/plugin.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/plugin/60x34/plugin.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/plugin/60x34/plugin.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/plugin/80x34/plugin.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/plugin/80x34/plugin.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/provider/120x34/provider.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/provider/120x34/provider.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/provider/60x34/provider.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/provider/60x34/provider.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/provider/80x34/provider.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/provider/80x34/provider.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/reload-plugins/120x34/reload-plugins.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/reload-plugins/120x34/reload-plugins.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/reload-plugins/60x34/reload-plugins.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/reload-plugins/60x34/reload-plugins.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/reload-plugins/80x34/reload-plugins.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/reload-plugins/80x34/reload-plugins.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/rename/120x34/rename.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/rename/120x34/rename.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/rename/60x34/rename.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/rename/60x34/rename.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/rename/80x34/rename.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/rename/80x34/rename.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/request-size/120x34/request-size.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/request-size/120x34/request-size.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/request-size/60x34/request-size.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/request-size/60x34/request-size.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/request-size/80x34/request-size.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/request-size/80x34/request-size.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/resume/120x34/resume.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/resume/120x34/resume.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/resume/60x34/resume.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/resume/60x34/resume.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/resume/80x34/resume.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/resume/80x34/resume.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/rewind/120x34/rewind.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/rewind/120x34/rewind.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/rewind/60x34/rewind.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/rewind/60x34/rewind.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/rewind/80x34/rewind.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/rewind/80x34/rewind.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/skills/120x34/skills.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/skills/120x34/skills.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/skills/60x34/skills.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/skills/60x34/skills.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/skills/80x34/skills.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/skills/80x34/skills.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/startup/120x34/startup.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/startup/120x34/startup.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/startup/60x34/startup.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/startup/60x34/startup.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/startup/80x34/startup.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/startup/80x34/startup.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/status/120x34/status.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/status/120x34/status.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/status/60x34/status.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/status/60x34/status.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/status/80x34/status.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/status/80x34/status.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/statusline/120x34/statusline.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/statusline/120x34/statusline.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/statusline/60x34/statusline.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/statusline/60x34/statusline.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/statusline/80x34/statusline.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/statusline/80x34/statusline.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/tasks/120x34/tasks.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/tasks/120x34/tasks.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/tasks/60x34/tasks.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/tasks/60x34/tasks.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/tasks/80x34/tasks.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/tasks/80x34/tasks.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/terminal-setup/120x34/terminal-setup.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/terminal-setup/120x34/terminal-setup.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/terminal-setup/60x34/terminal-setup.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/terminal-setup/60x34/terminal-setup.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/terminal-setup/80x34/terminal-setup.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/terminal-setup/80x34/terminal-setup.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/theme/120x34/theme-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/theme/120x34/theme-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/theme/120x34/theme.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/theme/120x34/theme.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/theme/60x34/theme-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/theme/60x34/theme-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/theme/60x34/theme.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/theme/60x34/theme.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/theme/80x34/theme-down.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/theme/80x34/theme-down.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/theme/80x34/theme.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/theme/80x34/theme.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/typed-prompt/120x34/typed-prompt.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/typed-prompt/120x34/typed-prompt.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/typed-prompt/60x34/typed-prompt.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/typed-prompt/60x34/typed-prompt.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/typed-prompt/80x34/typed-prompt.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/typed-prompt/80x34/typed-prompt.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/usage/120x34/usage.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/usage/120x34/usage.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/usage/60x34/usage.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/usage/60x34/usage.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/usage/80x34/usage.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/usage/80x34/usage.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/120x34/vim-delete.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/120x34/vim-delete.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/120x34/vim-enabled.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/120x34/vim-enabled.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/120x34/vim-insert.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/120x34/vim-insert.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/120x34/vim-normal.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/120x34/vim-normal.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/60x34/vim-delete.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/60x34/vim-delete.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/60x34/vim-enabled.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/60x34/vim-enabled.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/60x34/vim-insert.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/60x34/vim-insert.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/60x34/vim-normal.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/60x34/vim-normal.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/80x34/vim-delete.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/80x34/vim-delete.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/80x34/vim-enabled.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/80x34/vim-enabled.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/80x34/vim-insert.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/80x34/vim-insert.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/vim/80x34/vim-normal.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/vim/80x34/vim-normal.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/wiki/120x34/wiki.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/wiki/120x34/wiki.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/wiki/60x34/wiki.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/wiki/60x34/wiki.png` — Rendered foreground touches the image boundary
+- `low-contrast` — `artifacts/visual-audit/captures/wiki/80x34/wiki.png` — Frequent foreground colors fall below 3:1 contrast
+- `pixel-edge-contact` — `artifacts/visual-audit/captures/wiki/80x34/wiki.png` — Rendered foreground touches the image boundary
+
+## INFO
+
+- `error-state` — `artifacts/visual-audit/captures/branch/120x34/branch.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/branch/60x34/branch.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/branch/80x34/branch.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/compact/120x34/compact.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/compact/60x34/compact.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/compact/80x34/compact.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/doctor/120x34/doctor.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/doctor/60x34/doctor.txt` — Checkpoint displays an error or unavailable state
+- `error-state` — `artifacts/visual-audit/captures/doctor/80x34/doctor.txt` — Checkpoint displays an error or unavailable state

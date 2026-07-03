@@ -1,0 +1,50 @@
+{
+  "scenario": "cache-stats",
+  "width": 120,
+  "rows": 34,
+  "binary": "node dist/cli.mjs",
+  "exitCode": 0,
+  "events": [
+    {
+      "atMs": 1783057640288,
+      "event": "spawn",
+      "command": "stty cols 120 rows 34; exec node dist/cli.mjs --model gpt-5.4-mini --effort high",
+      "pid": 12966
+    },
+    {
+      "atMs": 1783057640850,
+      "event": "terminal-reply",
+      "label": "primary-device-attributes",
+      "hex": "1b5b3f313b3063"
+    },
+    {
+      "atMs": 1783057640850,
+      "event": "terminal-reply",
+      "label": "terminal-version",
+      "hex": "1b503e7c47686f7374747920312e322e331b5c"
+    },
+    {
+      "atMs": 1783057640907,
+      "event": "input",
+      "label": "/cache-stats\r",
+      "hex": "2f63616368652d73746174730d"
+    },
+    {
+      "atMs": 1783057642372,
+      "event": "checkpoint",
+      "name": "cache-stats"
+    },
+    {
+      "atMs": 1783057642577,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    },
+    {
+      "atMs": 1783057642882,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    }
+  ]
+}

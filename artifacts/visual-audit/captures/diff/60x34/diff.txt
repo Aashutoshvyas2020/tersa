@@ -1,0 +1,34 @@
+                                                            
+  TERSA                                                     
+  v0.16.3                                                   
+                                                            
+  Provider  Gitlawb Opengateway                             
+  Model     gpt-5.4-mini                                    
+                                                            
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /diff                                                     
+                                                            
+────────────────────────────────────────────────────────────
+  Uncommitted changes (git diff HEAD)                       
+                                                            
+  50 files changed +48                                      
+                                                            
+                                                            
+                                                            
+  ❯ …/captures/add-dir/120x34/add-dir.png        untracked  
+    …/captures/add-dir/120x34/add-dir.txt        untracked  
+    …dit/captures/add-dir/120x34/raw.ansi        untracked  
+    …t/captures/add-dir/120x34/trace.json        untracked  
+    …t/captures/add-dir/60x34/add-dir.png        untracked  
+   ↓ 45 more files                                          
+                                                            
+  ↑/↓ select · Enter view · Esc close                       
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            

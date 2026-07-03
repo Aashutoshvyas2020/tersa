@@ -1,0 +1,34 @@
+                                                                                                                        
+  TERSA                                                                                                                 
+  v0.16.3                                                                                                               
+                                                                                                                        
+  Provider  Gitlawb Opengateway                                                                                         
+  Model     gpt-5.4-mini                                                                                                
+                                                                                                                        
+  * ready - cloud - /help                                                                                               
+                                                                                                                        
+                                                                                                                        
+❯ /memory                                                                                                               
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Memory                                                                                                                
+                                                                                                                        
+    Auto-memory: on                                                                                                     
+    Auto-dream: off · never                                                                                             
+                                                                                                                        
+  ❯ 1. Project memory           Checked in at ./AGENTS.md                                                               
+    2. User memory              Saved in ~/.claude/CLAUDE.md                                                            
+    3. Open auto-memory folder                                                                                          
+    4. Open team memory folder                                                                                          
+                                                                                                                        
+  Learn more: https://code.claude.com/docs/en/memory                                                                    
+                                                                                                                        
+  Enter to confirm · Esc to cancel                                                                                      
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        

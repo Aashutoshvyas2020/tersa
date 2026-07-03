@@ -1,0 +1,50 @@
+{
+  "scenario": "diff",
+  "width": 60,
+  "rows": 34,
+  "binary": "node dist/cli.mjs",
+  "exitCode": 0,
+  "events": [
+    {
+      "atMs": 1783057667009,
+      "event": "spawn",
+      "command": "stty cols 60 rows 34; exec node dist/cli.mjs --model gpt-5.4-mini --effort high",
+      "pid": 13992
+    },
+    {
+      "atMs": 1783057667593,
+      "event": "terminal-reply",
+      "label": "primary-device-attributes",
+      "hex": "1b5b3f313b3063"
+    },
+    {
+      "atMs": 1783057667593,
+      "event": "terminal-reply",
+      "label": "terminal-version",
+      "hex": "1b503e7c47686f7374747920312e322e331b5c"
+    },
+    {
+      "atMs": 1783057667626,
+      "event": "input",
+      "label": "/diff\r",
+      "hex": "2f646966660d"
+    },
+    {
+      "atMs": 1783057669694,
+      "event": "checkpoint",
+      "name": "diff"
+    },
+    {
+      "atMs": 1783057669899,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    },
+    {
+      "atMs": 1783057670204,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    }
+  ]
+}

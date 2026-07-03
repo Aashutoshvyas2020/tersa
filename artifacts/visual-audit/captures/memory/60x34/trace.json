@@ -1,0 +1,50 @@
+{
+  "scenario": "memory",
+  "width": 60,
+  "rows": 34,
+  "binary": "node dist/cli.mjs",
+  "exitCode": 0,
+  "events": [
+    {
+      "atMs": 1783057721123,
+      "event": "spawn",
+      "command": "stty cols 60 rows 34; exec node dist/cli.mjs --model gpt-5.4-mini --effort high",
+      "pid": 15191
+    },
+    {
+      "atMs": 1783057721712,
+      "event": "terminal-reply",
+      "label": "primary-device-attributes",
+      "hex": "1b5b3f313b3063"
+    },
+    {
+      "atMs": 1783057721712,
+      "event": "terminal-reply",
+      "label": "terminal-version",
+      "hex": "1b503e7c47686f7374747920312e322e331b5c"
+    },
+    {
+      "atMs": 1783057721741,
+      "event": "input",
+      "label": "/memory\r",
+      "hex": "2f6d656d6f72790d"
+    },
+    {
+      "atMs": 1783057723807,
+      "event": "checkpoint",
+      "name": "memory"
+    },
+    {
+      "atMs": 1783057724010,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    },
+    {
+      "atMs": 1783057724315,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    }
+  ]
+}

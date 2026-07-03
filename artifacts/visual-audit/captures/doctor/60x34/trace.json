@@ -1,0 +1,50 @@
+{
+  "scenario": "doctor",
+  "width": 60,
+  "rows": 34,
+  "binary": "node dist/cli.mjs",
+  "exitCode": 0,
+  "events": [
+    {
+      "atMs": 1783057673601,
+      "event": "spawn",
+      "command": "stty cols 60 rows 34; exec node dist/cli.mjs --model gpt-5.4-mini --effort high",
+      "pid": 14124
+    },
+    {
+      "atMs": 1783057674167,
+      "event": "terminal-reply",
+      "label": "primary-device-attributes",
+      "hex": "1b5b3f313b3063"
+    },
+    {
+      "atMs": 1783057674167,
+      "event": "terminal-reply",
+      "label": "terminal-version",
+      "hex": "1b503e7c47686f7374747920312e322e331b5c"
+    },
+    {
+      "atMs": 1783057674218,
+      "event": "input",
+      "label": "/doctor\r",
+      "hex": "2f646f63746f720d"
+    },
+    {
+      "atMs": 1783057676986,
+      "event": "checkpoint",
+      "name": "doctor"
+    },
+    {
+      "atMs": 1783057677189,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    },
+    {
+      "atMs": 1783057677491,
+      "event": "input",
+      "label": "ctrl-c",
+      "hex": "03"
+    }
+  ]
+}

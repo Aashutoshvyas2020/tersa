@@ -1,0 +1,34 @@
+                                                            
+  TERSA                                                     
+  v0.16.3                                                   
+                                                            
+  Provider  Gitlawb Opengateway                             
+  Model     gpt-5.4-mini                                    
+                                                            
+  * ready - cloud - /help                                   
+                                                            
+                                                            
+❯ /export                                                   
+                                                            
+────────────────────────────────────────────────────────────
+  Export Conversation                                       
+  Select export format:                                     
+                                                            
+  ❯ 1. Plain Text (.txt) ✔  Plain text format               
+    2. Markdown (.md)       Markdown format for readable    
+                            archives                        
+    3. JSON (.json)         Structured JSON for             
+                            programmatic use                
+                                                            
+  Esc to cancel                                             
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
