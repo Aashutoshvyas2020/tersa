@@ -9,8 +9,18 @@ export type CliSmokeCheck = {
 }
 
 export type CliSmokeResult = {
-  version: CliSmokeCheck & { output: string }
-  help: CliSmokeCheck & { output: string }
+  version: CliSmokeCheck & {
+    output: string
+    status: number | null
+    signal: NodeJS.Signals | null
+    spawnError?: string
+  }
+  help: CliSmokeCheck & {
+    output: string
+    status: number | null
+    signal: NodeJS.Signals | null
+    spawnError?: string
+  }
 }
 
 function normalizeOutput(output: string): string {
@@ -86,10 +96,16 @@ export function runCliSmoke(
     version: {
       ...validateVersionOutput(versionOutput),
       output: normalizeOutput(versionOutput),
+      status: versionProc.status,
+      signal: versionProc.signal,
+      spawnError: versionProc.error?.message,
     },
     help: {
       ...validateHelpOutput(helpOutput),
       output: normalizeOutput(helpOutput),
+      status: helpProc.status,
+      signal: helpProc.signal,
+      spawnError: helpProc.error?.message,
     },
   }
 }
@@ -113,5 +129,10 @@ if (import.meta.main) {
   }
 
   console.error(failures.join('\n'))
+  console.error(`target: ${JSON.stringify([runner, ...entryArgs])}`)
+  console.error(`version status=${result.version.status} signal=${result.version.signal ?? 'none'} error=${result.version.spawnError ?? 'none'}`)
+  console.error(`version output:\n${result.version.output || '<empty>'}`)
+  console.error(`help status=${result.help.status} signal=${result.help.signal ?? 'none'} error=${result.help.spawnError ?? 'none'}`)
+  console.error(`help output:\n${result.help.output || '<empty>'}`)
   process.exit(1)
 }
