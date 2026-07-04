@@ -73,6 +73,19 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+async function waitFor(
+  condition: () => boolean,
+  timeoutMs = 1000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  while (!condition()) {
+    if (Date.now() >= deadline) {
+      throw new Error(`Condition was not met within ${timeoutMs}ms`)
+    }
+    await sleep(5)
+  }
+}
+
 beforeEach(async () => {
   await acquireSharedMutationLock('utils/skills/skillChangeDetector.test.ts')
   installMocks()
@@ -160,21 +173,20 @@ describe('skillChangeDetector reload batching', () => {
     const detector = await importFreshModule()
     await detector.resetForTesting({ reloadDebounce: 5, reloadCooldown: 60 })
 
-    let notifications = 0
+    const notificationTimes: number[] = []
     const unsubscribe = detector.subscribe(() => {
-      notifications += 1
+      notificationTimes.push(Date.now())
     })
 
     detector._scheduleReloadForTesting('/tmp/skills/first/SKILL.md')
-    await sleep(20)
-    expect(notifications).toBe(1)
+    await waitFor(() => notificationTimes.length === 1)
 
     detector._scheduleReloadForTesting('/tmp/skills/second/SKILL.md')
-    await sleep(20)
-    expect(notifications).toBe(1)
+    expect(notificationTimes).toHaveLength(1)
 
-    await sleep(60)
-    expect(notifications).toBe(2)
+    await waitFor(() => notificationTimes.length === 2)
+    const [firstNotification, secondNotification] = notificationTimes
+    expect(secondNotification! - firstNotification!).toBeGreaterThanOrEqual(55)
     expect(executeConfigChangeHooks).toHaveBeenCalledTimes(2)
 
     unsubscribe()

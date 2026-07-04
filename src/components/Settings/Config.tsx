@@ -623,7 +623,7 @@ export function Config({
     }
   }, {
     id: 'copyFullResponse',
-    label: 'Always copy full response (skip /copy picker)',
+    label: 'Always copy full response',
     value: globalConfig.copyFullResponse,
     type: 'boolean' as const,
     onChange(copyFullResponse: boolean) {
@@ -1741,16 +1741,9 @@ export function Config({
                                 <NotifChannelLabel value={setting_2.value.toString()} />
                               </Text> : setting_2.id === 'defaultPermissionMode' ? <Text color={setting_2.value === 'fullAccess' ? getModeColor('fullAccess') : isSelected ? 'suggestion' : undefined}>
                                 {permissionModeTitle(setting_2.value as PermissionMode)}
-                              </Text> : setting_2.id === 'autoUpdatesChannel' && autoUpdaterDisabledReason ? <Box flexDirection="column">
-                                <Text color={isSelected ? 'suggestion' : undefined}>
-                                  disabled
-                                </Text>
-                                <Text dimColor>
-                                  (
-                                  {formatAutoUpdaterDisabledReason(autoUpdaterDisabledReason)}
-                                  )
-                                </Text>
-                              </Box> : <Text color={isSelected ? 'suggestion' : undefined}>
+                              </Text> : setting_2.id === 'autoUpdatesChannel' && autoUpdaterDisabledReason ? <Text color={isSelected ? 'suggestion' : undefined}>
+                                disabled · {formatAutoUpdaterDisabledReason(autoUpdaterDisabledReason)}
+                              </Text> : <Text color={isSelected ? 'suggestion' : undefined}>
                                 {setting_2.value.toString()}
                               </Text>}
                           </Box>

@@ -1,4 +1,19 @@
+import { basename, dirname } from 'node:path'
+
+import { getDisplayPath } from '../../utils/file.js'
 import { performHeapDump } from '../../utils/heapDumpService.js'
+
+export function formatHeapDumpOutput(
+  heapPath: string,
+  diagPath: string,
+): string {
+  const directory = getDisplayPath(dirname(heapPath))
+  return [
+    `Heap dump written to ${directory}`,
+    `Snapshot: ${basename(heapPath)}`,
+    `Diagnostics: ${basename(diagPath)}`,
+  ].join('\n')
+}
 
 export async function call(): Promise<{ type: 'text'; value: string }> {
   const result = await performHeapDump()
@@ -12,6 +27,6 @@ export async function call(): Promise<{ type: 'text'; value: string }> {
 
   return {
     type: 'text',
-    value: `${result.heapPath}\n${result.diagPath}`,
+    value: formatHeapDumpOutput(result.heapPath, result.diagPath),
   }
 }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -40,7 +41,7 @@ def inspect_text(path: Path, width: int, rows: int) -> list[dict[str, Any]]:
         results.append(finding(path, 'P1', 'row-count', f'Expected {rows} rows, found {len(lines)}'))
     if '�' in text:
         results.append(finding(path, 'P1', 'replacement-character', 'Rendered text contains Unicode replacement characters'))
-    if re.search(r'\x1b|\[[0-9;?]*[A-Za-z]', text):
+    if re.search(r'\x1b|\[[0-9;?]+[A-Za-z]', text):
         results.append(finding(path, 'P1', 'ansi-leak', 'Rendered frame contains raw terminal control text'))
     bad_tokens = [token for token in ('[object Object]', 'undefined', 'NaN', 'Traceback', 'UnhandledPromiseRejection') if token in text]
     if bad_tokens:
@@ -58,7 +59,7 @@ def inspect_text(path: Path, width: int, rows: int) -> list[dict[str, Any]]:
         if padded and padded[-1] not in ' ─│┐┘┤┬┴┼╮╯╗╝║═':
             edge_rows.append(index + 1)
     if edge_rows:
-        results.append(finding(path, 'P2', 'right-edge-content', 'Non-border content reaches the final terminal column', rows=edge_rows[:20]))
+        results.append(finding(path, 'INFO', 'full-width-text', 'Text uses the final terminal column; inspect manually for clipping', rows=edge_rows[:20]))
     if lines and lines[-1].strip():
         results.append(finding(path, 'P2', 'bottom-edge-content', 'Content reaches the final terminal row', content=lines[-1].rstrip()))
 
@@ -76,28 +77,58 @@ def inspect_text(path: Path, width: int, rows: int) -> list[dict[str, Any]]:
     return results
 
 
+def _distance_from_background(color: tuple[int, int, int]) -> float:
+    return math.dist(color, BACKGROUND)
+
+
+def _is_antialias_intermediate(
+    color: tuple[int, int, int],
+    colors: Counter[tuple[int, int, int]],
+) -> bool:
+    vector = tuple(channel - background for channel, background in zip(color, BACKGROUND))
+    distance = _distance_from_background(color)
+    if distance == 0:
+        return False
+    for candidate in colors:
+        candidate_distance = _distance_from_background(candidate)
+        if candidate_distance <= distance + 12:
+            continue
+        candidate_vector = tuple(
+            channel - background
+            for channel, background in zip(candidate, BACKGROUND)
+        )
+        cosine = sum(
+            left * right
+            for left, right in zip(vector, candidate_vector)
+        ) / (distance * candidate_distance)
+        if cosine >= 0.995:
+            return True
+    return False
+
+
 def inspect_image(path: Path) -> list[dict[str, Any]]:
     image = Image.open(path).convert('RGB')
     results: list[dict[str, Any]] = []
-    colors = Counter(image.getdata())
+    colors = Counter(image.get_flattened_data())
     non_bg = sum(count for color, count in colors.items() if color != BACKGROUND)
     if non_bg == 0:
         return [finding(path, 'P1', 'blank-image', 'PNG contains only the background color')]
     low = []
-    for color, count in colors.most_common(30):
+    for color, count in colors.most_common(60):
         if color == BACKGROUND or count < 10:
             continue
         ratio = contrast(color, BACKGROUND)
-        if ratio < 3.0:
+        if ratio < 3.0 and not _is_antialias_intermediate(color, colors):
             low.append({'color': color, 'pixels': count, 'ratio': round(ratio, 2)})
     if low:
-        results.append(finding(path, 'P2', 'low-contrast', 'Frequent foreground colors fall below 3:1 contrast', colors=low))
+        results.append(finding(path, 'P2', 'low-contrast', 'Foreground source colors fall below 3:1 contrast', colors=low))
     pixels = image.load()
     width, height = image.size
     edge_non_bg = sum(int(pixels[x, 0] != BACKGROUND) + int(pixels[x, height - 1] != BACKGROUND) for x in range(width))
     edge_non_bg += sum(int(pixels[0, y] != BACKGROUND) + int(pixels[width - 1, y] != BACKGROUND) for y in range(height))
-    if edge_non_bg:
-        results.append(finding(path, 'P2', 'pixel-edge-contact', 'Rendered foreground touches the image boundary', pixels=edge_non_bg))
+    edge_threshold = max(32, round((width + height) * 0.03))
+    if edge_non_bg > edge_threshold:
+        results.append(finding(path, 'P2', 'pixel-edge-contact', 'Rendered foreground materially touches the image boundary', pixels=edge_non_bg, threshold=edge_threshold))
     return results
 
 

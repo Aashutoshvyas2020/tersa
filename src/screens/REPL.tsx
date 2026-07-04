@@ -86,6 +86,7 @@ import { GlobalKeybindingHandlers } from '../hooks/useGlobalKeybindings.js';
 import { CommandKeybindingHandlers } from '../hooks/useCommandKeybindings.js';
 import { KeybindingSetup } from '../keybindings/KeybindingProviderSetup.js';
 import { useShortcutDisplay } from '../keybindings/useShortcutDisplay.js';
+import { formatTranscriptFooter } from './transcriptFooter.js';
 import { getShortcutDisplay } from '../keybindings/shortcutFormat.js';
 import { CancelRequestHandler } from '../hooks/useCancelRequest.js';
 import { useBackgroundTaskNavigation } from '../hooks/useBackgroundTaskNavigation.js';
@@ -342,12 +343,19 @@ function TranscriptModeFooter(t0) {
   const suppressShowAll = t1 === undefined ? false : t1;
   const toggleShortcut = useShortcutDisplay("app:toggleTranscript", "Global", "ctrl+o");
   const showAllShortcut = useShortcutDisplay("transcript:toggleShowAll", "Transcript", "ctrl+e");
-  const t2 = searchBadge ? " \xB7 n/N to navigate" : virtualScroll ? ` · ${figures.arrowUp}${figures.arrowDown} scroll · home/end top/bottom` : suppressShowAll ? "" : ` · ${showAllShortcut} to ${showAllInTranscript ? "collapse" : "show all"}`;
+  const t2 = formatTranscriptFooter({
+    columns: process.stdout.columns || 80,
+    toggleShortcut,
+    showAllShortcut,
+    showAllInTranscript,
+    virtualScroll,
+    searchBadge: Boolean(searchBadge),
+    suppressShowAll
+  });
   let t3;
-  if ($[0] !== t2 || $[1] !== toggleShortcut) {
-    t3 = <Text dimColor={true}>Showing detailed transcript · {toggleShortcut} to toggle{t2}</Text>;
+  if ($[0] !== t2) {
+    t3 = <Text dimColor={true}>{t2}</Text>;
     $[0] = t2;
-    $[1] = toggleShortcut;
     $[2] = t3;
   } else {
     t3 = $[2];

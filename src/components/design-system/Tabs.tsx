@@ -53,6 +53,14 @@ type TabsContextValue = {
   blurHeader: () => void;
   registerOptIn: () => () => void;
 };
+export function resolveTabTitle(
+  title: string,
+  compactTitle: string | undefined,
+  terminalWidth: number,
+): string {
+  return terminalWidth <= 60 && compactTitle ? compactTitle : title
+}
+
 const TabsContext = createContext<TabsContextValue>({
   selectedTab: undefined,
   width: undefined,
@@ -85,7 +93,14 @@ export function Tabs(t0) {
   const {
     columns: terminalWidth
   } = useTerminalSize();
-  const tabs = children.map(_temp);
+  const tabs = children.map(child => [
+    child.props.id ?? child.props.title,
+    resolveTabTitle(
+      child.props.title,
+      child.props.compactTitle,
+      terminalWidth,
+    ),
+  ]);
   const defaultTabIndex = defaultTab ? tabs.findIndex(tab => defaultTab === tab[0]) : 0;
   const isControlled = controlledSelectedTab !== undefined;
   const [internalSelectedTab, setInternalSelectedTab] = useState(defaultTabIndex !== -1 ? defaultTabIndex : 0);
@@ -250,11 +265,9 @@ function _temp3(n_0) {
 function _temp2(n) {
   return n + 1;
 }
-function _temp(child) {
-  return [child.props.id ?? child.props.title, child.props.title];
-}
 type TabProps = {
   title: string;
+  compactTitle?: string;
   id?: string;
   children: React.ReactNode;
 };

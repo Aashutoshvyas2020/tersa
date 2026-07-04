@@ -53,38 +53,21 @@ export function UserLocalCommandOutputMessage(t0) {
   }
   return lines;
 }
-function IndentedContent(t0) {
-  const $ = _c(5);
-  const {
-    children
-  } = t0;
-  if (children.startsWith(`${DIAMOND_OPEN} `) || children.startsWith(`${DIAMOND_FILLED} `)) {
-    let t1;
-    if ($[0] !== children) {
-      t1 = <CloudLaunchContent>{children}</CloudLaunchContent>;
-      $[0] = children;
-      $[1] = t1;
-    } else {
-      t1 = $[1];
-    }
-    return t1;
+function IndentedContent({ children }: { children: string }) {
+  if (
+    children.startsWith(`${DIAMOND_OPEN} `) ||
+    children.startsWith(`${DIAMOND_FILLED} `)
+  ) {
+    return <CloudLaunchContent>{children}</CloudLaunchContent>
   }
-  let t1;
-  if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
-    t1 = <Text dimColor={true}>{"  \u2514  "}</Text>;
-    $[2] = t1;
-  } else {
-    t1 = $[2];
-  }
-  let t2;
-  if ($[3] !== children) {
-    t2 = <FullWidthRow>{t1}<Box flexDirection="column" flexGrow={1}><Markdown>{children}</Markdown></Box></FullWidthRow>;
-    $[3] = children;
-    $[4] = t2;
-  } else {
-    t2 = $[4];
-  }
-  return t2;
+
+  return (
+    <MessageResponse>
+      <Box flexDirection="column" flexGrow={1} minWidth={1}>
+        <Markdown>{children}</Markdown>
+      </Box>
+    </MessageResponse>
+  )
 }
 function CloudLaunchContent(t0) {
   const $ = _c(19);

@@ -80,6 +80,16 @@ export function renderToAnsiString(node: React.ReactNode, columns?: number): Pro
     // useful for rendering at terminal width for file dumps that should
     // match what the user sees on screen.
     const stream = new PassThrough();
+    const stdin = new PassThrough() as PassThrough & {
+      isTTY: boolean;
+      setRawMode: (mode: boolean) => void;
+      ref: () => void;
+      unref: () => void;
+    };
+    stdin.isTTY = true;
+    stdin.setRawMode = () => {};
+    stdin.ref = () => {};
+    stdin.unref = () => {};
     if (columns !== undefined) {
       ;
       (stream as unknown as {
@@ -93,6 +103,7 @@ export function renderToAnsiString(node: React.ReactNode, columns?: number): Pro
     // Render the component wrapped in RenderOnceAndExit
     // Non-TTY stdout (PassThrough) gives full-frame output instead of diffs
     const instance = await render(<RenderOnceAndExit>{node}</RenderOnceAndExit>, {
+      stdin: stdin as unknown as NodeJS.ReadStream,
       stdout: stream as unknown as NodeJS.WriteStream,
       patchConsole: false
     });
