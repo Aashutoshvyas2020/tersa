@@ -102,8 +102,6 @@ export function printStartupScreen(modelOverride?: string): void {
     process.stdout.columns ?? 80,
     process.stdout.rows ?? 24,
   )
-  process.stdout.write('[2J[3J[H')
-  process.stdout.write(`${lines.join('
-')}
-`)
+  process.stdout.write('\u001b[2J\u001b[3J\u001b[H')
+  process.stdout.write(`${lines.join('\n')}\n`)
 }
