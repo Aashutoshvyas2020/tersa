@@ -51,15 +51,27 @@ type Row =
       label: string
     }
 
-function renderInputGuide(exitState: ExitState): React.ReactNode {
+export function renderStatusLineInputGuide(
+  exitState: ExitState,
+  columns: number = process.stdout.columns || 80,
+): React.ReactNode {
   if (exitState.pending) {
     return <Text>Press {exitState.keyName} again to exit</Text>
+  }
+
+  if (columns <= 60) {
+    return (
+      <Text dimColor>
+        Space toggle · ←→ cycle · Enter save ·{' '}
+        <Text>{exitState.keyName || 'Esc'}</Text> cancel
+      </Text>
+    )
   }
 
   return (
     <Text dimColor>
       Space toggle · ←→ cycle · Enter save · R reset ·{' '}
-      <Text>{exitState.keyName}</Text> cancel
+      <Text>{exitState.keyName || 'Esc'}</Text> cancel
     </Text>
   )
 }
@@ -209,7 +221,7 @@ export function StatusLineConfigDialog({
       title="Status line"
       subtitle="Show the live session state beneath the prompt."
       onCancel={onCancel}
-      inputGuide={renderInputGuide}
+      inputGuide={renderStatusLineInputGuide}
     >
       <Box flexDirection="column">
         {rows.map((row, index) => {

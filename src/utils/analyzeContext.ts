@@ -57,6 +57,10 @@ import { errorMessage, toError } from './errors.js'
 import { logError } from './log.js'
 import { normalizeMessagesForAPI } from './messages.js'
 import { getRuntimeMainLoopModel } from './model/model.js'
+import {
+  getAPIProvider,
+  isGithubNativeAnthropicMode,
+} from './model/providers.js'
 import type { SettingSource } from './settings/constants.js'
 import { jsonStringify } from './slowOperations.js'
 import { buildEffectiveSystemPrompt } from './systemPrompt.js'
@@ -75,10 +79,25 @@ const MANUAL_COMPACT_BUFFER_NAME = 'Compact buffer'
  */
 export const TOOL_TOKEN_COUNT_OVERHEAD = 500
 
+function supportsNativeTokenCounting(): boolean {
+  const provider = getAPIProvider()
+  return (
+    provider === 'firstParty' ||
+    provider === 'bedrock' ||
+    provider === 'vertex' ||
+    provider === 'foundry' ||
+    (provider === 'github' && isGithubNativeAnthropicMode())
+  )
+}
+
 async function countTokensWithFallback(
   messages: Anthropic.Beta.Messages.BetaMessageParam[],
   tools: Anthropic.Beta.Messages.BetaToolUnion[],
 ): Promise<number | null> {
+  if (!supportsNativeTokenCounting()) {
+    return estimateTokensLocally(messages, tools)
+  }
+
   try {
     const result = await countMessagesTokensWithAPI(messages, tools)
     if (result !== null) {

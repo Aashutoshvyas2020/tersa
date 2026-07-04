@@ -219,6 +219,26 @@ export function startupExpectationForWidth(_width: number): ExpectStep {
   return { expect: '[Hh]igh', regex: true }
 }
 
+export function terminalNegotiationSettleScript(seconds: number): string {
+  return [
+    `set timeout ${seconds}`,
+    'set esc [format %c 27]',
+    'set keyboard_query "${esc}\\[>0q"',
+    'set device_query "${esc}\\[c"',
+    'set device_reply "${esc}\\[?1;0c"',
+    'expect {',
+    '  -ex $keyboard_query { exp_continue -continue_timer }',
+    '  -ex $device_query {',
+    '    send $device_reply',
+    '    exp_continue -continue_timer',
+    '  }',
+    '  timeout {}',
+    '  eof { puts stderr "unexpected eof during terminal negotiation"; exit 3 }',
+    '}',
+    'set timeout 10',
+  ].join('\n')
+}
+
 async function runCanaryAtWidth(
   binary: string,
   startupOnly: boolean,
@@ -366,6 +386,7 @@ async function runDialogCanaryAtWidth(
   const command = `stty cols ${width} rows 34; ${baseCommand} --model gpt-5.4-mini --effort high`
   const firstExpected = expectedText[0] ?? commandName
   const startupExpectation = startupExpectationForWidth(width)
+  const startupSettleScript = terminalNegotiationSettleScript(5)
   const expectScript = `
 set timeout 10
 after 30000 { puts stderr "wall timeout waiting for ${expectLiteral(commandName)}"; exit 2 }
@@ -402,7 +423,7 @@ expect {
   timeout { puts stderr "timeout waiting for startup"; exit 2 }
   eof { puts stderr "unexpected eof waiting for startup"; exit 3 }
 }
-after 5000
+${startupSettleScript}
 send "${expectLiteral(commandName)}"
 after 1200
 send "\\r"

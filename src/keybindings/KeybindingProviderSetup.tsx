@@ -28,6 +28,11 @@ import type { KeybindingWarning } from './validate.js';
  * If the user doesn't complete the chord within this time, it's cancelled.
  */
 const CHORD_TIMEOUT_MS = 1000;
+
+export function shouldConsumeUnboundKey(wasInChord: boolean): boolean {
+  return wasInChord
+}
+
 type Props = {
   children: React.ReactNode;
 };
@@ -286,7 +291,9 @@ function ChordInterceptor(t0) {
         case "unbound":
           {
             setPendingChord(null);
-            event.stopImmediatePropagation();
+            if (shouldConsumeUnboundKey(wasInChord)) {
+              event.stopImmediatePropagation();
+            }
             break bb23;
           }
         case "none":

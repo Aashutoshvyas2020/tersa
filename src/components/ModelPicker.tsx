@@ -44,7 +44,7 @@ export type Props = {
 };
 const NO_PREFERENCE = '__NO_PREFERENCE__';
 export function resolveModelPickerLayout(columns: number | undefined): 'compact' | 'compact-vertical' {
-  return (columns ?? 80) < 72 ? 'compact-vertical' : 'compact';
+  return (columns ?? 80) < 96 ? 'compact-vertical' : 'compact';
 }
 function mapDiscoveryToneToColor(tone: ModelPickerDiscoveryState['tone']): 'error' | 'warning' | 'success' | 'subtle' {
   switch (tone) {

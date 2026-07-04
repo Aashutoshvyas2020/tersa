@@ -74,7 +74,7 @@ function getDisabledReasonMessage(
 
 export function getFastModeUnavailableReason(): string | null {
   if (getAPIProvider() !== 'firstParty') {
-    return 'Fast mode is not available on third-party providers'
+    return 'Fast mode requires an Anthropic provider'
   }
 
   if (!isFastModeEnabled()) {

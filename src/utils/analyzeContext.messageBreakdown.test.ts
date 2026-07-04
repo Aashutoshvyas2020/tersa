@@ -99,6 +99,64 @@ describe('approximateMessageTokens', () => {
     }
   })
 
+  test('skips remote token-count fallbacks for OpenAI-compatible providers', async () => {
+    await acquireSharedMutationLock('analyzeContext.messageBreakdown.test.ts')
+    const originalFixtureRoot = process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT
+    const originalUseOpenAI = process.env.CLAUDE_CODE_USE_OPENAI
+    const originalOpenAIModel = process.env.OPENAI_MODEL
+    const fixtureRoot = await mkdtemp(join(tmpdir(), 'tersa-vcr-'))
+    process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT = fixtureRoot
+    process.env.CLAUDE_CODE_USE_OPENAI = '1'
+    process.env.OPENAI_MODEL = 'gpt-5.4-mini'
+
+    try {
+      const countMessagesTokensWithAPI = mock(async () => null)
+      const countTokensViaHaikuFallback = mock(async () => {
+        throw new Error('remote fallback must not run')
+      })
+      mock.module('../services/tokenEstimation.js', () => ({
+        ...realTokenEstimation,
+        countMessagesTokensWithAPI,
+        countTokensViaHaikuFallback,
+      }))
+
+      const { approximateMessageTokensForTesting } =
+        await loadAnalyzeContextForTesting()
+      const breakdown = await approximateMessageTokensForTesting([
+        {
+          type: 'user',
+          message: {
+            role: 'user',
+            content: 'local estimation should return immediately',
+          },
+        },
+      ])
+
+      expect(countMessagesTokensWithAPI).not.toHaveBeenCalled()
+      expect(countTokensViaHaikuFallback).not.toHaveBeenCalled()
+      expect(breakdown.totalTokens).toBeGreaterThan(0)
+    } finally {
+      mock.restore()
+      if (originalFixtureRoot === undefined) {
+        delete process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT
+      } else {
+        process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT = originalFixtureRoot
+      }
+      if (originalUseOpenAI === undefined) {
+        delete process.env.CLAUDE_CODE_USE_OPENAI
+      } else {
+        process.env.CLAUDE_CODE_USE_OPENAI = originalUseOpenAI
+      }
+      if (originalOpenAIModel === undefined) {
+        delete process.env.OPENAI_MODEL
+      } else {
+        process.env.OPENAI_MODEL = originalOpenAIModel
+      }
+      await rm(fixtureRoot, { recursive: true, force: true })
+      releaseSharedMutationLock()
+    }
+  })
+
   test('uses media-aware estimates instead of serialized base64 length', async () => {
     await acquireSharedMutationLock('analyzeContext.messageBreakdown.test.ts')
     const originalFixtureRoot = process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT

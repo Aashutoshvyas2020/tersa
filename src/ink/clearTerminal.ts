@@ -52,6 +52,14 @@ function isModernWindowsTerminal(): boolean {
   return false
 }
 
+/** Clears the visible viewport without deleting native scrollback. */
+export function getClearScreenSequence(): string {
+  if (process.platform === 'win32' && !isModernWindowsTerminal()) {
+    return ERASE_SCREEN + CURSOR_HOME_WINDOWS
+  }
+  return ERASE_SCREEN + CURSOR_HOME
+}
+
 /**
  * Returns the ANSI escape sequence to clear the terminal including scrollback.
  * Automatically detects terminal capabilities.

@@ -351,7 +351,7 @@ function getMcpStatusLabel(mcpClients: Array<{ type?: string }>): string | null 
   return connected > 0 ? `mcp ${connected}` : null
 }
 
-function getAuthWarningLabel(provider: string): string | null {
+export function getAuthWarningLabel(provider: string): string | null {
   if (provider === 'codex') {
     const credentials = resolveCodexApiCredentials(process.env)
     return credentials.apiKey && credentials.accountId ? null : 'auth !'
@@ -723,7 +723,7 @@ function fitCuratedStatusLineSegments(
   return segments
 }
 
-function getCuratedSegmentTextProps(
+export function getCuratedSegmentTextProps(
   segment: CuratedStatusSegment,
   colorIntensity: 'low' | 'normal' | 'high',
   usedPercentage: number | null,
@@ -738,7 +738,7 @@ function getCuratedSegmentTextProps(
       return {
         ...base,
         dimColor: !intense,
-        bold: intense,
+        bold: true,
       }
     case 'identity':
       return {
