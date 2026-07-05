@@ -4,6 +4,10 @@ import { type Key, useInput } from '../ink.js'
 import { useOptionalKeybindingContext } from './KeybindingContext.js'
 import type { KeybindingContextName } from './types.js'
 
+export function shouldConsumeUnboundBinding(): boolean {
+  return false
+}
+
 type Options = {
   /** Which context this binding belongs to (default: 'Global') */
   context?: KeybindingContextName
@@ -81,9 +85,12 @@ export function useKeybinding(
           keybindingContext.setPendingChord(null)
           break
         case 'unbound':
-          // Explicitly unbound - clear any pending chord
+          // Clear pending chord state, but let standalone unbound keys reach
+          // later input handlers such as the prompt editor.
           keybindingContext.setPendingChord(null)
-          event.stopImmediatePropagation()
+          if (shouldConsumeUnboundBinding()) {
+            event.stopImmediatePropagation()
+          }
           break
         case 'none':
           // No match - let other handlers try
@@ -180,9 +187,12 @@ export function useKeybindings(
           keybindingContext.setPendingChord(null)
           break
         case 'unbound':
-          // Explicitly unbound - clear any pending chord
+          // Clear pending chord state, but let standalone unbound keys reach
+          // later input handlers such as the prompt editor.
           keybindingContext.setPendingChord(null)
-          event.stopImmediatePropagation()
+          if (shouldConsumeUnboundBinding()) {
+            event.stopImmediatePropagation()
+          }
           break
         case 'none':
           // No match - let other handlers try

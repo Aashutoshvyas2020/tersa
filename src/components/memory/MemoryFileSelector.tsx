@@ -391,7 +391,7 @@ export function MemoryFileSelector(t0: Props) {
   }
   let t22;
   if ($[48] !== initialPath || $[49] !== memoryOptions || $[50] !== onCancel || $[51] !== t20 || $[52] !== t21 || $[53] !== toggleFocused) {
-    t22 = <Select defaultFocusValue={initialPath} options={memoryOptions} isDisabled={toggleFocused} onChange={t20} onCancel={onCancel} onUpFromFirstItem={t21} />;
+    t22 = <Select defaultFocusValue={initialPath} options={memoryOptions} isDisabled={toggleFocused} onChange={t20} onCancel={onCancel} onUpFromFirstItem={t21} layout="compact-vertical" />;
     $[48] = initialPath;
     $[49] = memoryOptions;
     $[50] = onCancel;

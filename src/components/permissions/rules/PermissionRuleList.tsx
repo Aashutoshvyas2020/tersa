@@ -1132,7 +1132,7 @@ export function PermissionRuleList(t0: Props) {
   }
   let t24;
   if ($[82] === Symbol.for("react.memo_cache_sentinel")) {
-    t24 = <Tab id="recent" title="Recently denied"><RecentDenialsTab onHeaderFocusChange={handleHeaderFocusChange} onStateChange={handleDenialStateChange} /></Tab>;
+    t24 = <Tab id="recent" title="Recently denied" compactTitle="Denied"><RecentDenialsTab onHeaderFocusChange={handleHeaderFocusChange} onStateChange={handleDenialStateChange} /></Tab>;
     $[82] = t24;
   } else {
     t24 = $[82];
@@ -1170,7 +1170,7 @@ export function PermissionRuleList(t0: Props) {
   }
   let t29;
   if ($[90] !== onExit || $[91] !== toolPermissionContext) {
-    t29 = <Tab id="workspace" title="Workspace"><Box flexDirection="column">{t28}<WorkspaceTab onExit={onExit} toolPermissionContext={toolPermissionContext} onRequestAddDirectory={handleRequestAddDirectory} onRequestRemoveDirectory={handleRequestRemoveDirectory} onHeaderFocusChange={handleHeaderFocusChange} /></Box></Tab>;
+    t29 = <Tab id="workspace" title="Workspace" compactTitle="Work"><Box flexDirection="column">{t28}<WorkspaceTab onExit={onExit} toolPermissionContext={toolPermissionContext} onRequestAddDirectory={handleRequestAddDirectory} onRequestRemoveDirectory={handleRequestRemoveDirectory} onHeaderFocusChange={handleHeaderFocusChange} /></Box></Tab>;
     $[90] = onExit;
     $[91] = toolPermissionContext;
     $[92] = t29;

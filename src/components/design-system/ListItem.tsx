@@ -66,6 +66,7 @@ export function ListItem({
         flexDirection="row"
         gap={1}
         width="100%"
+        paddingRight={1}
         backgroundColor={backgroundColor}
         alignItems="flex-start"
       >
@@ -100,6 +101,7 @@ export function ListItem({
       {description ? (
         <Box
           paddingLeft={2}
+          paddingRight={1}
           width="100%"
           backgroundColor={backgroundColor}
         >

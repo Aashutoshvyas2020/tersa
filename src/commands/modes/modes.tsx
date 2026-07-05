@@ -8,6 +8,7 @@ import type { CaveModeConfig } from '../../utils/caveMode/types.js'
 import { getTersaModesConfig } from '../../utils/modes/config.js'
 import { listModeDefinitions } from '../../utils/modes/registry.js'
 import type { TersaModesSettings, TersaPromptModeId } from '../../utils/modes/types.js'
+import { ModeDescription } from './ModeDescription.js'
 import { updateSettingsForSource } from '../../utils/settings/settings.js'
 
 export function toggleModeSetting(
@@ -40,6 +41,17 @@ export function toggleCaveModeSetting(
   }
 }
 
+export function finishModesCommand(
+  onDone: Parameters<LocalJSXCommandCall>[0],
+  changed: boolean,
+): void {
+  if (!changed) {
+    onDone(undefined, { display: 'skip' })
+    return
+  }
+  onDone('Modes updated', { display: 'system' })
+}
+
 function ModesCommand({
   onDone,
   current,
@@ -53,13 +65,14 @@ function ModesCommand({
   const [draft, setDraft] = React.useState<TersaModesSettings>(current ?? {})
   const [draftCave, setDraftCave] = React.useState<Partial<CaveModeConfig>>(currentCave ?? {})
   const [selectedIndex, setSelectedIndex] = React.useState(0)
+  const [changed, setChanged] = React.useState(false)
   const definitions = React.useMemo(() => listModeDefinitions(), [])
   const config = getTersaModesConfig(draft)
   const caveMode = { ...DEFAULT_CAVE_MODE_CONFIG, ...draftCave }
 
   const close = React.useCallback(() => {
-    onDone('Modes updated', { display: 'system' })
-  }, [onDone])
+    finishModesCommand(onDone, changed)
+  }, [changed, onDone])
 
   const toggleSelected = React.useCallback(() => {
     const definition = definitions[selectedIndex]
@@ -78,6 +91,7 @@ function ModesCommand({
       }
 
       setDraftCave(nextCave)
+      setChanged(true)
       setAppState(prev => ({
         ...prev,
         settings: {
@@ -100,6 +114,7 @@ function ModesCommand({
     }
 
     setDraft(next)
+    setChanged(true)
     setAppState(prev => ({
       ...prev,
       settings: {
@@ -153,7 +168,7 @@ function ModesCommand({
                 {mode.enabled ? '[on]  ' : '[off] '}
                 {definition.label} · {mode.intensity}
               </Text>
-              <Text dimColor={true}>    {definition.description}</Text>
+              <ModeDescription>{definition.description}</ModeDescription>
             </Box>
           )
         })}

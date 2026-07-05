@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { homedir } from 'os'
-import { buildCuratedStatusLineSegments } from './StatusLine.js'
+import {
+  buildCuratedStatusLineSegments,
+  getAuthWarningLabel,
+  getCuratedSegmentTextProps,
+} from './StatusLine.js'
 import { getDefaultBuiltinStatusLineConfig } from './statusline/statusLineConfig.js'
 import { DEFAULT_CAVE_MODE_CONFIG } from '../utils/caveMode/config.js'
 import { stringWidth } from '../ink/stringWidth.js'
@@ -118,6 +122,19 @@ function buildSegments(args: {
 
   return segments
 }
+
+describe('StatusLine product wordmark', () => {
+  test('keeps the silver Tersa wordmark bold at normal intensity', () => {
+    expect(
+      getCuratedSegmentTextProps(
+        { id: 'product', text: 'Tersa', kind: 'product', priority: 1 },
+        'normal',
+        null,
+        undefined as never,
+      ),
+    ).toMatchObject({ bold: true, dimColor: true })
+  })
+})
 
 describe('StatusLine project label', () => {
   test('prefers stable repo root over internal worktree path', () => {
@@ -263,13 +280,7 @@ describe('StatusLine warnings', () => {
     delete process.env.CODEX_ACCOUNT_ID
 
     try {
-      const warningSegment = buildSegments({
-        currentDir: '/Users/aashu/tersa',
-        projectDir: '/Users/aashu/tersa',
-        showWarnings: true,
-      }).find(segment => segment.id === 'warning-auth')
-
-      expect(warningSegment).toBeUndefined()
+      expect(getAuthWarningLabel('codex')).toBeNull()
     } finally {
       for (const [key, value] of Object.entries(previousEnv)) {
         if (value === undefined) {

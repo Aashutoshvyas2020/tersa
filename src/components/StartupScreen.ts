@@ -7,7 +7,10 @@ import { getGlobalConfig } from '../utils/config.js'
 import { parseUserSpecifiedModel } from '../utils/model/model.js'
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js'
 import { ANSI_RESET, ansiRgb } from '../utils/terminalAnsi.js'
-import { resolveStartupProviderDetails } from '../utils/tersaStatus.js'
+import {
+  getTersaCaveStatusRows,
+  resolveStartupProviderDetails,
+} from '../utils/tersaStatus.js'
 import {
   resolveLogoPalette,
   type RGB,
@@ -85,6 +88,7 @@ export function renderStartupLines(
     rows,
     version: MACRO.DISPLAY_VERSION ?? MACRO.VERSION,
     provider: detectProvider(modelOverride),
+    caveRows: getTersaCaveStatusRows(),
     palette,
     paintLine,
   })

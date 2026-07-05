@@ -7,6 +7,7 @@ import {
   isLiveProcessRow,
   normalizeScreenSnapshot,
   startupExpectationForWidth,
+  terminalNegotiationSettleScript,
 } from './tersa-tui-canary.ts'
 
 describe('tersa tui canary helpers', () => {
@@ -63,6 +64,14 @@ describe('tersa tui canary helpers', () => {
       expect: '[Hh]igh',
       regex: true,
     })
+  })
+
+  test('settles startup while answering terminal capability queries', () => {
+    const script = terminalNegotiationSettleScript(5)
+
+    expect(script).toContain('set timeout 5')
+    expect(script).toContain('exp_continue -continue_timer')
+    expect(script).toContain('set timeout 10')
   })
 
   test('does not treat zombie or exiting process rows as live leaks', () => {

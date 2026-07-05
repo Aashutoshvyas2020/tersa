@@ -129,7 +129,8 @@ export function EffortPicker({ onSelect, onCancel }: Props) {
           onChange={handleSelect}
           onCancel={handleCancel}
           visibleOptionCount={Math.min(6, options.length)}
-          inlineDescriptions={true}
+          layout="compact-vertical"
+          inlineDescriptions={false}
         />
       </Box>
 

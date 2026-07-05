@@ -197,6 +197,16 @@ async function prepareFastModeTestState(): Promise<void> {
   })
 }
 
+function restoreProcessEnv(): void {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in originalEnv)) delete process.env[key]
+  }
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
+}
+
 function forceFirstPartyProviderEnv(): void {
   delete process.env.CLAUDE_CODE_USE_OPENAI
   delete process.env.CLAUDE_CODE_USE_GITHUB
@@ -226,7 +236,7 @@ afterEach(async () => {
     if (originalAxiosModule) {
       mock.module('axios', () => originalAxiosModule!)
     }
-    process.env = { ...originalEnv }
+    restoreProcessEnv()
     const { resetStateForTests } = await import('../bootstrap/state.js')
     resetStateForTests()
     const { _setGlobalConfigCacheForTesting } = await import('./config.js')
@@ -234,6 +244,24 @@ afterEach(async () => {
   } finally {
     releaseSharedMutationLock()
   }
+})
+
+describe('fastMode provider messaging', () => {
+  test('uses a concise unavailable reason for third-party providers', async () => {
+    process.env.CLAUDE_CODE_USE_OPENAI = '1'
+    await installCommonMocks({ cachedEnabled: false })
+    mock.module('./model/providers.js', () => ({
+      ...originalProvidersModule!,
+      getAPIProvider: () => 'openai',
+    }))
+
+    const { getFastModeUnavailableReason } = await importFreshFastModeModule()
+    await prepareFastModeTestState()
+
+    expect(getFastModeUnavailableReason()).toBe(
+      'Fast mode requires an Anthropic provider',
+    )
+  })
 })
 
 describe('fastMode ant-only fallback cleanup', () => {

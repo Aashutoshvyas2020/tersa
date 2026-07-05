@@ -274,6 +274,33 @@ function flushPendingUtf8(pendingUtf8?: Buffer): string {
   return String(pendingUtf8)
 }
 
+function splitCoalescedControlText(value: string): string[] {
+  const chunks: string[] = []
+  let printable = ''
+
+  for (const char of value) {
+    const code = char.charCodeAt(0)
+    const isReadlineControl =
+      (code >= 1 && code <= 8) ||
+      (code >= 11 && code <= 12) ||
+      (code >= 14 && code <= 26) ||
+      code === 31
+
+    if (isReadlineControl) {
+      if (printable) {
+        chunks.push(printable)
+        printable = ''
+      }
+      chunks.push(char)
+    } else {
+      printable += char
+    }
+  }
+
+  if (printable) chunks.push(printable)
+  return chunks
+}
+
 export function parseMultipleKeypresses(
   prevState: KeyParseState,
   input: Buffer | string | null = '',
@@ -347,7 +374,9 @@ export function parseMultipleKeypresses(
         const mouse = parseMouseEvent(resynthesized)
         keys.push(mouse ?? parseKeypress(resynthesized))
       } else {
-        keys.push(parseKeypress(token.value))
+        for (const chunk of splitCoalescedControlText(token.value)) {
+          keys.push(parseKeypress(chunk))
+        }
       }
     }
   }

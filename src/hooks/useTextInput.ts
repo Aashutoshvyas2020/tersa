@@ -29,10 +29,20 @@ type MaybeCursor = void | Cursor
 type InputHandler = (input: string) => MaybeCursor
 type InputMapper = (input: string) => MaybeCursor
 const NOOP_HANDLER: InputHandler = () => {}
+
+export function normalizeMappedInput(input: string): string {
+  if (input.length !== 1) return input
+  const code = input.charCodeAt(0)
+  return code >= 1 && code <= 26
+    ? String.fromCharCode(code + 96)
+    : input
+}
+
 function mapInput(input_map: Array<[string, InputHandler]>): InputMapper {
   const map = new Map(input_map)
   return function (input: string): MaybeCursor {
-    return (map.get(input) ?? NOOP_HANDLER)(input)
+    const normalized = normalizeMappedInput(input)
+    return (map.get(normalized) ?? NOOP_HANDLER)(normalized)
   }
 }
 
@@ -464,6 +474,10 @@ export function useTextInput({
         return () => cursor.right()
       default: {
         return function (input: string) {
+          const normalizedControlInput = normalizeMappedInput(input)
+          if (normalizedControlInput !== input) {
+            return handleCtrl(input)
+          }
           switch (true) {
             // Home key
             case input === '\x1b[H' || input === '\x1b[1~':
