@@ -12,7 +12,6 @@ type ParsedCoAuthor = {
 }
 
 export const USAGE = [
-  'Commit message attribution',
   'Controls only the attribution text appended after /commit messages.',
   'It does not set the commit title or summary.',
   '',
@@ -20,7 +19,7 @@ export const USAGE = [
   '  /commit-message status',
   '  /commit-message off',
   '  /commit-message default',
-  '  /commit-message set "Generated with Tersa using GPT-5.5"',
+  '  /commit-message set "Built with Tersa"',
   '  /commit-message co-author "Name" name@example.com',
 ].join('\n')
 
@@ -93,20 +92,20 @@ function saveCommitAttribution(commit: string | undefined): string | null {
   return null
 }
 
-function formatStatus(): string {
+export function formatStatus(): string {
   const effective = getAttributionTexts().commit
   const configured = getInitialSettings().attribution?.commit
-  const configuredText =
+  const mode =
     configured === undefined
-      ? 'default'
+      ? 'default (privacy-preserving)'
       : configured === ''
         ? 'off'
-        : configured
+        : 'custom'
 
   return [
     'Commit message attribution',
-    `Configured: ${configuredText}`,
-    `Effective: ${effective || 'off'}`,
+    `Mode: ${mode}`,
+    `Appended after /commit messages: ${effective || 'nothing'}`,
   ].join('\n')
 }
 

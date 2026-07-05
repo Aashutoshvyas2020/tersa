@@ -1,6 +1,6 @@
 {
   "name": "tersa-cli",
-  "version": "0.16.4",
+  "version": "0.16.5",
   "description": "Tersa opens coding-agent workflows to any LLM \u2014 OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
   "type": "module",
   "bin": {

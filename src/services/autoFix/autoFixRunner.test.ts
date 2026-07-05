@@ -71,6 +71,20 @@ describe('runAutoFixCheck', () => {
     expect(result.testOutput).toBeUndefined()
   }, TEST_TIMEOUT_MS)
 
+  test('does not wait for inherited stdio after the shell exits', async () => {
+    if (process.platform === 'win32') return
+
+    const startedAt = Date.now()
+    const result = await runAutoFixCheck({
+      lint: 'sleep 5 &',
+      timeout: 1000,
+      cwd: TEST_CWD,
+    })
+
+    expect(result.hasErrors).toBe(false)
+    expect(Date.now() - startedAt).toBeLessThan(1000)
+  }, TEST_TIMEOUT_MS)
+
   test('handles timeout gracefully', async () => {
     const result = await runAutoFixCheck({
       lint: 'node -e "setTimeout(() => {}, 10000)"',

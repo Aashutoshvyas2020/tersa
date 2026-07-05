@@ -158,20 +158,20 @@ ${AGENT_TOOL_NAME}({
   const currentExamples = `Example usage:
 
 <example_agent_descriptions>
-"claude-code-guide": use this agent when the user asks how Claude Code works or how to use its features
-"statusline-setup": use this agent to configure the user's Claude Code status line setting
+"tersa-agent": use this agent when the user asks how Tersa works, how to use its features, or how it reduces token usage
+"statusline-setup": internal worker for status-line configuration
 </example_agent_descriptions>
 
 <example>
-user: "How do I configure Claude Code hooks?"
+user: "How does Tersa compress tool output?"
 <commentary>
-This is a Claude Code usage question, so use the claude-code-guide agent
+This is a Tersa product question, so use the tersa-agent
 </commentary>
-assistant: Uses the ${AGENT_TOOL_NAME} tool to launch the claude-code-guide agent
+assistant: Uses the ${AGENT_TOOL_NAME} tool to launch the tersa-agent
 </example>
 
 <example>
-user: "Set up my Claude Code status line"
+user: "Set up my Tersa status line"
 <commentary>
 This matches the statusline-setup agent, so use it to configure the setting
 </commentary>
