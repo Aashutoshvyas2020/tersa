@@ -1,0 +1,53 @@
+# Compatibility canary for all Tersa benchmark profiles. This is not a
+# performance study and must not be used for comparative claims.
+job_name: tbench2-canary-tersa-profiles
+jobs_dir: jobs
+n_attempts: 1
+n_concurrent_trials: 4
+environment:
+  type: docker
+agents:
+  - import_path: harness_bench.agents.tersa:TersaAgent
+    model_name: anthropic/claude-opus-4-6
+    skills:
+      - ./.bench-skills/superpowers
+      - ./.bench-skills/gsd
+    kwargs:
+      version: "0.16.5"
+      max_turns: 100
+      permission_mode: bypassPermissions
+      cave_mode: true
+  - import_path: harness_bench.agents.tersa:TersaNoCaveAgent
+    model_name: anthropic/claude-opus-4-6
+    skills:
+      - ./.bench-skills/superpowers
+      - ./.bench-skills/gsd
+    kwargs:
+      version: "0.16.5"
+      max_turns: 100
+      permission_mode: bypassPermissions
+  - import_path: harness_bench.agents.tersa:TersaPonytailAgent
+    model_name: anthropic/claude-opus-4-6
+    skills:
+      - ./.bench-skills/superpowers
+      - ./.bench-skills/gsd
+      - ./.bench-skills/ponytail
+    kwargs:
+      version: "0.16.5"
+      max_turns: 100
+      permission_mode: bypassPermissions
+      cave_mode: true
+  - import_path: harness_bench.agents.tersa:TersaKarpathyAgent
+    model_name: anthropic/claude-opus-4-6
+    skills:
+      - ./.bench-skills/superpowers
+      - ./.bench-skills/gsd
+      - ./.bench-skills/karpathy-guardrails
+    kwargs:
+      version: "0.16.5"
+      max_turns: 100
+      permission_mode: bypassPermissions
+      cave_mode: true
+datasets:
+  - name: terminal-bench/terminal-bench-2
+    n_tasks: 1
