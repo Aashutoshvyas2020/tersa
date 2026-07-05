@@ -120,6 +120,42 @@ test('shows and marks the active session agent', async () => {
   }
 })
 
+test('built-in-only list is not rendered as an empty state', async () => {
+  const { stdout, stdin, getOutput } = createTestStreams()
+  const root = await createRoot({
+    stdout: stdout as unknown as NodeJS.WriteStream,
+    stdin: stdin as unknown as NodeJS.ReadStream,
+    patchConsole: false,
+  })
+
+  root.render(
+    <AgentsList
+      source="all"
+      agents={[
+        createAgent('general-purpose', 'built-in'),
+        createAgent('tersa-agent', 'built-in'),
+      ]}
+      activeAgentName={undefined}
+      onBack={() => {}}
+      onSelect={() => {}}
+      onCreateNew={() => {}}
+    />,
+  )
+
+  try {
+    const output = await waitForOutput(getOutput, frame =>
+      frame.includes('2 agents'),
+    )
+    expect(output).toContain('Built-in agents')
+    expect(output).toContain('tersa-agent')
+    expect(output).not.toContain('No agents found')
+  } finally {
+    root.unmount()
+    stdin.end()
+    stdout.end()
+  }
+})
+
 test('shows none when no session agent is active', async () => {
   const { stdout, stdin, getOutput } = createTestStreams()
   const root = await createRoot({

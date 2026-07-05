@@ -224,7 +224,7 @@ export function AgentsList(t0) {
     t22 = Symbol.for("react.early_return_sentinel");
     bb1: {
       const builtInAgents_0 = sortedAgents.filter(_temp5);
-      const hasNoAgents = !sortedAgents.length || source !== "built-in" && !sortedAgents.some(_temp6);
+      const hasNoAgents = sortedAgents.length === 0;
       if (hasNoAgents) {
         let t23;
         if ($[55] !== onCreateNew || $[56] !== renderCreateNewOption) {

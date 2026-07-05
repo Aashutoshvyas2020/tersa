@@ -97,7 +97,7 @@ async function createFork(customTitle?: string): Promise<{
 
   // Content-replacement entries for the original session. These record which
   // tool_result blocks were replaced with previews by the per-message budget.
-  // Without them in the fork JSONL, `claude -r {forkId}` reconstructs state
+  // Without them in the fork JSONL, `tersa -r {forkId}` reconstructs state
   // with an empty replacements Map → previously-replaced results are classified
   // as FROZEN and sent as full content (prompt cache miss + permanent overage).
   // sessionId must be rewritten since loadTranscriptFile keys lookup by the
@@ -217,6 +217,14 @@ async function getUniqueForkName(baseName: string): Promise<string> {
   return `${baseName} (Branch ${nextNumber})`
 }
 
+export function formatBranchSuccessMessage(
+  originalSessionId: string,
+  title?: string,
+): string {
+  const titleInfo = title ? ` \"${title}\"` : ''
+  return `Branched conversation${titleInfo}. You are now in the branch.\nTo resume the original: tersa -r ${originalSessionId}`
+}
+
 export async function call(
   onDone: LocalJSXCommandOnDone,
   context: LocalJSXCommandContext,
@@ -271,8 +279,7 @@ export async function call(
 
     // Resume into the fork
     const titleInfo = title ? ` "${title}"` : ''
-    const resumeHint = `\nTo resume the original: claude -r ${originalSessionId}`
-    const successMessage = `Branched conversation${titleInfo}. You are now in the branch.${resumeHint}`
+    const successMessage = formatBranchSuccessMessage(originalSessionId, title)
 
     if (context.resume) {
       await context.resume(sessionId, forkLog, 'fork')

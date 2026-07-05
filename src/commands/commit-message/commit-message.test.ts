@@ -10,6 +10,7 @@ import { resetSettingsCache } from '../../utils/settings/settingsCache.js'
 import {
   call,
   formatCoAuthorTrailer,
+  formatStatus,
   parseCoAuthor,
   stripMatchingQuotes,
   USAGE,
@@ -72,9 +73,22 @@ describe('commit-message command helpers', () => {
       'Controls only the attribution text appended after /commit messages.',
     )
     expect(USAGE).toContain(
-      '/commit-message set "Generated with Tersa using GPT-5.5"',
+      '/commit-message set "Built with Tersa"',
     )
     expect(USAGE).not.toContain('/commit-message set-attribution')
+  })
+
+  it('describes default state without contradictory configured/effective labels', () => {
+    tempSettingsDir = mkdtempSync(join(tmpdir(), 'tersa-settings-'))
+    setClaudeConfigHomeDirForTesting(tempSettingsDir)
+    getClaudeConfigHomeDir.cache?.clear?.()
+
+    const status = formatStatus()
+
+    expect(status).toContain('Mode: default (privacy-preserving)')
+    expect(status).toContain('Appended after /commit messages: nothing')
+    expect(status).not.toContain('Configured:')
+    expect(status).not.toContain('Effective:')
   })
 
   it('describes default reset as privacy-preserving', async () => {

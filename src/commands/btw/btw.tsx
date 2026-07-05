@@ -33,6 +33,17 @@ type BtwComponentProps = {
 const CHROME_ROWS = 5;
 const OUTER_CHROME_ROWS = 6;
 const SCROLL_LINES = 3;
+export const BTW_USAGE = [
+  'Ask a quick side question without steering or interrupting the main task.',
+  '',
+  'Usage:',
+  '  /btw your question',
+  '',
+  'Example:',
+  '  /btw what does this error message mean?',
+  '',
+  'The answer opens in a temporary panel. Press Space, Enter, or Escape to close it.',
+].join('\n');
 function BtwSideQuestion(t0) {
   const $ = _c(25);
   const {
@@ -229,7 +240,7 @@ async function buildCacheSafeParams(context: ProcessUserInputContext): Promise<C
 export async function call(onDone: LocalJSXCommandOnDone, context: ProcessUserInputContext, args: string): Promise<React.ReactNode> {
   const question = args?.trim();
   if (!question) {
-    onDone('Usage: /btw <your question>', {
+    onDone(BTW_USAGE, {
       display: 'system'
     });
     return null;

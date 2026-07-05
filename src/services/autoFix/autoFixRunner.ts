@@ -31,8 +31,12 @@ async function runCommand(
     }
 
     let timedOut = false
+    let settled = false
     let stdout = ''
     let stderr = ''
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let exitFallbackTimer: ReturnType<typeof setTimeout> | undefined
+    let terminationFallbackTimer: ReturnType<typeof setTimeout> | undefined
 
     const isWindows = process.platform === 'win32'
     const proc = spawn(command, [], {
@@ -74,8 +78,31 @@ async function runCommand(
       }
     }
 
+    const finish = (
+      exitCode: number,
+      options: { timedOut?: boolean; stderrFallback?: string } = {},
+    ) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      if (exitFallbackTimer) clearTimeout(exitFallbackTimer)
+      if (terminationFallbackTimer) clearTimeout(terminationFallbackTimer)
+      signal?.removeEventListener('abort', onAbort)
+      resolve({
+        stdout: stdout.slice(0, 10000),
+        stderr: (stderr || options.stderrFallback || '').slice(0, 10000),
+        exitCode,
+        timedOut: options.timedOut ?? timedOut,
+      })
+    }
+
     const onAbort = () => {
+      if (timer) clearTimeout(timer)
       killTree()
+      terminationFallbackTimer = setTimeout(
+        () => finish(1, { stderrFallback: 'Aborted' }),
+        250,
+      )
     }
     signal?.addEventListener('abort', onAbort, { once: true })
 
@@ -86,31 +113,31 @@ async function runCommand(
       stderr += data.toString()
     })
 
-    const timer = setTimeout(() => {
+    timer = setTimeout(() => {
       timedOut = true
       killTree()
+      terminationFallbackTimer = setTimeout(
+        () => finish(1, { timedOut: true }),
+        250,
+      )
     }, timeout)
 
+    proc.on('exit', (code) => {
+      // `close` waits for inherited stdio. A completed shell can leave a
+      // background descendant holding those pipes, so settle after a short
+      // drain grace period even when `close` never arrives.
+      exitFallbackTimer = setTimeout(() => {
+        killTree()
+        finish(code ?? 1)
+      }, 100)
+    })
+
     proc.on('close', (code) => {
-      clearTimeout(timer)
-      signal?.removeEventListener('abort', onAbort)
-      resolve({
-        stdout: stdout.slice(0, 10000),
-        stderr: stderr.slice(0, 10000),
-        exitCode: code ?? 1,
-        timedOut,
-      })
+      finish(code ?? 1)
     })
 
     proc.on('error', () => {
-      clearTimeout(timer)
-      signal?.removeEventListener('abort', onAbort)
-      resolve({
-        stdout,
-        stderr: stderr || 'Command failed to start',
-        exitCode: 1,
-        timedOut: false,
-      })
+      finish(1, { stderrFallback: 'Command failed to start' })
     })
   })
 }

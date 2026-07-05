@@ -5,15 +5,7 @@ import { join } from 'path'
 import React from 'react'
 
 import type { ExportFormat } from '../../utils/exportFormats.js'
-
-let importCounter = 0
-
-async function importExportCommand(): Promise<typeof import('./export.js')> {
-  importCounter += 1
-  return import(`./export.js?export-test-${importCounter}`) as Promise<
-    typeof import('./export.js')
-  >
-}
+import { call as callExport } from './export.js'
 
 function defaultMessages(): unknown[] {
   return [
@@ -40,9 +32,8 @@ async function listFiles(cwd: string): Promise<string[]> {
 }
 
 async function runExport(args: string, messages: unknown[] = defaultMessages()): Promise<string> {
-  const { call } = await importExportCommand()
   let message = ''
-  const result = await call(
+  const result = await callExport(
     value => {
       message = value ?? ''
     },
@@ -57,8 +48,7 @@ async function runExport(args: string, messages: unknown[] = defaultMessages()):
 }
 
 async function openExportDialog(args: string, messages: unknown[] = defaultMessages()): Promise<React.ReactNode> {
-  const { call } = await importExportCommand()
-  return call(
+  return callExport(
     () => {},
     {
       messages,
@@ -259,8 +249,7 @@ describe('/export direct filename', () => {
 
   test('generates prompt-based .txt default filenames for interactive export', async () => {
     await withExportTestCwd(async () => {
-      const { call } = await importExportCommand()
-      const result = await call(
+          const result = await callExport(
         () => {},
         {
           messages: [

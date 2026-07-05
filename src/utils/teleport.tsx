@@ -78,13 +78,13 @@ You should keep it short and simple, ideally no more than 6 words. Avoid using j
 Use sentence case for the title (capitalize only the first word and proper nouns), not Title Case.
 
 The branch name should be clear, concise, and accurately reflect the content of the coding task.
-You should keep it short and simple, ideally no more than 4 words. The branch should always start with "claude/" and should be all lower case, with words separated by dashes.
+You should keep it short and simple, ideally no more than 4 words. The branch should always start with "tersa/" and should be all lower case, with words separated by dashes.
 
 Return a JSON object with "title" and "branch" fields.
 
-Example 1: {"title": "Fix login button not working on mobile", "branch": "claude/fix-mobile-login-button"}
-Example 2: {"title": "Update README with installation instructions", "branch": "claude/update-readme"}
-Example 3: {"title": "Improve performance of data processing script", "branch": "claude/improve-data-processing"}
+Example 1: {"title": "Fix login button not working on mobile", "branch": "tersa/fix-mobile-login-button"}
+Example 2: {"title": "Update README with installation instructions", "branch": "tersa/update-readme"}
+Example 3: {"title": "Improve performance of data processing script", "branch": "tersa/improve-data-processing"}
 
 Here is the session description:
 <description>{description}</description>
@@ -94,6 +94,14 @@ type TitleAndBranch = {
   branchName: string;
 };
 
+export function ensureTersaBranchPrefix(branch: string): string {
+  const suffix = branch
+    .trim()
+    .replace(/^(?:claude|tersa)\//i, '')
+    .replace(/^\/+/, '')
+  return `tersa/${suffix || 'task'}`
+}
+
 /**
  * Generates a title and branch name for a coding session using Claude Haiku
  * @param description The description/prompt for the session
@@ -101,7 +109,7 @@ type TitleAndBranch = {
  */
 async function generateTitleAndBranch(description: string, signal: AbortSignal): Promise<TitleAndBranch> {
   const fallbackTitle = truncateToWidth(description, 75);
-  const fallbackBranch = 'claude/task';
+  const fallbackBranch = 'tersa/task';
   try {
     const userPrompt = SESSION_TITLE_AND_BRANCH_PROMPT.replace('{description}', description);
     const response = await queryHaiku({
@@ -149,7 +157,7 @@ async function generateTitleAndBranch(description: string, signal: AbortSignal):
     if (parseResult.success) {
       return {
         title: parseResult.data.title || fallbackTitle,
-        branchName: parseResult.data.branch || fallbackBranch
+        branchName: ensureTersaBranchPrefix(parseResult.data.branch)
       };
     }
     return {
@@ -778,7 +786,7 @@ export async function teleportToRemote(options: {
   skipBundle?: boolean;
   /**
    * When set, reuses this branch as the outcome branch instead of generating
-   * a new claude/ branch. Sets allow_unrestricted_git_push on the source and
+   * a new tersa/ branch. Sets allow_unrestricted_git_push on the source and
    * reuse_outcome_branches on the session context so the remote pushes to the
    * caller's branch directly.
    */

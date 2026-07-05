@@ -254,7 +254,7 @@ describe('skillChangeDetector reload batching', () => {
     expect(executeConfigChangeHooks).toHaveBeenCalledTimes(1)
 
     releaseFirstHook?.()
-    await sleep(20)
+    await waitFor(() => executeConfigChangeHooks.mock.calls.length === 2)
     expect(notifications).toBe(0)
     expect(clearCommandsCache).not.toHaveBeenCalled()
     expect(executeConfigChangeHooks).toHaveBeenCalledTimes(2)

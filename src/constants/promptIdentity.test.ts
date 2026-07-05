@@ -13,8 +13,8 @@ let getSystemPrompt: typeof import('./prompts.js').getSystemPrompt
 let DEFAULT_AGENT_PROMPT: typeof import('./prompts.js').DEFAULT_AGENT_PROMPT
 let CLI_SYSPROMPT_PREFIXES: typeof import('./system.js').CLI_SYSPROMPT_PREFIXES
 let getCLISyspromptPrefix: typeof import('./system.js').getCLISyspromptPrefix
-let CLAUDE_CODE_GUIDE_AGENT:
-  typeof import('../tools/AgentTool/built-in/claudeCodeGuideAgent.js').CLAUDE_CODE_GUIDE_AGENT
+let TERSA_AGENT:
+  typeof import('../tools/AgentTool/built-in/tersaAgent.js').TERSA_AGENT
 let GENERAL_PURPOSE_AGENT:
   typeof import('../tools/AgentTool/built-in/generalPurposeAgent.js').GENERAL_PURPOSE_AGENT
 let EXPLORE_AGENT:
@@ -22,6 +22,8 @@ let EXPLORE_AGENT:
 let PLAN_AGENT: typeof import('../tools/AgentTool/built-in/planAgent.js').PLAN_AGENT
 let STATUSLINE_SETUP_AGENT:
   typeof import('../tools/AgentTool/built-in/statuslineSetup.js').STATUSLINE_SETUP_AGENT
+let VERIFICATION_AGENT:
+  typeof import('../tools/AgentTool/built-in/verificationAgent.js').VERIFICATION_AGENT
 
 beforeAll(async () => {
   await acquireSharedMutationLock('constants/promptIdentity.test.ts')
@@ -41,8 +43,8 @@ beforeAll(async () => {
   ;({ clearSystemPromptSections } = await import('./systemPromptSections.js'))
   ;({ getSystemPrompt, DEFAULT_AGENT_PROMPT } = await import('./prompts.js'))
   ;({ CLI_SYSPROMPT_PREFIXES, getCLISyspromptPrefix } = await import('./system.js'))
-  ;({ CLAUDE_CODE_GUIDE_AGENT } = await import(
-    '../tools/AgentTool/built-in/claudeCodeGuideAgent.js'
+  ;({ TERSA_AGENT } = await import(
+    '../tools/AgentTool/built-in/tersaAgent.js'
   ))
   ;({ GENERAL_PURPOSE_AGENT } = await import(
     '../tools/AgentTool/built-in/generalPurposeAgent.js'
@@ -53,6 +55,9 @@ beforeAll(async () => {
   ;({ PLAN_AGENT } = await import('../tools/AgentTool/built-in/planAgent.js'))
   ;({ STATUSLINE_SETUP_AGENT } = await import(
     '../tools/AgentTool/built-in/statuslineSetup.js'
+  ))
+  ;({ VERIFICATION_AGENT } = await import(
+    '../tools/AgentTool/built-in/verificationAgent.js'
   ))
 })
 
@@ -145,7 +150,13 @@ test('built-in agent prompts describe Tersa instead of Claude Code', () => {
   expect(statuslinePrompt).toContain('Tersa')
   expect(statuslinePrompt).not.toContain('Claude Code')
 
-  const guidePrompt = CLAUDE_CODE_GUIDE_AGENT.getSystemPrompt({
+  const verificationPrompt = VERIFICATION_AGENT.getSystemPrompt({
+    toolUseContext: { options: {} as never },
+  })
+  expect(verificationPrompt).toContain('Tersa verifier')
+  expect(verificationPrompt).not.toContain('Claude Code')
+
+  const guidePrompt = TERSA_AGENT.getSystemPrompt({
     toolUseContext: {
       options: {
         commands: [],
@@ -155,8 +166,19 @@ test('built-in agent prompts describe Tersa instead of Claude Code', () => {
     },
   })
   expect(guidePrompt).toContain('Tersa')
-  expect(guidePrompt).toContain('You are the Tersa guide agent.')
-  expect(guidePrompt).toContain('**Tersa** (the CLI tool)')
-  expect(guidePrompt).not.toContain('You are the Claude guide agent.')
-  expect(guidePrompt).not.toContain('**Claude Code** (the CLI tool)')
+  expect(guidePrompt).toContain('Tersa product expert')
+  expect(guidePrompt).toContain('Token paths')
+  expect(guidePrompt).toContain('Tool-result budgets/compression')
+  expect(guidePrompt).toContain('Bare mode skips')
+  expect(guidePrompt).toContain('same model/task')
+  expect(guidePrompt).toContain('Skill hooks')
+  expect(guidePrompt).not.toContain('Claude Agent SDK docs')
+  expect(guidePrompt).not.toContain('Claude Code docs')
+
+  expect(generalPrompt.length).toBeLessThan(800)
+  expect(explorePrompt.length).toBeLessThan(1_200)
+  expect(planPrompt.length).toBeLessThan(1_300)
+  expect(statuslinePrompt.length).toBeLessThan(3_000)
+  expect(verificationPrompt.length).toBeLessThan(4_500)
+  expect(guidePrompt.length).toBeLessThan(3_000)
 })
