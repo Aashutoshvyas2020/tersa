@@ -1,3 +1,4 @@
+# trigger one-shot verified 0.16.6 installer
 name: Apply verified Tersa 0.16.6 patch once
 
 on:
