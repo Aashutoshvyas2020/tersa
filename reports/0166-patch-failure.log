@@ -8,12 +8,12 @@ cca1b22e7cf8fce2d095d6a601b56357b482fd4cd6c1d9fa62db3ce222cf2920  scripts/.prepa
 89138e1555ed4a1bd0c264b6c81fd521a0b78655f3544393a72b1e8c93ab4ac8  scripts/.prepare-0166-05-2.b64
 df8be083f7b051b03e057f9b4bac050fb6334ffe1051c66eefc43e358d9e5a56  scripts/.prepare-0166-05-3.b64
 8b6d1d66569e0c62a43887da476dd87334b9c619b3b73ac13754fb404b025648  scripts/.prepare-0166-06-0.b64
-330ae20a70c812014fe94fedd8f566878d5bc2f803461397e9f5533861aedebb  scripts/.prepare-0166-06-1.b64
+60a6286343f79c601c4c94df3b746f6ba6ad3e6bf7b7e2bbb16f77bc77221e1c  scripts/.prepare-0166-06-1.b64
 ff66ad55d3743947a46826943e5d7c2c8977417646654ebbba45b63644dcb66c  scripts/.prepare-0166-06-2.b64
 809284832cc63e492cbd7036b5d31a7e8ec3f033fa813f162bff47e1427dbacf  scripts/.prepare-0166-06-3.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-8d58bd5842c269362ebf945a7a948985ff7e3c2b3bffa355ddbd47e3c2df4d8b  scripts/prepare-0.16.6.py
-  File "scripts/prepare-0.16.6.py", line 1241
+a946d8d63f1404363c1fa3f38ee26808e50b966f9c2a4fa48f8bbfa90028a2ff  scripts/prepare-0.16.6.py
+  File "scripts/prepare-0.16.6.py", line 1235
     """,
     ^
-SyntaxError: unterminated triple-quoted string literal (detected at line 1284)
+SyntaxError: unterminated triple-quoted string literal (detected at line 1278)
