@@ -1,16 +1,16 @@
 name: Apply Tersa 0.16.6 hardening
 
 on:
-  push:
+  pull_request:
     branches:
-      - release/tersa-0.16.6-production
+      - main
 
 permissions:
   contents: write
 
 concurrency:
   group: tersa-0166-apply
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   apply-and-verify:
