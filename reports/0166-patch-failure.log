@@ -9,9 +9,10 @@ c874e750c9e96ae60456c4dc25123af5edc7db09d6d4a9e726501c5887eb3762  scripts/.prepa
 8b356d2f2ecd9c35257a239de2c3f280795d0e7990200364c51e73703f124183  scripts/.prepare-0166-05-3.b64
 4b2588a5d3a686be039178fce84674bf3d94712937475d5a778bdfb03b4c8b13  scripts/.prepare-0166-06-0.b64
 330ae20a70c812014fe94fedd8f566878d5bc2f803461397e9f5533861aedebb  scripts/.prepare-0166-06-1.b64
+ff66ad55d3743947a46826943e5d7c2c8977417646654ebbba45b63644dcb66c  scripts/.prepare-0166-06-2.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-d6a7d878a4f4020333654424874d0f1795487236c8ff82e9d01ee2eac44604c1  scripts/prepare-0.16.6.py
-  File "scripts/prepare-0.16.6.py", line 1103
-    /index.ts')).toContain("Exit Tersa")
-             ^
-SyntaxError: unterminated string literal (detected at line 1103)
+3a227a15ba81dc77f4d253373d87207a448c76e81a90ce3cc2a0a5f9ae93b767  scripts/prepare-0.16.6.py
+  File "scripts/prepare-0.16.6.py", line 1141
+    "src/utils/knowledgeGrap/index.ts')).toContain("Exit Tersa")
+                                                              ^
+SyntaxError: unterminated string literal (detected at line 1141)
