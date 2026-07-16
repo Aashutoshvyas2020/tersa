@@ -6,16 +6,14 @@
 29a42bbedb59351f3d9d8d4a603594d12573ac65d7a9e5627a381bbe434a15a6  scripts/.prepare-0166-05-0.b64
 cca1b22e7cf8fce2d095d6a601b56357b482fd4cd6c1d9fa62db3ce222cf2920  scripts/.prepare-0166-05-1.b64
 89138e1555ed4a1bd0c264b6c81fd521a0b78655f3544393a72b1e8c93ab4ac8  scripts/.prepare-0166-05-2.b64
-8b356d2f2ecd9c35257a239de2c3f280795d0e7990200364c51e73703f124183  scripts/.prepare-0166-05-3.b64
+df8be083f7b051b03e057f9b4bac050fb6334ffe1051c66eefc43e358d9e5a56  scripts/.prepare-0166-05-3.b64
 4b2588a5d3a686be039178fce84674bf3d94712937475d5a778bdfb03b4c8b13  scripts/.prepare-0166-06-0.b64
 330ae20a70c812014fe94fedd8f566878d5bc2f803461397e9f5533861aedebb  scripts/.prepare-0166-06-1.b64
 ff66ad55d3743947a46826943e5d7c2c8977417646654ebbba45b63644dcb66c  scripts/.prepare-0166-06-2.b64
 809284832cc63e492cbd7036b5d31a7e8ec3f033fa813f162bff47e1427dbacf  scripts/.prepare-0166-06-3.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-77857be3fae545e43c3a288a5ec07164c4160d8a5cd657b2f9e966799e6ec311  scripts/prepare-0.16.6.py
+e016986c4ca84a5f814679cc0034e3a170747d5c3b6587c8affc2423c92224b7  scripts/prepare-0.16.6.py
 Traceback (most recent call last):
   File "/home/runner/work/tersa/tersa/scripts/prepare-0.16.6.py", line 1027, in <module>
     replace_once(
-  File "/home/runner/work/tersa/tersa/scripts/prepare-0.16.6.py", line 27, in replace_once
-    raise RuntimeError(f"{rel}: expected one match, found {count}: {old[:120]!r}")
-RuntimeError: src/components/Spinner.tsx: expected one match, found 3: '  const settings = useSettings();\n  const reducedMotion = settings.prefersReducedMotion ?? false;'
+TypeError: replace_once() missing 1 required positional argument: 'new'
