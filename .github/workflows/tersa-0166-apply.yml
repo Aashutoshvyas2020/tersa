@@ -38,6 +38,7 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
+          rm -f reports/0166-patch-failure.log
           {
             cat scripts/.prepare-0166-*.b64 | base64 --decode > scripts/prepare-0.16.6.py
             python3 -m py_compile scripts/prepare-0.16.6.py
@@ -46,12 +47,15 @@ jobs:
           } 2>&1 | tee patch.log
           exit ${PIPESTATUS[0]}
 
-      - name: Report patch failure
+      - name: Persist patch failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
+          set -euo pipefail
+          mkdir -p reports
+          cp patch.log reports/0166-patch-failure.log
           {
             echo '### 0.16.6 patch application failure'
             echo
@@ -60,6 +64,11 @@ jobs:
             echo '```'
           } > failure.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file failure.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/0166-patch-failure.log
+          git commit -m "ci: persist 0.16.6 patch failure"
+          git push origin HEAD:release/tersa-0.16.6-production
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
