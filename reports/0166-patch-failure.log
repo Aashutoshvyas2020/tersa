@@ -3,11 +3,9 @@
 4e770db5d4781092a75a5247aa19a6ff8439d62b156407bda80eaf67a55edd2a  scripts/.prepare-0166-02.b64
 37fe2dfbb39a70fa217d3140f1022d14280f60fcc1af69c6a74c613a94b59c4b  scripts/.prepare-0166-03.b64
 0120b2968abbd94d7858bdaa8d015d023b6753235e10654a8b141287d868eaea  scripts/.prepare-0166-04.b64
-71e96dbdd69b258e61c90b8893cc8126c1336d9ab096a27142719e16df3758c1  scripts/.prepare-0166-05.b64
-73a1441c8bf3135e14fc43d79a1541dac9857384a25af2f1a59dac7a81b09541  scripts/.prepare-0166-06.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-8b145c4b668660cccb166392c73e119c660eee51053fc8d4f4360dcab213d6eb  scripts/prepare-0.16.6.py
-  File "scripts/prepare-0.16.6.py", line 1114
-    )
-    ^
-SyntaxError: closing parenthesis ')' does not match opening parenthesis '{' on line 1113
+a7b8c52d060c23b89d91ec0e0448025826b942406b45c4dc7c43f4369c6093d1  scripts/prepare-0.16.6.py
+  File "scripts/prepare-0.16.6.py", line 882
+    r"const { s/index.ts')).toContain("Exit Tersa")
+                                                 ^
+SyntaxError: unterminated string literal (detected at line 882)
