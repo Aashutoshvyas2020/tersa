@@ -4,9 +4,12 @@
 37fe2dfbb39a70fa217d3140f1022d14280f60fcc1af69c6a74c613a94b59c4b  scripts/.prepare-0166-03.b64
 0120b2968abbd94d7858bdaa8d015d023b6753235e10654a8b141287d868eaea  scripts/.prepare-0166-04.b64
 cd1f4241eef48e3b9cd3976994e619c0462aead7f52c628f7b535e7c97fa561b  scripts/.prepare-0166-05-0.b64
+2f9cb044df30f99f157c857b740a9a00fc2e9b97e2e5612f423c0cb02b353803  scripts/.prepare-0166-05-1.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-027211912f5285c54fdc4b396b67fc34682d646840ff21efc6a1143f8e191c03  scripts/prepare-0.16.6.py
-  File "scripts/prepare-0.16.6.py", line 914
-    r"const { stdout: diffOut, code: diffCode } = /index.ts')).toContain("Exit Tersa")
-                                                                                    ^
-SyntaxError: unterminated string literal (detected at line 914)
+7cf6aa11ff19e9e5656227284bf54e6365ea87e3546b86c70ca32d66714e96a4  scripts/prepare-0.16.6.py
+Traceback (most recent call last):
+  File "/home/runner/work/tersa/tersa/scripts/prepare-0.16.6.py", line 40, in <module>
+    replace_once(
+  File "/home/runner/work/tersa/tersa/scripts/prepare-0.16.6.py", line 27, in replace_once
+    raise RuntimeError(f"{rel}: expected one match, found {count}: {old[:120]!r}")
+RuntimeError: src/commands/copy/index.ts: expected one match, found 0: 'description: "Copy Claude\'s last response to clipboard, or pick a code block",'
