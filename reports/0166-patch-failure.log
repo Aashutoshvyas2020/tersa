@@ -4,7 +4,7 @@
 37fe2dfbb39a70fa217d3140f1022d14280f60fcc1af69c6a74c613a94b59c4b  scripts/.prepare-0166-03.b64
 28065833aa3fd235c502cad687ceb7ccc62795ea880e98f5149bb728d0ae22f6  scripts/.prepare-0166-04.b64
 29a42bbedb59351f3d9d8d4a603594d12573ac65d7a9e5627a381bbe434a15a6  scripts/.prepare-0166-05-0.b64
-2f9cb044df30f99f157c857b740a9a00fc2e9b97e2e5612f423c0cb02b353803  scripts/.prepare-0166-05-1.b64
+cca1b22e7cf8fce2d095d6a601b56357b482fd4cd6c1d9fa62db3ce222cf2920  scripts/.prepare-0166-05-1.b64
 c874e750c9e96ae60456c4dc25123af5edc7db09d6d4a9e726501c5887eb3762  scripts/.prepare-0166-05-2.b64
 8b356d2f2ecd9c35257a239de2c3f280795d0e7990200364c51e73703f124183  scripts/.prepare-0166-05-3.b64
 4b2588a5d3a686be039178fce84674bf3d94712937475d5a778bdfb03b4c8b13  scripts/.prepare-0166-06-0.b64
@@ -12,8 +12,5 @@ c874e750c9e96ae60456c4dc25123af5edc7db09d6d4a9e726501c5887eb3762  scripts/.prepa
 ff66ad55d3743947a46826943e5d7c2c8977417646654ebbba45b63644dcb66c  scripts/.prepare-0166-06-2.b64
 809284832cc63e492cbd7036b5d31a7e8ec3f033fa813f162bff47e1427dbacf  scripts/.prepare-0166-06-3.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-471573670387cf795e83bbe411e515cc0015f9373b54abe6f175b0df9b26044d  scripts/prepare-0.16.6.py
-  File "scripts/prepare-0.16.6.py", line 976
-    'Did you know: /model refresh reloads the active provider\\'s available models?',
-                                                                                   ^
-SyntaxError: unterminated string literal (detected at line 976)
+6ce7b587f9c93d48829d795983c6d7b6364437ae6ccd90eb931aa63f26cf8b0e  scripts/prepare-0.16.6.py
+Sorry: IndentationError: unexpected indent (prepare-0.16.6.py, line 946)
