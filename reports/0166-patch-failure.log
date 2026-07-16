@@ -7,9 +7,10 @@ cd1f4241eef48e3b9cd3976994e619c0462aead7f52c628f7b535e7c97fa561b  scripts/.prepa
 2f9cb044df30f99f157c857b740a9a00fc2e9b97e2e5612f423c0cb02b353803  scripts/.prepare-0166-05-1.b64
 c874e750c9e96ae60456c4dc25123af5edc7db09d6d4a9e726501c5887eb3762  scripts/.prepare-0166-05-2.b64
 8b356d2f2ecd9c35257a239de2c3f280795d0e7990200364c51e73703f124183  scripts/.prepare-0166-05-3.b64
+4b2588a5d3a686be039178fce84674bf3d94712937475d5a778bdfb03b4c8b13  scripts/.prepare-0166-06-0.b64
 0122ae99f35e00c81e618bc744e2bfd0be4af2629c4e811614adce0ade4aff44  scripts/.prepare-0166-07.b64
-7c5fc89e51da6a7fc287371bebd7d897f15bc89b6a5b145f8de0971f60be4712  scripts/prepare-0.16.6.py
-  File "scripts/prepare-0.16.6.py", line 1026
-    "  const settings = useSettings();\n  const reducedMotion = settings.prefersReducedMotion ?? fals/index.ts')).toContain("Exit Tersa")
-                                                                                                                                       ^
-SyntaxError: unterminated string literal (detected at line 1026)
+7680c58dbc9ff3409b771f8c013c0c0769a05d43e10de4f1a56e27b029c0fb15  scripts/prepare-0.16.6.py
+  File "scripts/prepare-0.16.6.py", line 1058
+    replace_once("src/commands.ts", "import desktop from '/index.ts')).toContain("Exit Tersa")
+                                                                                            ^
+SyntaxError: unterminated string literal (detected at line 1058)
