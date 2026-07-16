@@ -1,0 +1,28 @@
+# DRAFT: clean same-model harness comparison. Tersa is deliberately bare here;
+# workflow/profile effects belong in draft-tersa-ablation-claude.yaml.
+job_name: tbench2-pilot-claude-island
+jobs_dir: jobs
+n_attempts: 3
+n_concurrent_trials: 4
+environment:
+  type: docker
+agents:
+  - import_path: harness_bench.agents.tersa:TersaBareAgent
+    model_name: anthropic/claude-opus-4-6
+    kwargs:
+      version: "0.16.5"
+      max_turns: 100
+      permission_mode: bypassPermissions
+      cave_mode: true
+  - name: claude-code
+    model_name: anthropic/claude-opus-4-6
+    kwargs:
+      max_turns: 100
+      permission_mode: bypassPermissions
+  - name: opencode
+    model_name: anthropic/claude-opus-4-6
+  - name: pi
+    model_name: anthropic/claude-opus-4-6
+datasets:
+  - name: terminal-bench/terminal-bench-2
+    n_tasks: 10

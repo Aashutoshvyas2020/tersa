@@ -1,0 +1,26 @@
+# Compatibility canary only. Do not publish performance claims from this run.
+job_name: tbench2-canary-claude-island
+jobs_dir: jobs
+n_attempts: 1
+n_concurrent_trials: 2
+environment:
+  type: docker
+agents:
+  - import_path: harness_bench.agents.tersa:TersaAgent
+    model_name: anthropic/claude-opus-4-6
+    skills:
+      - ./.bench-skills/superpowers
+      - ./.bench-skills/gsd
+    kwargs:
+      version: "0.16.5"
+      cave_mode: true
+      max_turns: 50
+      permission_mode: bypassPermissions
+  - name: claude-code
+    model_name: anthropic/claude-opus-4-6
+    kwargs:
+      max_turns: 50
+      permission_mode: bypassPermissions
+datasets:
+  - name: terminal-bench/terminal-bench-2
+    n_tasks: 2
