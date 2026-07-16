@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - release/tersa-0.16.6-production
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
