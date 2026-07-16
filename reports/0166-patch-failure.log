@@ -1,0 +1,4 @@
+  File "scripts/prepare-0.16.6.py", line 1114
+    )
+    ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '{' on line 1113
