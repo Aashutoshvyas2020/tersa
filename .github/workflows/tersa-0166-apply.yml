@@ -15,7 +15,7 @@ concurrency:
 jobs:
   apply-and-verify:
     if: ${{ github.actor != 'github-actions[bot]' }}
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Check out release branch
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
