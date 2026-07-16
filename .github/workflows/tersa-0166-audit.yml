@@ -4,12 +4,10 @@ on:
   push:
     branches:
       - release/tersa-0.16.6-production
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   audit:
@@ -22,15 +20,29 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          echo '=== task-state strings ==='
-          rg -n -i 'high-level task|concrete next step|knowledge graph|project state' src scripts || true
-          echo '=== legacy product surfaces ==='
-          rg -n -i 'claude in chrome|auto-connect.*ide|copy claude|exit the repl|dream|team memory' src scripts || true
-          echo '=== slash filtering ==='
-          rg -n 'filter.*command|command.*filter|slash.*suggest|suggest.*slash|startsWith\(' src/components src/utils | head -n 250 || true
-          echo '=== spinner tips ==='
-          rg -n 'spinnerTip|spinner tips|Did you know|Use /' src/components src/constants src/utils | head -n 250 || true
-          echo '=== provider recommendation labels ==='
-          rg -n -i 'recommended|codex oauth|advanced provider' src/components src/commands src/integrations | head -n 250 || true
-          echo '=== relevant paths ==='
-          find src -type f \( -iname '*knowledge*' -o -iname '*dream*' -o -iname '*suggest*' -o -iname '*provider*' -o -iname '*tip*' \) | sort
+          {
+            echo '### Automated blocker audit'
+            echo
+            echo '```text'
+            echo '=== task-state strings ==='
+            rg -n -i 'high-level task|concrete next step|knowledge graph|project state' src scripts || true
+            echo '=== legacy product surfaces ==='
+            rg -n -i 'claude in chrome|auto-connect.*ide|copy claude|exit the repl|dream|team memory' src scripts || true
+            echo '=== slash filtering ==='
+            rg -n 'filter.*command|command.*filter|slash.*suggest|suggest.*slash|startsWith\(' src/components src/utils | head -n 250 || true
+            echo '=== spinner tips ==='
+            rg -n 'spinnerTip|spinner tips|Did you know|Use /' src/components src/constants src/utils | head -n 250 || true
+            echo '=== provider recommendation labels ==='
+            rg -n -i 'recommended|codex oauth|advanced provider' src/components src/commands src/integrations | head -n 250 || true
+            echo '=== relevant paths ==='
+            find src -type f \( -iname '*knowledge*' -o -iname '*dream*' -o -iname '*suggest*' -o -iname '*provider*' -o -iname '*tip*' \) | sort
+            echo '```'
+          } > audit.md
+          cat audit.md
+      - name: Post audit to release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --head release/tersa-0.16.6-production --state open --json number --jq '.[0].number')"
+          test -n "$pr"
+          gh pr comment "$pr" --body-file audit.md
